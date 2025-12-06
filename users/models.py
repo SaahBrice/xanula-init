@@ -1,0 +1,104 @@
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+from .managers import CustomUserManager
+
+
+class User(AbstractUser):
+    """
+    Custom User model for Xanula platform.
+    
+    Uses email as the primary identifier instead of username.
+    Includes additional fields per Architecture Document Section 6:
+    - display_name: User's public display name
+    - profile_picture: Optional profile image
+    - earnings_balance: Accumulated author earnings
+    - google_account_id: Google OAuth identifier
+    - bio: Short description of user (per Planning Document Section 2)
+    """
+    
+    # Remove username field, use email instead
+    username = None
+    email = models.EmailField(
+        _('email address'),
+        unique=True,
+        help_text=_('Required. A valid email address.'),
+        error_messages={
+            'unique': _('A user with that email already exists.'),
+        },
+    )
+    
+    # Display name shown publicly
+    display_name = models.CharField(
+        _('display name'),
+        max_length=100,
+        blank=True,
+        help_text=_('Public display name shown on the platform.'),
+    )
+    
+    # Profile picture (optional)
+    profile_picture = models.ImageField(
+        _('profile picture'),
+        upload_to='profiles/%Y/%m/',
+        blank=True,
+        null=True,
+        help_text=_('Optional profile picture.'),
+    )
+    
+    # Short bio/description
+    bio = models.TextField(
+        _('bio'),
+        max_length=500,
+        blank=True,
+        help_text=_('Short description about the user.'),
+    )
+    
+    # Earnings balance for authors
+    earnings_balance = models.DecimalField(
+        _('earnings balance'),
+        max_digits=12,
+        decimal_places=2,
+        default=0.00,
+        help_text=_('Accumulated earnings from book sales in XAF.'),
+    )
+    
+    # Google OAuth account ID (for users who signed up via Google)
+    google_account_id = models.CharField(
+        _('Google account ID'),
+        max_length=255,
+        blank=True,
+        null=True,
+        unique=True,
+        help_text=_('Google account identifier for OAuth users.'),
+    )
+    
+    # Use email as the username field
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []  # Email is already required by USERNAME_FIELD
+    
+    # Use custom manager
+    objects = CustomUserManager()
+    
+    class Meta:
+        verbose_name = _('user')
+        verbose_name_plural = _('users')
+        ordering = ['-date_joined']
+    
+    def __str__(self):
+        return self.display_name or self.email
+    
+    def get_display_name(self):
+        """Returns the display name or email if not set."""
+        return self.display_name or self.email.split('@')[0]
+    
+    @property
+    def is_author(self):
+        """Check if user has published any books."""
+        # Will be implemented when Book model is created
+        return False
+    
+    @property
+    def formatted_earnings(self):
+        """Returns formatted earnings balance in XAF."""
+        return f"{self.earnings_balance:,.0f} XAF"

@@ -1,0 +1,346 @@
+XANULA PLATFORM - MVP PLANNING DOCUMENT
+1. Platform Overview
+Platform Name: Xanula
+Purpose: A digital book marketplace for African users where anyone can publish books, have them converted to ebooks and audiobooks, and sell them to readers. The platform prioritizes simplicity, offline access, and works well on low-bandwidth connections.
+Core Principle: One account for everyone—any user can both publish books and read/listen to books purchased from others.
+
+2. User Account System
+Registration & Login
+Users sign up with email address or Google account
+Email signups require email verification before access
+Google signups are instant (no verification needed)
+All users have the same account type—no separate "author" or "reader" accounts
+Staff and admin use the same account system but have additional permissions
+Password recovery available for email-based accounts
+User Profile
+Display name (chosen during signup)
+Email address
+Profile picture (optional)
+Bio, short description of user
+Public profile shows only books published by that user as author
+Library, purchases, and reading history remain private
+Earnings balance visible only to the user (for tracking book sales revenue)
+
+3. Book Publishing Process
+Manuscript Upload
+Authors upload their book manuscript file
+Accepted formats: PDF, DOCX, EPUB, TXT
+Maximum file size: 25MB
+File stored securely for platform team to process
+Book Details Form
+Authors must provide:
+Book title
+Short description (for listings)
+Long description (for book detail page)
+Cover image (uploaded by author)
+Category (selected from predefined list)
+Language (English or French for MVP)
+Price in XAF (Central African Franc)
+Minimum price: Platform-defined minimum threshold
+Maximum price: Platform-defined maximum threshold
+Free books allowed (price set to 0 XAF)
+Submission & Status Tracking
+After submission, book enters this workflow:
+Status 1: In Review
+Platform team reviews the manuscript and metadata
+Team checks for quality, appropriateness, and completeness
+Author can view status in their "My Books" section
+Status 2: Approved or Denied
+If approved: Book moves to ebook conversion process
+If denied: Book moved to "Draft" status and author is notified with reason
+Authors can edit denied books and resubmit
+Status 3: Ebook Ready
+Platform team converts manuscript to proper ebook format
+Book becomes available for purchase and appears in marketplace
+Readers can now discover, preview, purchase, and read the book
+Status 4: Audiobook Generated (if platform creates audiobook)
+Platform team produces audiobook externally using separate tools
+Audio files and chapter data uploaded to the book record
+Existing ebook buyers notified they can upgrade to get audiobook
+New buyers can purchase book with both formats
+Status 5: Completed
+All planned conversions finished
+Book fully available in all intended formats
+Author Editing Rights
+Authors can edit book details (title, description, price, cover) only BEFORE approval
+Once approved, no editing allowed
+Authors cannot delete published books once live
+Authors can track sales numbers (anonymous buyer count, no names)
+
+4. Marketplace & Discovery
+Browse & Search
+Homepage shows books by categories
+Search bar searches book titles, author names, and descriptions
+Search results prioritize: exact title matches first, then relevance by description match
+Filter options: Category, Language, Price (Free, Paid, Price Range), Format Available (Ebook, Audiobook, Both)
+Sort options: Most Recent, Best-Selling, Alphabetical
+Book Detail Page
+Each book page shows:
+Cover image
+Title and author name (clickable to author's profile)
+Price (or "Free")
+Short and long descriptions
+Category and language
+Format availability badges (Ebook, Audiobook, or Both)
+Average rating and total number of ratings/reviews
+Preview button (to read first 10% free)
+Purchase button (or "Get Free Book" if price is 0)
+Reviews section below
+Preview Feature
+Any user (logged in or not) can preview first 10% of any book
+Preview opens in reading interface
+After 10%, prompt to purchase or sign up
+No preview limits on number of books explored
+Wishlist
+Logged-in users can add books to wishlist for later
+Wishlist accessible from user menu
+No limit on wishlist size for MVP
+
+5. Purchase & Payment
+Currency & Pricing
+All prices displayed in XAF (Central African Franc)
+Single currency for entire platform
+Authors set prices in XAF within min/max thresholds
+Payment Methods
+Stripe (for card payments)
+Fapshi (for mobile money payments across Africa)
+Free books require no payment—just "claim" to add to library
+Purchase Flow
+User clicks "Buy Now" on book detail page
+System checks if user already owns the book
+If already owned: Message says "Already in your library"
+If not owned: Directed to payment page with price and payment method options
+User completes payment with chosen method
+If payment succeeds: Book immediately added to library, confirmation shown, email receipt sent
+If payment fails: User notified of failure reason, can retry immediately
+Purchase record created (for earnings tracking and receipt history)
+Preventing Duplicate Purchases
+Users cannot purchase the same book twice
+If user deleted book from library, they can re-add from "Purchase History" without paying again
+If user tries to purchase owned book, system blocks and redirects to library
+Email Receipts
+Every successful purchase triggers immediate email receipt
+Receipt includes: book title, purchase date, amount paid, payment method, transaction reference
+
+6. Revenue Model & Author Earnings
+Commission Structure
+Earnings Tracking
+Each sale calculates platform commission and author earning
+Author earning added to author's balance
+Authors view balance in their dashboard
+Authors see anonymous sales data: number of sales, total earnings, pending payout
+Payout Process
+Minimum payout threshold: 5,000 XAF
+Author requests payout when balance reaches minimum
+Payout request submitted through dashboard
+Platform team processes payout manually
+Payout sent via mobile money or bank transfer (author provides details)
+Payout status: Pending → Processing → Completed or Failed
+
+7. User Library & Book Access
+My Library
+Shows all books user owns (purchased or claimed free)
+Displays book cover, title, author, format badges
+Shows reading/listening progress for each book
+Can filter by: All Books, Ebooks, Audiobooks, In Progress, Completed
+Can sort by: Recently Added, Recently Accessed, Title
+Book Ownership Rules
+One purchase = permanent access for that user only
+No sharing books with other users
+Can access on any device by logging in
+If book gets audiobook version added later, ebook owners can upgrade by paying price difference
+Format Availability
+If book has both ebook and audiobook, user can access both with single purchase
+All owned formats accessible in the app
+Cannot export or open outside the platform
+
+8. Reading Experience
+Ebook Reader Interface
+Clean, distraction-free reading view
+Text display adjustments: font size options (small, medium, large, extra large)
+Theme options: light mode or dark mode (user can toggle)
+Navigation: swipe/tap to turn pages or continuous scroll option
+Progress bar at bottom showing percentage complete
+Progress calculated by page number (current page / total pages × 100)
+Automatic bookmark: saves last page position when user exits
+Resume reading: opens to last page when user returns
+Reading Progress Tracking
+System automatically saves current page number whenever user leaves
+Progress syncs across devices when internet available
+Shows "Continue Reading" button on library item if book in progress
+
+9. Audiobook Experience
+Audiobook Player Interface
+Play/pause button (center)
+Skip backward 15 seconds
+Skip forward 15 seconds
+Playback speed control (0.5x, 0.75x, 1x, 1.25x, 1.5x, 2x)
+Progress slider (drag to any position in audio)
+Time elapsed and total duration display
+Sleep timer option (15, 30, 45, 60 minutes, or end of chapter)
+For MVP: no separate chapter navigation buttons (user drags slider to desired position like music player)
+Visual waveform or progress bar shows position
+Audio Playback
+Streaming with small buffer (simple approach for MVP)
+Plays while buffering next segment
+Pauses automatically if connection drops, resumes when connection restored
+Works in background (continues playing when phone locked or app minimized)
+Audiobook Progress Tracking
+System saves current playback position (timestamp) every 10 seconds
+When user returns, audio resumes from last saved position
+Progress syncs across devices when internet available
+
+10. Offline Access (PWA Features)
+Progressive Web App
+Users can install Xanula as app on phone from browser
+Appears like native app with icon on home screen
+Works offline once installed
+Download for Offline
+Each owned book shows "Download" button in library
+User can selectively download books they want offline
+Downloads include both ebook and audiobook files if both owned
+Downloaded books accessible in library even without internet
+Downloaded books open only within Xanula app
+Download Management
+Downloaded books marked with "Downloaded" badge
+User can delete downloads to free space (doesn't remove ownership)
+If user uninstalls PWA, all downloads deleted
+Must re-download after reinstalling
+Offline Limitations
+Can read/listen to downloaded books
+Progress still tracked locally
+Cannot browse marketplace or purchase new books
+When internet returns, local progress syncs to server
+
+11. Reviews & Ratings System
+Leaving Reviews
+Any user who owns a book can leave one review and one rating
+No restriction on when (can review before finishing)
+Rating: 1 to 5 stars (required)
+Written review: text field (optional)
+User can edit their review anytime
+User can delete their review anytime
+Displaying Reviews
+Book detail page shows average rating (e.g., 4.3 stars from 27 reviews)
+Reviews list below book details
+Each review shows: reviewer name, rating, review text, date posted
+Reviews sorted by: most recent first
+Review Moderation
+No automatic moderation for MVP
+Platform team can manually remove inappropriate reviews through admin panel
+
+12. Notifications & Reminders
+Daily Reading Reminder
+All users receive daily reminder at 7 PM (fixed time for MVP)
+Reminder says: "Continue reading [Book Title]" if they have book in progress
+If no book in progress, reminder says generic: "Discover new books on Xanula"
+Delivered as browser notification (if PWA installed) and email
+User can disable reminders in settings
+Purchase & Book Status Notifications
+Email notification when book purchase completes
+Email notification when published book status changes (In Review → Approved/Denied → Ebook Ready → Audiobook Generated → Completed)
+Email notification when owned ebook gets audiobook version (with upgrade offer)
+Email notification when payout request status changes
+
+13. Admin & Platform Team Functions
+Admin Dashboard
+View all submitted books with current status
+Review book submissions (approve or deny with reason notes)
+Upload converted ebook file to book record
+Upload audiobook files and chapter information to book record
+Update book status through workflow stages
+View sales data and transaction history
+Process author payout requests
+Moderate reviews (delete inappropriate ones)
+View user accounts and activity
+Generate reports (total books, total sales, revenue)
+Platform Team Workflow
+Author submits book → Status: In Review
+Team member reviews in admin panel
+Team member approves or denies (with notes)
+If approved: Team converts manuscript to ebook format externally
+Team uploads ebook file to book record → Status: Ebook Ready
+Book now live in marketplace
+(Optional) Team produces audiobook externally
+Team uploads audio files and chapter data → Status: Audiobook Generated
+Team marks book as Completed
+
+14. Categories & Languages
+Book Categories
+Fiction
+Romance
+Thriller & Mystery
+Drama
+Science Fiction & Fantasy
+Horror
+Course
+Polictics
+Non-Fiction
+Biography & Memoir
+Self-Help & Personal Development
+Business & Money
+History
+Health & Wellness
+Religion & Spirituality
+Children & Young Adult
+Poetry
+Academic & Educational
+African Literature & Culture
+Languages
+English
+French
+(Future: Swahili, Hausa, Yoruba, Portuguese)
+
+15. Technical Constraints for African Context
+Optimizations for Low Bandwidth
+All images compressed before display
+Cover images: multiple sizes generated (thumbnail, medium, full)
+Images load only when visible (lazy loading)
+Minimal animations and visual effects
+Audio streaming uses smallest practical buffer
+Pages load essential content first, secondary content after
+Mobile-First Design
+All interfaces designed for small smartphone screens
+Touch-friendly buttons and controls (minimum 44×44 pixels)
+Forms optimized for mobile keyboards
+Minimal scrolling required
+Bottom navigation bar for key actions (always reachable with thumb)
+Battery & Data Consciousness
+Dark mode option to save battery on OLED screens
+Audio player doesn't drain battery unnecessarily
+Downloads use compression
+App warns before large downloads on mobile data
+
+16. Key MVP Limitations (Not Included)
+These features are intentionally excluded from MVP to keep development focused:
+No social features (following authors, seeing friend activity)
+No book gifting to other users
+No sharing books between users
+No in-app messaging or comments
+No author analytics dashboard (just basic sales numbers)
+No bulk upload or series management
+No pre-orders or launch scheduling
+No affiliate or referral program
+No subscription plans
+No curated collections or editorial picks
+No advanced search filters (genre combinations, publication date ranges)
+No user-generated playlists or reading lists beyond wishlist
+
+17. Success Criteria for MVP Launch
+The MVP is ready to launch when:
+Users can register and log in
+Authors can submit books with all required details
+Platform team can review, approve/deny submissions via admin
+Platform team can upload ebook files and mark status
+Books appear in marketplace after approval
+Users can browse, search, preview (10%), and purchase books
+Stripe and Fapshi payments work correctly
+Purchased books appear in user library
+Ebook reader works with progress tracking
+Audiobook player works with progress tracking
+Users can download books for offline access
+PWA can be installed on mobile devices
+Users can leave reviews and ratings
+Authors can view earnings and request payouts
+Daily reminders are sent
+Email receipts are sent after purchases

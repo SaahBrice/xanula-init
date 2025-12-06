@@ -1,0 +1,14 @@
+[Xanula] Please Confirm Your Email Address
+
+Hello,
+
+You're receiving this email because you registered for an account on Xanula.
+
+Please confirm your email address by clicking the link below:
+
+{{ activate_url }}
+
+If you did not create an account, you can safely ignore this email.
+
+Thanks,
+The Xanula Team
