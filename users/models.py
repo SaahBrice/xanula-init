@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from decimal import Decimal
 
 from .managers import CustomUserManager
 
@@ -16,6 +17,7 @@ class User(AbstractUser):
     - earnings_balance: Accumulated author earnings
     - google_account_id: Google OAuth identifier
     - bio: Short description of user (per Planning Document Section 2)
+    - wishlist: Books user wants to purchase later
     """
     
     # Remove username field, use email instead
@@ -59,7 +61,7 @@ class User(AbstractUser):
         _('earnings balance'),
         max_digits=12,
         decimal_places=2,
-        default=0.00,
+        default=Decimal('0.00'),
         help_text=_('Accumulated earnings from book sales in XAF.'),
     )
     
@@ -71,6 +73,15 @@ class User(AbstractUser):
         null=True,
         unique=True,
         help_text=_('Google account identifier for OAuth users.'),
+    )
+    
+    # Wishlist - books user wants to purchase later
+    wishlist = models.ManyToManyField(
+        'core.Book',
+        related_name='wishlisted_by',
+        blank=True,
+        verbose_name=_('wishlist'),
+        help_text=_('Books saved for later purchase.'),
     )
     
     # Use email as the username field
@@ -95,10 +106,21 @@ class User(AbstractUser):
     @property
     def is_author(self):
         """Check if user has published any books."""
-        # Will be implemented when Book model is created
-        return False
+        return self.books.exists()
     
     @property
     def formatted_earnings(self):
         """Returns formatted earnings balance in XAF."""
         return f"{self.earnings_balance:,.0f} XAF"
+    
+    def can_request_payout(self):
+        """Check if user can request a payout (minimum 5,000 XAF)."""
+        return self.earnings_balance >= Decimal('5000.00')
+    
+    @property
+    def payout_eligible_amount(self):
+        """Returns the amount eligible for payout."""
+        if self.can_request_payout():
+            return self.earnings_balance
+        return Decimal('0.00')
+

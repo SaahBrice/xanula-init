@@ -49,6 +49,10 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('earnings_balance',),
             'description': 'Earnings information for authors.',
         }),
+        (_('Wishlist'), {
+            'fields': ('wishlist',),
+            'classes': ('collapse',),
+        }),
         (_('OAuth info'), {
             'fields': ('google_account_id',),
             'classes': ('collapse',),
@@ -66,6 +70,8 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('last_login', 'date_joined')
         }),
     )
+    
+    filter_horizontal = ('wishlist', 'groups', 'user_permissions')
     
     # Fields for creating a new user in admin
     add_fieldsets = (
