@@ -619,3 +619,109 @@ class PayoutRequest(models.Model):
     
     def __str__(self):
         return f"{self.author.email} - {self.amount_requested:,.0f} XAF ({self.status})"
+
+
+class HardCopyRequest(models.Model):
+    """
+    Model for users to request physical/hard copies of books they own.
+    Requests are sent to admin and author for manual processing.
+    """
+    
+    class Status(models.TextChoices):
+        REQUESTED = 'REQUESTED', _('Requested')
+        PROCESSING = 'PROCESSING', _('Processing')
+        SHIPPED = 'SHIPPED', _('Shipped')
+        DELIVERED = 'DELIVERED', _('Delivered')
+        CANCELLED = 'CANCELLED', _('Cancelled')
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='hardcopy_requests',
+        verbose_name=_('user')
+    )
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE,
+        related_name='hardcopy_requests',
+        verbose_name=_('book')
+    )
+    
+    # Request details
+    request_date = models.DateTimeField(
+        _('request date'),
+        auto_now_add=True
+    )
+    status = models.CharField(
+        _('status'),
+        max_length=15,
+        choices=Status.choices,
+        default=Status.REQUESTED
+    )
+    
+    # Shipping information
+    full_name = models.CharField(
+        _('full name'),
+        max_length=200,
+        help_text=_('Name for delivery')
+    )
+    phone_number = models.CharField(
+        _('phone number'),
+        max_length=20,
+        help_text=_('Contact phone number')
+    )
+    shipping_address = models.TextField(
+        _('shipping address'),
+        help_text=_('Full delivery address including city, region, and any landmarks')
+    )
+    city = models.CharField(
+        _('city'),
+        max_length=100
+    )
+    additional_notes = models.TextField(
+        _('additional notes'),
+        blank=True,
+        help_text=_('Any special instructions for delivery')
+    )
+    
+    # Admin processing
+    admin_notes = models.TextField(
+        _('admin notes'),
+        blank=True,
+        help_text=_('Internal notes for processing')
+    )
+    tracking_number = models.CharField(
+        _('tracking number'),
+        max_length=100,
+        blank=True,
+        help_text=_('Shipping tracking number if applicable')
+    )
+    processed_date = models.DateTimeField(
+        _('processed date'),
+        null=True,
+        blank=True
+    )
+    shipped_date = models.DateTimeField(
+        _('shipped date'),
+        null=True,
+        blank=True
+    )
+    delivered_date = models.DateTimeField(
+        _('delivered date'),
+        null=True,
+        blank=True
+    )
+    
+    class Meta:
+        verbose_name = _('hard copy request')
+        verbose_name_plural = _('hard copy requests')
+        ordering = ['-request_date']
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['book']),
+            models.Index(fields=['status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.email} - {self.book.title} ({self.status})"
+

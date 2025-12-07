@@ -1934,3 +1934,74 @@ def analytics_data_api(request):
         'sales': sales_data,
         'earnings': earnings_data,
     })
+
+
+# =============================================================================
+# Hard Copy Request View
+# =============================================================================
+
+@login_required
+def request_hard_copy(request, book_id):
+    """
+    Handle hard copy book request from library.
+    Users can request physical copies of books they own.
+    """
+    from .models import HardCopyRequest
+    from django_q.tasks import async_task
+    
+    book = get_object_or_404(Book, id=book_id)
+    
+    # Verify user owns the book
+    entry = LibraryEntry.objects.filter(user=request.user, book=book).first()
+    if not entry:
+        messages.error(request, 'You do not own this book.')
+        return redirect('core:library')
+    
+    # Check for existing pending request
+    existing_request = HardCopyRequest.objects.filter(
+        user=request.user,
+        book=book,
+        status__in=[
+            HardCopyRequest.Status.REQUESTED,
+            HardCopyRequest.Status.PROCESSING,
+            HardCopyRequest.Status.SHIPPED
+        ]
+    ).first()
+    
+    if existing_request:
+        messages.info(request, f'You already have a pending request for "{book.title}". Status: {existing_request.get_status_display()}')
+        return redirect('core:library')
+    
+    if request.method == 'POST':
+        # Create the request
+        hard_copy_request = HardCopyRequest.objects.create(
+            user=request.user,
+            book=book,
+            full_name=request.POST.get('full_name', '').strip(),
+            phone_number=request.POST.get('phone_number', '').strip(),
+            shipping_address=request.POST.get('shipping_address', '').strip(),
+            city=request.POST.get('city', '').strip(),
+            additional_notes=request.POST.get('additional_notes', '').strip(),
+        )
+        
+        # Queue async email notifications to admin and author
+        try:
+            async_task(
+                'core.tasks.send_hard_copy_request_notification',
+                hard_copy_request.id,
+                task_name=f'hardcopy_notification_{hard_copy_request.id}',
+            )
+        except Exception as e:
+            # Email notification failed, but request is still created
+            pass
+        
+        messages.success(request, f'Your request for a hard copy of "{book.title}" has been submitted! We will contact you soon.')
+        return redirect('core:library')
+    
+    # Pre-fill with user info
+    context = {
+        'book': book,
+        'entry': entry,
+        'user': request.user,
+    }
+    return render(request, 'core/request_hardcopy.html', context)

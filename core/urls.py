@@ -71,6 +71,9 @@ urlpatterns = [
     # Author Analytics
     path('my-books/analytics/', views.author_analytics, name='author_analytics'),
     path('api/analytics-data/', views.analytics_data_api, name='analytics_data_api'),
+    
+    # Hard Copy Requests
+    path('library/request-hardcopy/<int:book_id>/', views.request_hard_copy, name='request_hard_copy'),
 ]
 
 

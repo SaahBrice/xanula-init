@@ -5,8 +5,9 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.contrib import messages
 from datetime import date
+from django.utils import timezone
 
-from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest
+from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest, HardCopyRequest
 
 
 @admin.register(Book)
@@ -429,3 +430,101 @@ class PayoutRequestAdmin(admin.ModelAdmin):
             status__in=[PayoutRequest.Status.PENDING, PayoutRequest.Status.PROCESSING]
         ).update(status=PayoutRequest.Status.FAILED)
         self.message_user(request, f'{updated} request(s) marked as failed.', messages.SUCCESS)
+
+
+@admin.register(HardCopyRequest)
+class HardCopyRequestAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for HardCopyRequest model.
+    Manage physical book requests from users.
+    """
+    
+    list_display = (
+        'user',
+        'book',
+        'book_author',
+        'city',
+        'status',
+        'request_date',
+        'shipped_date',
+    )
+    
+    list_filter = (
+        'status',
+        'city',
+        'request_date',
+    )
+    
+    search_fields = (
+        'user__email',
+        'user__display_name',
+        'book__title',
+        'book__author__email',
+        'full_name',
+        'phone_number',
+        'city',
+        'shipping_address',
+    )
+    
+    readonly_fields = (
+        'user',
+        'book',
+        'request_date',
+        'full_name',
+        'phone_number',
+        'shipping_address',
+        'city',
+        'additional_notes',
+    )
+    
+    fieldsets = (
+        (_('Request Info'), {
+            'fields': ('user', 'book', 'request_date', 'status')
+        }),
+        (_('Shipping Details'), {
+            'fields': ('full_name', 'phone_number', 'shipping_address', 'city', 'additional_notes')
+        }),
+        (_('Processing'), {
+            'fields': ('admin_notes', 'tracking_number', 'processed_date', 'shipped_date', 'delivered_date')
+        }),
+    )
+    
+    date_hierarchy = 'request_date'
+    ordering = ['-request_date']
+    
+    actions = ['mark_processing', 'mark_shipped', 'mark_delivered', 'mark_cancelled']
+    
+    def book_author(self, obj):
+        return obj.book.author.get_display_name()
+    book_author.short_description = _('Author')
+    
+    @admin.action(description=_('Mark as Processing'))
+    def mark_processing(self, request, queryset):
+        updated = queryset.filter(status=HardCopyRequest.Status.REQUESTED).update(
+            status=HardCopyRequest.Status.PROCESSING,
+            processed_date=timezone.now()
+        )
+        self.message_user(request, f'{updated} request(s) marked as processing.', messages.SUCCESS)
+    
+    @admin.action(description=_('Mark as Shipped'))
+    def mark_shipped(self, request, queryset):
+        updated = queryset.filter(status=HardCopyRequest.Status.PROCESSING).update(
+            status=HardCopyRequest.Status.SHIPPED,
+            shipped_date=timezone.now()
+        )
+        self.message_user(request, f'{updated} request(s) marked as shipped.', messages.SUCCESS)
+    
+    @admin.action(description=_('Mark as Delivered'))
+    def mark_delivered(self, request, queryset):
+        updated = queryset.filter(status=HardCopyRequest.Status.SHIPPED).update(
+            status=HardCopyRequest.Status.DELIVERED,
+            delivered_date=timezone.now()
+        )
+        self.message_user(request, f'{updated} request(s) marked as delivered.', messages.SUCCESS)
+    
+    @admin.action(description=_('Cancel selected requests'))
+    def mark_cancelled(self, request, queryset):
+        updated = queryset.exclude(
+            status__in=[HardCopyRequest.Status.DELIVERED, HardCopyRequest.Status.CANCELLED]
+        ).update(status=HardCopyRequest.Status.CANCELLED)
+        self.message_user(request, f'{updated} request(s) cancelled.', messages.SUCCESS)

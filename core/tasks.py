@@ -241,3 +241,59 @@ def send_purchase_receipt(purchase_id):
     except Exception as e:
         logger.error(f"Failed to send purchase receipt for purchase {purchase_id}: {e}")
         return False
+
+
+def send_hard_copy_request_notification(request_id):
+    """
+    Send notification emails to admin and author when a hard copy is requested.
+    Called via Django-Q async_task.
+    """
+    from core.models import HardCopyRequest
+    
+    try:
+        hc_request = HardCopyRequest.objects.select_related(
+            'user', 'book', 'book__author'
+        ).get(id=request_id)
+        
+        user = hc_request.user
+        book = hc_request.book
+        author = book.author
+        
+        context = get_email_context()
+        context['request'] = hc_request
+        context['user'] = user
+        context['book'] = book
+        context['author'] = author
+        
+        html_content = render_to_string('emails/hardcopy_request.html', context)
+        text_content = strip_tags(html_content)
+        
+        # Send to admin
+        admin_email = settings.DEFAULT_FROM_EMAIL
+        msg = EmailMultiAlternatives(
+            subject=f'📦 Hard Copy Request: {book.title} - Xanula',
+            body=text_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[admin_email],
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+        logger.info(f"Sent hard copy notification to admin for request {request_id}")
+        
+        # Send to author if they have email
+        if author.email and author.email != admin_email:
+            msg_author = EmailMultiAlternatives(
+                subject=f'📦 Hard Copy Request for "{book.title}" - Xanula',
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[author.email],
+            )
+            msg_author.attach_alternative(html_content, "text/html")
+            msg_author.send()
+            logger.info(f"Sent hard copy notification to author {author.email} for request {request_id}")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send hard copy notification for request {request_id}: {e}")
+        return False

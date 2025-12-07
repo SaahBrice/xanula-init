@@ -1,0 +1,93 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2 style="color: #ffffff; margin: 0 0 20px 0; font-size: 22px;">📦 New Hard Copy Request</h2>
+
+<p style="color: #9ca3af; margin: 0 0 20px 0;">
+    A user has requested a physical copy of a book. Please review the details and process this request.
+</p>
+
+<!-- Book Details -->
+<div style="background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+    <h3 style="color: #0ea5e9; margin: 0 0 12px 0; font-size: 16px;">Book Information</h3>
+    <table style="width: 100%;">
+        <tr>
+            <td style="color: #9ca3af; padding: 4px 0;">Title:</td>
+            <td style="color: #ffffff; padding: 4px 0; text-align: right; font-weight: 600;">{{ book.title }}</td>
+        </tr>
+        <tr>
+            <td style="color: #9ca3af; padding: 4px 0;">Author:</td>
+            <td style="color: #ffffff; padding: 4px 0; text-align: right;">{{ author.get_display_name }}</td>
+        </tr>
+        <tr>
+            <td style="color: #9ca3af; padding: 4px 0;">Category:</td>
+            <td style="color: #ffffff; padding: 4px 0; text-align: right;">{{ book.get_category_display }}</td>
+        </tr>
+    </table>
+</div>
+
+<!-- Customer Details -->
+<div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+    <h3 style="color: #22c55e; margin: 0 0 12px 0; font-size: 16px;">Customer Information</h3>
+    <table style="width: 100%;">
+        <tr>
+            <td style="color: #9ca3af; padding: 4px 0;">Name:</td>
+            <td style="color: #ffffff; padding: 4px 0; text-align: right; font-weight: 600;">{{ request.full_name }}</td>
+        </tr>
+        <tr>
+            <td style="color: #9ca3af; padding: 4px 0;">Email:</td>
+            <td style="color: #ffffff; padding: 4px 0; text-align: right;">{{ user.email }}</td>
+        </tr>
+        <tr>
+            <td style="color: #9ca3af; padding: 4px 0;">Phone:</td>
+            <td style="color: #ffffff; padding: 4px 0; text-align: right; font-weight: 600;">{{ request.phone_number }}</td>
+        </tr>
+        <tr>
+            <td style="color: #9ca3af; padding: 4px 0;">City:</td>
+            <td style="color: #ffffff; padding: 4px 0; text-align: right;">{{ request.city }}</td>
+        </tr>
+    </table>
+</div>
+
+<!-- Shipping Address -->
+<div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+    <h3 style="color: #a855f7; margin: 0 0 12px 0; font-size: 16px;">Shipping Address</h3>
+    <p style="color: #ffffff; margin: 0; white-space: pre-line;">{{ request.shipping_address }}</p>
+    {% if request.additional_notes %}
+    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(168, 85, 247, 0.3);">
+        <p style="color: #9ca3af; margin: 0 0 4px 0; font-size: 14px;">Additional Notes:</p>
+        <p style="color: #ffffff; margin: 0;">{{ request.additional_notes }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Request Info -->
+<div style="background: #1f2937; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+    <table style="width: 100%;">
+        <tr>
+            <td style="color: #9ca3af; padding: 4px 0;">Request ID:</td>
+            <td style="color: #ffffff; padding: 4px 0; text-align: right;">#{{ request.id }}</td>
+        </tr>
+        <tr>
+            <td style="color: #9ca3af; padding: 4px 0;">Date:</td>
+            <td style="color: #ffffff; padding: 4px 0; text-align: right;">{{ request.request_date|date:"M d, Y H:i" }}</td>
+        </tr>
+        <tr>
+            <td style="color: #9ca3af; padding: 4px 0;">Status:</td>
+            <td style="padding: 4px 0; text-align: right;">
+                <span style="background: rgba(251, 191, 36, 0.2); color: #fbbf24; padding: 4px 12px; border-radius: 9999px; font-size: 12px;">
+                    {{ request.get_status_display }}
+                </span>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- Action -->
+<div style="text-align: center; margin-top: 30px;">
+    <a href="{{ site_url }}/admin/core/hardcopyrequest/{{ request.id }}/change/" 
+        style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #0ea5e9 0%, #a855f7 100%); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px;">
+        View in Admin
+    </a>
+</div>
+{% endblock %}
