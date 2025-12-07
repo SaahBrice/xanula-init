@@ -819,6 +819,140 @@ def purchase_history(request):
 
 
 # =============================================================================
+# User Library Views
+# Per Planning Document Section 7 (Library & Book Access)
+# =============================================================================
+
+@login_required
+def user_library(request):
+    """
+    Display user's library of owned books with filtering and sorting.
+    """
+    from django.utils import timezone
+    
+    # Get all library entries for this user
+    entries = LibraryEntry.objects.filter(user=request.user).select_related('book', 'book__author')
+    
+    # Get filter
+    filter_type = request.GET.get('filter', 'all')
+    
+    if filter_type == 'ebook':
+        # All books have ebook by default
+        pass
+    elif filter_type == 'audiobook':
+        entries = entries.filter(book__audiobook_file__isnull=False).exclude(book__audiobook_file='')
+    elif filter_type == 'in_progress':
+        entries = entries.filter(completion_status=LibraryEntry.CompletionStatus.IN_PROGRESS)
+    elif filter_type == 'completed':
+        entries = entries.filter(completion_status=LibraryEntry.CompletionStatus.COMPLETED)
+    
+    # Get sort
+    sort_by = request.GET.get('sort', 'last_accessed')
+    
+    if sort_by == 'date_added':
+        entries = entries.order_by('-date_added')
+    elif sort_by == 'title':
+        entries = entries.order_by('book__title')
+    else:  # last_accessed (default)
+        entries = entries.order_by('-last_accessed', '-date_added')
+    
+    # Count for filters
+    all_entries = LibraryEntry.objects.filter(user=request.user)
+    filter_counts = {
+        'all': all_entries.count(),
+        'ebook': all_entries.count(),  # All books have ebook
+        'audiobook': all_entries.filter(book__audiobook_file__isnull=False).exclude(book__audiobook_file='').count(),
+        'in_progress': all_entries.filter(completion_status=LibraryEntry.CompletionStatus.IN_PROGRESS).count(),
+        'completed': all_entries.filter(completion_status=LibraryEntry.CompletionStatus.COMPLETED).count(),
+    }
+    
+    context = {
+        'entries': entries,
+        'filter_type': filter_type,
+        'sort_by': sort_by,
+        'filter_counts': filter_counts,
+    }
+    return render(request, 'core/library.html', context)
+
+
+@login_required
+def toggle_download_status(request, entry_id):
+    """
+    Toggle download status for a library entry.
+    """
+    if request.method == 'POST':
+        entry = get_object_or_404(LibraryEntry, id=entry_id, user=request.user)
+        
+        if entry.download_status == LibraryEntry.DownloadStatus.DOWNLOADED:
+            entry.download_status = LibraryEntry.DownloadStatus.NOT_DOWNLOADED
+            messages.success(request, f'"{entry.book.title}" removed from offline storage.')
+        else:
+            entry.download_status = LibraryEntry.DownloadStatus.DOWNLOADED
+            messages.success(request, f'"{entry.book.title}" saved for offline reading.')
+        
+        entry.save(update_fields=['download_status'])
+    
+    return redirect('core:library')
+
+
+@login_required
+def update_reading_progress(request, entry_id):
+    """
+    Update reading/listening progress for a library entry.
+    """
+    from django.utils import timezone
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        entry = get_object_or_404(LibraryEntry, id=entry_id, user=request.user)
+        
+        reading_progress = request.POST.get('reading_progress')
+        listening_progress = request.POST.get('listening_progress')
+        
+        if reading_progress:
+            entry.reading_progress = int(reading_progress)
+        if listening_progress:
+            entry.listening_progress = int(listening_progress)
+        
+        # Update last accessed
+        entry.last_accessed = timezone.now()
+        
+        # Auto-update completion status
+        if entry.reading_progress > 0 or entry.listening_progress > 0:
+            if entry.completion_status == LibraryEntry.CompletionStatus.NOT_STARTED:
+                entry.completion_status = LibraryEntry.CompletionStatus.IN_PROGRESS
+        
+        entry.save()
+        
+        return JsonResponse({'success': True})
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@login_required
+def access_book(request, entry_id):
+    """
+    Access a book for reading/listening. Updates last_accessed.
+    """
+    from django.utils import timezone
+    
+    entry = get_object_or_404(LibraryEntry, id=entry_id, user=request.user)
+    
+    # Update last accessed
+    entry.last_accessed = timezone.now()
+    
+    # Mark as in progress if not started
+    if entry.completion_status == LibraryEntry.CompletionStatus.NOT_STARTED:
+        entry.completion_status = LibraryEntry.CompletionStatus.IN_PROGRESS
+    
+    entry.save(update_fields=['last_accessed', 'completion_status'])
+    
+    # For now, redirect to a placeholder - reader implementation in Phase 8
+    messages.info(request, f'Opening "{entry.book.title}"... (Reader coming soon)')
+    return redirect('core:library')
+
+
+# =============================================================================
 # Fapshi Mobile Money Payment Views
 # Per Architecture Document Section 9 (Payment Processing)
 # =============================================================================

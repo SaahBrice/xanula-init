@@ -36,6 +36,12 @@ urlpatterns = [
     path('purchase/fapshi/<int:book_id>/', views.create_fapshi_checkout, name='create_fapshi_checkout'),
     path('purchase/fapshi/return/<int:purchase_id>/', views.fapshi_return, name='fapshi_return'),
     path('api/check-purchase-status/<int:purchase_id>/', views.check_purchase_status_api, name='check_purchase_status_api'),
+    
+    # User Library
+    path('library/', views.user_library, name='library'),
+    path('library/<int:entry_id>/toggle-download/', views.toggle_download_status, name='toggle_download'),
+    path('library/<int:entry_id>/progress/', views.update_reading_progress, name='update_progress'),
+    path('library/<int:entry_id>/access/', views.access_book, name='access_book'),
 ]
 
 
