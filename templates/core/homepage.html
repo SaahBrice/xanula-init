@@ -4,9 +4,8 @@
 {% block title %}Xanula - African Literature Marketplace{% endblock %}
 
 {% block content %}
-<!-- Hero Section with Featured Book -->
+<!-- Hero Section -->
 <section class="relative -mt-6 md:-mt-16 overflow-hidden">
-    <!-- Background Gradient -->
     <div class="absolute inset-0 bg-gradient-to-b from-burgundy-500/10 via-paper to-paper dark:from-burgundy-900/20 dark:via-dark-200 dark:to-dark-200"></div>
     
     <div class="container relative z-10 pt-8 pb-12 md:pt-20 md:pb-24">
@@ -16,8 +15,7 @@
                 <span class="text-burgundy-500">Africa</span>
             </h1>
             <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-xl mx-auto">
-                Read, listen, and explore books from African voices. 
-                Every story deserves to be heard.
+                Read, listen, and explore books from African voices. Every story deserves to be heard.
             </p>
         </div>
         
@@ -27,20 +25,15 @@
                 <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
                 </svg>
-                <input type="text" name="q" 
-                    placeholder="Search books, authors, genres..." 
-                    class="input input-lg pl-12 pr-28 shadow-lg border-0 bg-white dark:bg-dark-100">
-                <button type="submit" class="btn btn-primary absolute right-2 top-1/2 -translate-y-1/2">
-                    Search
-                </button>
+                <input type="text" name="q" placeholder="Search books, authors, genres..." class="input input-lg pl-12 pr-28 shadow-lg border-0 bg-white dark:bg-dark-100">
+                <button type="submit" class="btn btn-primary absolute right-2 top-1/2 -translate-y-1/2">Search</button>
             </div>
         </form>
         
         <!-- Quick Categories -->
         <div class="flex flex-wrap justify-center gap-2 md:gap-3">
             {% for category in categories|slice:":6" %}
-            <a href="{% url 'core:category_books' category_slug=category.slug %}" 
-                class="px-4 py-2 bg-white dark:bg-dark-100 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-full border border-gray-200 dark:border-gray-700 hover:border-burgundy-500 hover:text-burgundy-500 dark:hover:text-burgundy-400 transition-colors shadow-sm">
+            <a href="{% url 'core:category_books' category_slug=category.slug %}" class="px-4 py-2 bg-white dark:bg-dark-100 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-full border border-gray-200 dark:border-gray-700 hover:border-burgundy-500 hover:text-burgundy-500 dark:hover:text-burgundy-400 transition-colors shadow-sm">
                 {{ category.name }}
             </a>
             {% endfor %}
@@ -48,28 +41,21 @@
     </div>
 </section>
 
-<!-- Featured Books - Large Cards -->
+<!-- Featured Books -->
 {% if featured_books %}
 <section class="py-10 md:py-16">
     <div class="container">
         <div class="flex items-center justify-between mb-6 md:mb-8">
-            <h2 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                Featured Books
-            </h2>
+            <h2 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Featured Books</h2>
             <a href="{% url 'core:book_list' %}" class="text-burgundy-500 hover:text-burgundy-600 font-medium text-sm flex items-center gap-1">
                 See all
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                </svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
             </a>
         </div>
         
-        <!-- Horizontal Scroll on Mobile -->
         <div class="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 lg:grid-cols-6 md:overflow-visible scrollbar-hide">
             {% for book in featured_books %}
-            <a href="{% url 'core:book_detail' slug=book.slug %}" 
-                class="book-card flex-shrink-0 w-36 md:w-auto shadow-md">
-                <!-- Cover -->
+            <a href="{% url 'core:book_detail' slug=book.slug %}" class="book-card flex-shrink-0 w-36 md:w-auto shadow-md">
                 <div class="book-cover-wrapper">
                     {% if book.cover_image %}
                     <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" loading="lazy" class="book-cover">
@@ -78,37 +64,16 @@
                         <span class="text-3xl font-display font-bold text-white/40">{{ book.title|first }}</span>
                     </div>
                     {% endif %}
-                    
-                    <!-- Format Tags -->
                     <div class="absolute top-2 right-2 flex flex-col gap-1">
-                        {% if book.has_ebook %}
-                        <span class="px-2 py-0.5 text-xs font-medium bg-white/90 dark:bg-dark-100/90 text-forest-500 rounded backdrop-blur-sm">
-                            📖 Ebook
-                        </span>
-                        {% endif %}
-                        {% if book.has_audiobook %}
-                        <span class="px-2 py-0.5 text-xs font-medium bg-white/90 dark:bg-dark-100/90 text-burgundy-500 rounded backdrop-blur-sm">
-                            🎧 Audio
-                        </span>
-                        {% endif %}
+                        {% if book.has_ebook %}<span class="px-2 py-0.5 text-xs font-medium bg-white/90 dark:bg-dark-100/90 text-forest-500 rounded backdrop-blur-sm">📖 Ebook</span>{% endif %}
+                        {% if book.has_audiobook %}<span class="px-2 py-0.5 text-xs font-medium bg-white/90 dark:bg-dark-100/90 text-burgundy-500 rounded backdrop-blur-sm">🎧 Audio</span>{% endif %}
                     </div>
                 </div>
-                
-                <!-- Info -->
                 <div class="book-info">
                     <h3 class="book-title">{{ book.title }}</h3>
                     <p class="book-author">{{ book.author.get_display_name }}</p>
                     <div class="book-meta">
-                        {% if book.average_rating > 0 %}
-                        <span class="book-rating">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                            </svg>
-                            {{ book.average_rating }}
-                        </span>
-                        {% else %}
-                        <span></span>
-                        {% endif %}
+                        {% if book.average_rating > 0 %}<span class="book-rating"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>{{ book.average_rating }}</span>{% else %}<span></span>{% endif %}
                         <span class="book-price">{{ book.formatted_price }}</span>
                     </div>
                 </div>
@@ -119,109 +84,200 @@
 </section>
 {% endif %}
 
+<!-- For Authors Section -->
+<section class="py-12 md:py-20 bg-gradient-to-br from-forest-500 to-forest-600 dark:from-forest-600 dark:to-forest-700">
+    <div class="container">
+        <div class="text-center mb-10 md:mb-14">
+            <span class="inline-block px-4 py-1.5 bg-white/20 text-white text-sm font-semibold rounded-full mb-4">For Authors</span>
+            <h2 class="font-display text-2xl md:text-4xl font-bold text-white mb-3">Publish Your Book with Xanula</h2>
+            <p class="text-forest-100 text-lg max-w-xl mx-auto">Join a community of African authors reaching readers worldwide.</p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
+                    <span class="text-2xl">💰</span>
+                </div>
+                <h3 class="font-display text-xl font-bold text-white mb-2">70% Royalties</h3>
+                <p class="text-forest-100 text-sm">Keep the majority of your earnings. One of the highest royalty rates in the industry.</p>
+            </div>
+            
+            <div class="p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
+                    <span class="text-2xl">🎧</span>
+                </div>
+                <h3 class="font-display text-xl font-bold text-white mb-2">Auto Audiobook</h3>
+                <p class="text-forest-100 text-sm">We convert your book to a professional audiobook automatically, at no extra cost.</p>
+            </div>
+            
+            <div class="p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
+                    <span class="text-2xl">🌍</span>
+                </div>
+                <h3 class="font-display text-xl font-bold text-white mb-2">Global Reach</h3>
+                <p class="text-forest-100 text-sm">Reach readers across Africa and the diaspora. Multiple payment options for buyers.</p>
+            </div>
+            
+            <div class="p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
+                    <span class="text-2xl">📊</span>
+                </div>
+                <h3 class="font-display text-xl font-bold text-white mb-2">Analytics Dashboard</h3>
+                <p class="text-forest-100 text-sm">Track sales, earnings, and reader engagement with detailed analytics.</p>
+            </div>
+        </div>
+        
+        <div class="text-center mt-10">
+            {% if user.is_authenticated %}
+            <a href="{% url 'core:publish_book' %}" class="btn btn-lg bg-white text-forest-600 hover:bg-gray-100 shadow-lg">Start Publishing</a>
+            {% else %}
+            <a href="{% url 'account_signup' %}" class="btn btn-lg bg-white text-forest-600 hover:bg-gray-100 shadow-lg">Become an Author</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
 <!-- Categories Section -->
 <section class="py-10 md:py-16 bg-cream dark:bg-dark-100">
     <div class="container">
-        <h2 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white text-center mb-8">
-            Explore by Genre
-        </h2>
+        <h2 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white text-center mb-8">Explore by Genre</h2>
         
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
             {% for category in categories %}
-            <a href="{% url 'core:category_books' category_slug=category.slug %}" 
-                class="group p-4 md:p-6 bg-white dark:bg-dark-50 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-burgundy-500 dark:hover:border-burgundy-500 hover:shadow-lg transition-all text-center">
-                <!-- Category Icon -->
+            <a href="{% url 'core:category_books' category_slug=category.slug %}" class="group p-4 md:p-6 bg-white dark:bg-dark-50 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-burgundy-500 dark:hover:border-burgundy-500 hover:shadow-lg transition-all text-center">
                 <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-burgundy-50 dark:bg-burgundy-900/30 flex items-center justify-center group-hover:bg-burgundy-100 dark:group-hover:bg-burgundy-900/50 transition-colors">
-                    {% if category.slug == 'fiction' %}
-                    <span class="text-2xl">📚</span>
-                    {% elif category.slug == 'non_fiction' %}
-                    <span class="text-2xl">📖</span>
-                    {% elif category.slug == 'poetry' %}
-                    <span class="text-2xl">✨</span>
-                    {% elif category.slug == 'drama' %}
-                    <span class="text-2xl">🎭</span>
-                    {% elif category.slug == 'children' %}
-                    <span class="text-2xl">🧒</span>
-                    {% elif category.slug == 'history' %}
-                    <span class="text-2xl">📜</span>
-                    {% elif category.slug == 'biography' %}
-                    <span class="text-2xl">👤</span>
-                    {% elif category.slug == 'romance' %}
-                    <span class="text-2xl">💕</span>
-                    {% elif category.slug == 'mystery' %}
-                    <span class="text-2xl">🔍</span>
-                    {% elif category.slug == 'science' %}
-                    <span class="text-2xl">🔬</span>
-                    {% else %}
-                    <span class="text-2xl">📘</span>
-                    {% endif %}
+                    {% if category.slug == 'fiction' %}<span class="text-2xl">📚</span>
+                    {% elif category.slug == 'non_fiction' %}<span class="text-2xl">📖</span>
+                    {% elif category.slug == 'poetry' %}<span class="text-2xl">✨</span>
+                    {% elif category.slug == 'drama' %}<span class="text-2xl">🎭</span>
+                    {% elif category.slug == 'children' %}<span class="text-2xl">🧒</span>
+                    {% elif category.slug == 'history' %}<span class="text-2xl">📜</span>
+                    {% elif category.slug == 'biography' %}<span class="text-2xl">👤</span>
+                    {% elif category.slug == 'romance' %}<span class="text-2xl">💕</span>
+                    {% elif category.slug == 'mystery' %}<span class="text-2xl">🔍</span>
+                    {% elif category.slug == 'science' %}<span class="text-2xl">🔬</span>
+                    {% else %}<span class="text-2xl">📘</span>{% endif %}
                 </div>
-                <h3 class="font-medium text-gray-900 dark:text-white group-hover:text-burgundy-500 transition-colors">
-                    {{ category.name }}
-                </h3>
-                {% if category.count %}
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ category.count }} books</p>
-                {% endif %}
+                <h3 class="font-medium text-gray-900 dark:text-white group-hover:text-burgundy-500 transition-colors">{{ category.name }}</h3>
             </a>
             {% endfor %}
         </div>
     </div>
 </section>
 
-<!-- Why Xanula Section -->
+<!-- Testimonials Section -->
 <section class="py-12 md:py-20">
     <div class="container">
-        <h2 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
-            Why Choose Xanula?
-        </h2>
-        <p class="text-gray-600 dark:text-gray-400 text-center max-w-xl mx-auto mb-10 md:mb-14">
-            The premier platform for African literature, connecting readers with authentic stories.
-        </p>
+        <div class="text-center mb-10">
+            <h2 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">What Our Community Says</h2>
+            <p class="text-gray-600 dark:text-gray-400">Hear from authors and readers who love Xanula</p>
+        </div>
         
-        <div class="grid md:grid-cols-3 gap-6 md:gap-8">
-            <!-- Feature 1 -->
-            <div class="p-6 md:p-8 bg-white dark:bg-dark-100 rounded-2xl border border-gray-100 dark:border-gray-800">
-                <div class="w-14 h-14 rounded-xl bg-burgundy-50 dark:bg-burgundy-900/30 flex items-center justify-center mb-5">
-                    <svg class="w-7 h-7 text-burgundy-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
-                    </svg>
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Testimonial 1 -->
+            <div class="p-6 bg-white dark:bg-dark-100 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                <div class="flex items-center gap-1 mb-4">
+                    {% for _ in "12345" %}<svg class="w-5 h-5 text-gold-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>{% endfor %}
                 </div>
-                <h3 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    Read & Listen
-                </h3>
-                <p class="text-gray-600 dark:text-gray-400">
-                    Enjoy books as ebooks or audiobooks. Read on any device, anytime.
-                </p>
+                <p class="text-gray-700 dark:text-gray-300 mb-4 italic">"Xanula made publishing my first novel so easy. The audiobook conversion was a game-changer - I didn't have to spend thousands on production."</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-burgundy-100 dark:bg-burgundy-900/30 flex items-center justify-center font-display font-bold text-burgundy-500">AN</div>
+                    <div>
+                        <p class="font-semibold text-gray-900 dark:text-white text-sm">Amara Nwosu</p>
+                        <p class="text-gray-500 text-xs">Author, "The Lagos Chronicles"</p>
+                    </div>
+                </div>
             </div>
             
-            <!-- Feature 2 -->
-            <div class="p-6 md:p-8 bg-white dark:bg-dark-100 rounded-2xl border border-gray-100 dark:border-gray-800">
-                <div class="w-14 h-14 rounded-xl bg-forest-50 dark:bg-forest-900/30 flex items-center justify-center mb-5">
-                    <svg class="w-7 h-7 text-forest-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
-                    </svg>
+            <!-- Testimonial 2 -->
+            <div class="p-6 bg-white dark:bg-dark-100 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                <div class="flex items-center gap-1 mb-4">
+                    {% for _ in "12345" %}<svg class="w-5 h-5 text-gold-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>{% endfor %}
                 </div>
-                <h3 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    Support Authors
-                </h3>
-                <p class="text-gray-600 dark:text-gray-400">
-                    Authors earn 70% of every sale. Your purchase directly supports creativity.
-                </p>
+                <p class="text-gray-700 dark:text-gray-300 mb-4 italic">"Finally, a platform that celebrates African literature! I've discovered so many amazing authors I would never have found elsewhere."</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-forest-100 dark:bg-forest-900/30 flex items-center justify-center font-display font-bold text-forest-500">KM</div>
+                    <div>
+                        <p class="font-semibold text-gray-900 dark:text-white text-sm">Kofi Mensah</p>
+                        <p class="text-gray-500 text-xs">Reader from Ghana</p>
+                    </div>
+                </div>
             </div>
             
-            <!-- Feature 3 -->
-            <div class="p-6 md:p-8 bg-white dark:bg-dark-100 rounded-2xl border border-gray-100 dark:border-gray-800">
-                <div class="w-14 h-14 rounded-xl bg-gold-500/20 flex items-center justify-center mb-5">
-                    <svg class="w-7 h-7 text-gold-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/>
-                    </svg>
+            <!-- Testimonial 3 -->
+            <div class="p-6 bg-white dark:bg-dark-100 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                <div class="flex items-center gap-1 mb-4">
+                    {% for _ in "12345" %}<svg class="w-5 h-5 text-gold-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>{% endfor %}
                 </div>
-                <h3 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    Easy Publishing
-                </h3>
-                <p class="text-gray-600 dark:text-gray-400">
-                    Upload your manuscript, we handle the rest. Ebook and audiobook conversion included.
-                </p>
+                <p class="text-gray-700 dark:text-gray-300 mb-4 italic">"The 70% royalty rate is unbeatable. I've earned more from Xanula in 6 months than I did in 2 years on other platforms."</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gold-100 dark:bg-gold-900/30 flex items-center justify-center font-display font-bold text-gold-600">FO</div>
+                    <div>
+                        <p class="font-semibold text-gray-900 dark:text-white text-sm">Fatima Okonkwo</p>
+                        <p class="text-gray-500 text-xs">Author, 12 Published Books</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-12 md:py-20 bg-cream dark:bg-dark-100">
+    <div class="container max-w-3xl">
+        <div class="text-center mb-10">
+            <h2 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">Frequently Asked Questions</h2>
+        </div>
+        
+        <div class="space-y-4" x-data="{ open: null }">
+            <div class="bg-white dark:bg-dark-50 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+                <button @click="open = open === 1 ? null : 1" class="w-full px-6 py-4 flex items-center justify-between text-left">
+                    <span class="font-semibold text-gray-900 dark:text-white">How do I publish a book on Xanula?</span>
+                    <svg class="w-5 h-5 text-gray-500 transition-transform" :class="open === 1 && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div x-show="open === 1" x-collapse class="px-6 pb-4 text-gray-600 dark:text-gray-400">
+                    Simply create an account, go to "Publish", upload your PDF manuscript, add your book details (title, description, price, cover image), and submit for review. Once approved, your book will be live and available for purchase.
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-dark-50 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+                <button @click="open = open === 2 ? null : 2" class="w-full px-6 py-4 flex items-center justify-between text-left">
+                    <span class="font-semibold text-gray-900 dark:text-white">What formats do you support?</span>
+                    <svg class="w-5 h-5 text-gray-500 transition-transform" :class="open === 2 && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div x-show="open === 2" x-collapse class="px-6 pb-4 text-gray-600 dark:text-gray-400">
+                    We support PDF and EPUB for ebooks. When you upload your book, we automatically generate a professional audiobook version using AI narration at no extra cost.
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-dark-50 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+                <button @click="open = open === 3 ? null : 3" class="w-full px-6 py-4 flex items-center justify-between text-left">
+                    <span class="font-semibold text-gray-900 dark:text-white">How do I get paid for my book sales?</span>
+                    <svg class="w-5 h-5 text-gray-500 transition-transform" :class="open === 3 && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div x-show="open === 3" x-collapse class="px-6 pb-4 text-gray-600 dark:text-gray-400">
+                    Authors earn 70% of each sale. You can request a payout anytime from your dashboard. We support mobile money (MTN, Orange) and bank transfers across Africa.
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-dark-50 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+                <button @click="open = open === 4 ? null : 4" class="w-full px-6 py-4 flex items-center justify-between text-left">
+                    <span class="font-semibold text-gray-900 dark:text-white">Can I read books offline?</span>
+                    <svg class="w-5 h-5 text-gray-500 transition-transform" :class="open === 4 && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div x-show="open === 4" x-collapse class="px-6 pb-4 text-gray-600 dark:text-gray-400">
+                    Yes! Xanula works as a Progressive Web App (PWA). You can install it on your phone and download books for offline reading and listening.
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-dark-50 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+                <button @click="open = open === 5 ? null : 5" class="w-full px-6 py-4 flex items-center justify-between text-left">
+                    <span class="font-semibold text-gray-900 dark:text-white">What payment methods do you accept?</span>
+                    <svg class="w-5 h-5 text-gray-500 transition-transform" :class="open === 5 && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div x-show="open === 5" x-collapse class="px-6 pb-4 text-gray-600 dark:text-gray-400">
+                    We accept mobile money (MTN Mobile Money, Orange Money), credit/debit cards, and more. Our goal is to make buying books accessible across Africa.
+                </div>
             </div>
         </div>
     </div>
@@ -230,32 +286,81 @@
 <!-- CTA Section -->
 <section class="py-12 md:py-20 bg-burgundy-500 dark:bg-burgundy-600">
     <div class="container text-center">
-        <h2 class="font-display text-2xl md:text-4xl font-bold text-white mb-4">
-            Ready to Share Your Story?
-        </h2>
-        <p class="text-burgundy-100 text-lg mb-8 max-w-lg mx-auto">
-            Join thousands of African authors publishing on Xanula. Your voice matters.
-        </p>
+        <h2 class="font-display text-2xl md:text-4xl font-bold text-white mb-4">Ready to Share Your Story?</h2>
+        <p class="text-burgundy-100 text-lg mb-8 max-w-lg mx-auto">Join thousands of African authors publishing on Xanula. Your voice matters.</p>
         {% if user.is_authenticated %}
-        <a href="{% url 'core:publish_book' %}" class="btn btn-lg bg-white text-burgundy-500 hover:bg-gray-100 shadow-lg">
-            Publish Your Book
-        </a>
+        <a href="{% url 'core:publish_book' %}" class="btn btn-lg bg-white text-burgundy-500 hover:bg-gray-100 shadow-lg">Publish Your Book</a>
         {% else %}
-        <a href="{% url 'account_signup' %}" class="btn btn-lg bg-white text-burgundy-500 hover:bg-gray-100 shadow-lg">
-            Get Started Free
-        </a>
+        <a href="{% url 'account_signup' %}" class="btn btn-lg bg-white text-burgundy-500 hover:bg-gray-100 shadow-lg">Get Started Free</a>
         {% endif %}
     </div>
 </section>
 
+<!-- Powered by REEPLS Section -->
+<section class="py-10 md:py-16 bg-gray-50 dark:bg-dark-200">
+    <div class="container text-center">
+        <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Built with ❤️ for African Literature</p>
+        <div class="flex items-center justify-center gap-3">
+            <span class="text-gray-400 dark:text-gray-500 text-sm">Powered by</span>
+            <span class="font-display text-2xl font-bold bg-gradient-to-r from-burgundy-500 to-forest-500 bg-clip-text text-transparent">REEPLS</span>
+        </div>
+        <p class="text-gray-400 dark:text-gray-500 text-xs mt-2">Empowering African creators through technology</p>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-10 bg-dark-100 dark:bg-dark-200 text-gray-400">
+    <div class="container">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+            <!-- Brand -->
+            <div class="col-span-2 md:col-span-1">
+                <h3 class="font-display text-xl font-bold text-white mb-3">Xanula</h3>
+                <p class="text-sm text-gray-500">The premier marketplace for African literature. Discover, read, and listen to stories from Africa.</p>
+            </div>
+            
+            <!-- Quick Links -->
+            <div>
+                <h4 class="font-semibold text-white mb-3 text-sm">Explore</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="{% url 'core:book_list' %}" class="hover:text-white transition-colors">Browse Books</a></li>
+                    <li><a href="{% url 'core:book_list' %}?type=audiobook" class="hover:text-white transition-colors">Audiobooks</a></li>
+                    <li><a href="{% url 'core:search' %}" class="hover:text-white transition-colors">Search</a></li>
+                </ul>
+            </div>
+            
+            <!-- For Authors -->
+            <div>
+                <h4 class="font-semibold text-white mb-3 text-sm">For Authors</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="{% url 'core:publish_book' %}" class="hover:text-white transition-colors">Publish a Book</a></li>
+                    <li><a href="{% url 'core:my_books' %}" class="hover:text-white transition-colors">Author Dashboard</a></li>
+                    <li><a href="{% url 'core:author_analytics' %}" class="hover:text-white transition-colors">Analytics</a></li>
+                </ul>
+            </div>
+            
+            <!-- Legal -->
+            <div>
+                <h4 class="font-semibold text-white mb-3 text-sm">Legal</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="{% url 'core:terms' %}" class="hover:text-white transition-colors">Terms & Conditions</a></li>
+                    <li><a href="{% url 'core:privacy' %}" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                    <li><a href="{% url 'core:legal' %}" class="hover:text-white transition-colors">Legal Notice</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Bottom Bar -->
+        <div class="pt-6 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-sm text-gray-500">© 2024 Xanula. All rights reserved.</p>
+            <div class="flex items-center gap-4">
+                <span class="text-xs text-gray-600">A <span class="text-burgundy-400">REEPLS</span> Product</span>
+            </div>
+        </div>
+    </div>
+</footer>
+
 <style>
-/* Hide scrollbar but allow scrolling */
-.scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
-}
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
 </style>
 {% endblock %}

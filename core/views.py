@@ -2005,3 +2005,18 @@ def request_hard_copy(request, book_id):
         'user': request.user,
     }
     return render(request, 'core/request_hardcopy.html', context)
+
+
+def terms_page(request):
+    """Terms and Conditions page."""
+    return render(request, 'core/terms.html')
+
+
+def privacy_page(request):
+    """Privacy Policy page."""
+    return render(request, 'core/privacy.html')
+
+
+def legal_page(request):
+    """Legal Notice page."""
+    return render(request, 'core/legal.html')

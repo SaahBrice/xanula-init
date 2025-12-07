@@ -74,6 +74,11 @@ urlpatterns = [
     
     # Hard Copy Requests
     path('library/request-hardcopy/<int:book_id>/', views.request_hard_copy, name='request_hard_copy'),
+    
+    # Legal Pages
+    path('terms/', views.terms_page, name='terms'),
+    path('privacy/', views.privacy_page, name='privacy'),
+    path('legal/', views.legal_page, name='legal'),
 ]
 
 
