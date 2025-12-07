@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Search: "{{ query }}" - Xanula{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Search Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-white mb-4">
+            {% if query %}
+            Search results for "{{ query }}"
+            {% else %}
+            Search Books
+            {% endif %}
+        </h1>
+
+        <!-- Search Bar -->
+        <form action="{% url 'core:search' %}" method="get" class="max-w-2xl">
+            <div class="relative">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search books, authors, or genres..."
+                    class="w-full px-6 py-4 pl-12 bg-dark-200 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <button type="submit"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors">
+                    Search
+                </button>
+            </div>
+        </form>
+
+        {% if query %}
+        <p class="text-gray-400 mt-4">Found {{ result_count }} result{% if result_count != 1 %}s{% endif %}</p>
+        {% endif %}
+    </div>
+
+    <!-- Results -->
+    {% if page_obj %}
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+        {% for book in page_obj %}
+        <a href="{% url 'core:book_detail' slug=book.slug %}" class="group">
+            <div
+                class="bg-dark-200 rounded-xl overflow-hidden border border-gray-800 hover:border-primary-500/50 transition-all duration-200 h-full">
+                <div class="aspect-[2/3] bg-gray-800 relative overflow-hidden">
+                    {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" loading="lazy"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    {% else %}
+                    <div
+                        class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-800 to-secondary-800">
+                        <span class="text-2xl font-bold text-white/50">{{ book.title|first }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="absolute top-2 right-2 flex flex-col gap-1">
+                        {% if book.has_ebook %}
+                        <span class="px-2 py-1 text-xs bg-blue-500/80 text-white rounded">Ebook</span>
+                        {% endif %}
+                        {% if book.has_audiobook %}
+                        <span class="px-2 py-1 text-xs bg-purple-500/80 text-white rounded">Audio</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="p-3">
+                    <h3
+                        class="font-semibold text-white text-sm line-clamp-2 mb-1 group-hover:text-primary-400 transition-colors">
+                        {{ book.title }}
+                    </h3>
+                    <p class="text-xs text-gray-400 mb-2 truncate">{{ book.author.get_display_name }}</p>
+                    <span
+                        class="{% if book.is_free %}text-green-400{% else %}text-primary-400{% endif %} font-semibold text-sm">
+                        {{ book.formatted_price }}
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav class="flex justify-center mt-8">
+        <ul class="flex items-center gap-2">
+            {% if page_obj.has_previous %}
+            <li>
+                <a href="?q={{ query }}&page={{ page_obj.previous_page_number }}"
+                    class="px-4 py-2 bg-dark-200 border border-gray-700 rounded-lg text-gray-300 hover:bg-dark-100 transition-colors">
+                    Previous
+                </a>
+            </li>
+            {% endif %}
+
+            <li class="px-4 py-2 text-gray-400">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </li>
+
+            {% if page_obj.has_next %}
+            <li>
+                <a href="?q={{ query }}&page={{ page_obj.next_page_number }}"
+                    class="px-4 py-2 bg-dark-200 border border-gray-700 rounded-lg text-gray-300 hover:bg-dark-100 transition-colors">
+                    Next
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% elif query %}
+    <div class="text-center py-16">
+        <svg class="w-16 h-16 mx-auto text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <h3 class="text-xl font-semibold text-white mb-2">No results found</h3>
+        <p class="text-gray-400 mb-6">We couldn't find any books matching "{{ query }}"</p>
+        <a href="{% url 'core:book_list' %}" class="text-primary-400 hover:text-primary-300">Browse all books</a>
+    </div>
+    {% else %}
+    <div class="text-center py-16">
+        <svg class="w-16 h-16 mx-auto text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <h3 class="text-xl font-semibold text-white mb-2">Start searching</h3>
+        <p class="text-gray-400">Enter a search term above to find books.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

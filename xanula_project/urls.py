@@ -26,11 +26,11 @@ urlpatterns = [
     # Authentication (django-allauth)
     path("accounts/", include("allauth.urls")),
     
-    # PWA
-    path("", include(("pwa.urls", "pwa"), namespace="pwa")),
+    # Core app (book-related functionality) - must be before PWA for homepage
+    path("", include("core.urls")),
     
-    # Core app (book-related functionality)
-    # path("", include("core.urls")),
+    # PWA
+    path("pwa/", include(("pwa.urls", "pwa"), namespace="pwa")),
     
     # Users app (account-related functionality)
     # path("users/", include("users.urls")),
