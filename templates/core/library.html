@@ -4,7 +4,7 @@
 {% block title %}My Library - Xanula{% endblock %}
 
 {% block content %}
-<div class="container py-6">
+<div class="container py-6" x-data="libraryManager()">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -48,7 +48,7 @@
         </div>
     </div>
     
-    <!-- Filter Tabs - Horizontal Scroll on Mobile -->
+    <!-- Filter Tabs -->
     <div class="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
         <a href="?filter=all&sort={{ sort_by }}" 
             class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
@@ -81,7 +81,15 @@
     <!-- Books Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {% for entry in entries %}
-        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all group">
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all group"
+            x-data="{ 
+                bookId: {{ entry.book.id }},
+                entryId: {{ entry.id }},
+                isDownloaded: {{ entry.download_status|yesno:'true,false' }},
+                ebookUrl: '{{ entry.book.ebook_file.url|default:"" }}',
+                audiobookUrl: '{{ entry.book.audiobook_file.url|default:"" }}',
+                coverUrl: '{{ entry.book.cover_image.url|default:"" }}'
+            }">
             <!-- Cover Image with Status -->
             <div class="relative aspect-[2/3] overflow-hidden">
                 {% if entry.book.cover_image %}
@@ -105,11 +113,27 @@
                     </span>
                     {% endif %}
                     
-                    {% if entry.download_status == 'downloaded' %}
-                    <span class="px-3 py-1 bg-white/90 dark:bg-dark-100/90 text-forest-500 text-xs font-medium rounded-full shadow backdrop-blur-sm">
+                    <!-- Offline Badge (reactive) -->
+                    <span x-show="isDownloaded || downloads[bookId]?.status === 'complete'" x-cloak
+                        class="px-3 py-1 bg-white/90 dark:bg-dark-100/90 text-forest-500 text-xs font-medium rounded-full shadow backdrop-blur-sm">
                         📱 Offline
                     </span>
-                    {% endif %}
+                </div>
+                
+                <!-- Download Progress Overlay -->
+                <div x-show="downloads[bookId]?.status === 'downloading'" x-cloak
+                    class="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white">
+                    <div class="w-16 h-16 mb-3">
+                        <svg class="animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                        </svg>
+                    </div>
+                    <p class="font-semibold text-lg" x-text="downloads[bookId]?.percent + '%'">0%</p>
+                    <p class="text-sm text-white/80" x-text="formatBytes(downloads[bookId]?.loaded) + ' / ' + formatBytes(downloads[bookId]?.total)">Downloading...</p>
+                    <button @click="cancelDownload(bookId)" class="mt-3 px-4 py-1 text-xs bg-white/20 rounded-full hover:bg-white/30">
+                        Cancel
+                    </button>
                 </div>
                 
                 <!-- Format Badge -->
@@ -183,17 +207,18 @@
                     
                     <!-- Secondary Actions -->
                     <div class="flex gap-2">
-                        <!-- Download Toggle -->
-                        <form action="{% url 'core:toggle_download' entry_id=entry.id %}" method="post" class="flex-1">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-secondary btn-block text-xs">
-                                {% if entry.download_status == 'downloaded' %}
-                                ✓ Saved
-                                {% else %}
-                                ↓ Save
-                                {% endif %}
-                            </button>
-                        </form>
+                        <!-- Download Button with Progress -->
+                        <button 
+                            @click="isDownloaded || downloads[bookId]?.status === 'complete' ? removeDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId) : startDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId)"
+                            :disabled="downloads[bookId]?.status === 'downloading'"
+                            class="btn btn-secondary flex-1 text-xs"
+                            :class="{ 'opacity-50 cursor-not-allowed': downloads[bookId]?.status === 'downloading' }">
+                            <span x-show="!(isDownloaded || downloads[bookId]?.status === 'complete') && downloads[bookId]?.status !== 'downloading'">↓ Save</span>
+                            <span x-show="isDownloaded || downloads[bookId]?.status === 'complete'" x-cloak>✓ Saved</span>
+                            <span x-show="downloads[bookId]?.status === 'downloading'" x-cloak>
+                                <span x-text="downloads[bookId]?.percent + '%'"></span>
+                            </span>
+                        </button>
                         
                         <!-- Request Hard Copy -->
                         <a href="{% url 'core:request_hard_copy' book_id=entry.book.id %}" 
@@ -232,6 +257,157 @@
     {% endif %}
 </div>
 
+<script>
+function libraryManager() {
+    return {
+        downloads: {},
+        abortControllers: {},
+        
+        init() {
+            // Listen for service worker messages
+            if (navigator.serviceWorker) {
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                    const { type, payload } = event.data;
+                    if (type === 'DOWNLOAD_COMPLETE') {
+                        this.downloads[payload.bookId] = { status: 'complete', percent: 100 };
+                        showToast('Book saved for offline reading!', 'success');
+                    } else if (type === 'DOWNLOAD_ERROR') {
+                        delete this.downloads[payload.bookId];
+                        showToast('Download failed: ' + payload.error, 'error');
+                    } else if (type === 'REMOVE_COMPLETE') {
+                        delete this.downloads[payload.bookId];
+                    }
+                });
+            }
+        },
+        
+        formatBytes(bytes) {
+            if (!bytes) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        },
+        
+        async startDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId) {
+            // Initialize download state
+            this.downloads[bookId] = { status: 'downloading', percent: 0, loaded: 0, total: 0 };
+            
+            // Create abort controller for cancellation
+            this.abortControllers[bookId] = new AbortController();
+            const signal = this.abortControllers[bookId].signal;
+            
+            try {
+                const filesToDownload = [];
+                if (ebookUrl) filesToDownload.push({ type: 'ebook', url: ebookUrl });
+                if (audiobookUrl) filesToDownload.push({ type: 'audiobook', url: audiobookUrl });
+                if (coverUrl) filesToDownload.push({ type: 'cover', url: coverUrl });
+                
+                // First, get total size
+                let totalSize = 0;
+                for (const file of filesToDownload) {
+                    try {
+                        const headResponse = await fetch(file.url, { method: 'HEAD', signal });
+                        const size = parseInt(headResponse.headers.get('content-length') || '0');
+                        file.size = size;
+                        totalSize += size;
+                    } catch (e) {
+                        file.size = 0;
+                    }
+                }
+                
+                this.downloads[bookId].total = totalSize;
+                let totalLoaded = 0;
+                
+                // Download each file with progress
+                for (const file of filesToDownload) {
+                    const response = await fetch(file.url, { signal });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to download ${file.type}`);
+                    }
+                    
+                    const reader = response.body.getReader();
+                    const chunks = [];
+                    
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        
+                        chunks.push(value);
+                        totalLoaded += value.length;
+                        
+                        // Update progress
+                        this.downloads[bookId].loaded = totalLoaded;
+                        this.downloads[bookId].percent = Math.round((totalLoaded / totalSize) * 100);
+                    }
+                    
+                    // Combine chunks and cache
+                    const blob = new Blob(chunks);
+                    
+                    // Store in cache via service worker message
+                    if (navigator.serviceWorker.controller) {
+                        const cache = await caches.open('xanula-books');
+                        await cache.put(file.url, new Response(blob));
+                    }
+                }
+                
+                // Mark as complete
+                this.downloads[bookId] = { status: 'complete', percent: 100 };
+                
+                // Update server-side status
+                await fetch(`/library/${entryId}/download/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                
+                showToast('Book saved for offline reading!', 'success');
+                
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    delete this.downloads[bookId];
+                    showToast('Download cancelled', 'info');
+                } else {
+                    delete this.downloads[bookId];
+                    showToast('Download failed: ' + error.message, 'error');
+                }
+            } finally {
+                delete this.abortControllers[bookId];
+            }
+        },
+        
+        cancelDownload(bookId) {
+            if (this.abortControllers[bookId]) {
+                this.abortControllers[bookId].abort();
+            }
+        },
+        
+        async removeDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId) {
+            try {
+                const cache = await caches.open('xanula-books');
+                if (ebookUrl) await cache.delete(ebookUrl);
+                if (audiobookUrl) await cache.delete(audiobookUrl);
+                if (coverUrl) await cache.delete(coverUrl);
+                
+                delete this.downloads[bookId];
+                
+                // Update server-side status
+                await fetch(`/library/${entryId}/download/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                
+                // Reload to update UI
+                window.location.reload();
+                
+            } catch (error) {
+                showToast('Failed to remove download', 'error');
+            }
+        }
+    }
+}
+</script>
+
 <style>
 .scrollbar-hide {
     -ms-overflow-style: none;
@@ -242,3 +418,4 @@
 }
 </style>
 {% endblock %}
+
