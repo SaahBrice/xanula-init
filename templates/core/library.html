@@ -4,146 +4,164 @@
 {% block title %}My Library - Xanula{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-6xl">
+<div class="container py-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-            <h1 class="text-3xl font-bold text-white">My Library</h1>
-            <p class="text-gray-400 mt-1">{{ filter_counts.all }} book{{ filter_counts.all|pluralize }} in your collection</p>
+            <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">My Library</h1>
+            <p class="text-gray-600 dark:text-gray-400 mt-1">
+                {{ filter_counts.all }} book{{ filter_counts.all|pluralize }} in your collection
+            </p>
         </div>
         
         <!-- Sort Dropdown -->
         <div class="relative" x-data="{ open: false }">
-            <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 bg-dark-200 border border-gray-700 rounded-lg text-gray-300 hover:border-gray-600 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+            <button @click="open = !open" 
+                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 shadow-sm hover:border-burgundy-500 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"/>
                 </svg>
-                <span>
+                <span class="text-sm font-medium">
                     {% if sort_by == 'date_added' %}Recently Added
                     {% elif sort_by == 'title' %}Title A-Z
                     {% else %}Recently Accessed{% endif %}
                 </span>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </button>
-            <div x-show="open" @click.away="open = false" x-cloak
-                class="absolute right-0 mt-2 w-48 bg-dark-200 border border-gray-700 rounded-lg shadow-xl z-10">
+            <div x-show="open" @click.away="open = false" x-cloak x-transition
+                class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-10 overflow-hidden">
                 <a href="?filter={{ filter_type }}&sort=last_accessed" 
-                    class="block px-4 py-2 text-sm {% if sort_by == 'last_accessed' %}text-primary-400{% else %}text-gray-300{% endif %} hover:bg-dark-300 rounded-t-lg">
+                    class="block px-4 py-3 text-sm {% if sort_by == 'last_accessed' %}text-burgundy-500 bg-burgundy-50 dark:bg-burgundy-900/20{% else %}text-gray-700 dark:text-gray-300{% endif %} hover:bg-gray-50 dark:hover:bg-dark-50">
                     Recently Accessed
                 </a>
                 <a href="?filter={{ filter_type }}&sort=date_added" 
-                    class="block px-4 py-2 text-sm {% if sort_by == 'date_added' %}text-primary-400{% else %}text-gray-300{% endif %} hover:bg-dark-300">
+                    class="block px-4 py-3 text-sm {% if sort_by == 'date_added' %}text-burgundy-500 bg-burgundy-50 dark:bg-burgundy-900/20{% else %}text-gray-700 dark:text-gray-300{% endif %} hover:bg-gray-50 dark:hover:bg-dark-50">
                     Recently Added
                 </a>
                 <a href="?filter={{ filter_type }}&sort=title" 
-                    class="block px-4 py-2 text-sm {% if sort_by == 'title' %}text-primary-400{% else %}text-gray-300{% endif %} hover:bg-dark-300 rounded-b-lg">
+                    class="block px-4 py-3 text-sm {% if sort_by == 'title' %}text-burgundy-500 bg-burgundy-50 dark:bg-burgundy-900/20{% else %}text-gray-700 dark:text-gray-300{% endif %} hover:bg-gray-50 dark:hover:bg-dark-50">
                     Title A-Z
                 </a>
             </div>
         </div>
     </div>
     
-    <!-- Filter Tabs -->
-    <div class="flex flex-wrap gap-2 mb-8 overflow-x-auto pb-2">
+    <!-- Filter Tabs - Horizontal Scroll on Mobile -->
+    <div class="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
         <a href="?filter=all&sort={{ sort_by }}" 
-            class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
-            {% if filter_type == 'all' %}bg-primary-500 text-white{% else %}bg-dark-200 text-gray-400 hover:bg-dark-300{% endif %}">
-            All Books ({{ filter_counts.all }})
+            class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
+            {% if filter_type == 'all' %}bg-burgundy-500 text-white shadow{% else %}bg-white dark:bg-dark-100 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-burgundy-500{% endif %}">
+            All ({{ filter_counts.all }})
         </a>
         <a href="?filter=ebook&sort={{ sort_by }}" 
-            class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
-            {% if filter_type == 'ebook' %}bg-blue-500 text-white{% else %}bg-dark-200 text-gray-400 hover:bg-dark-300{% endif %}">
-            📚 Ebooks ({{ filter_counts.ebook }})
+            class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
+            {% if filter_type == 'ebook' %}bg-forest-500 text-white shadow{% else %}bg-white dark:bg-dark-100 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-forest-500{% endif %}">
+            📖 Ebooks ({{ filter_counts.ebook }})
         </a>
         <a href="?filter=audiobook&sort={{ sort_by }}" 
-            class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
-            {% if filter_type == 'audiobook' %}bg-purple-500 text-white{% else %}bg-dark-200 text-gray-400 hover:bg-dark-300{% endif %}">
+            class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
+            {% if filter_type == 'audiobook' %}bg-burgundy-400 text-white shadow{% else %}bg-white dark:bg-dark-100 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-burgundy-400{% endif %}">
             🎧 Audiobooks ({{ filter_counts.audiobook }})
         </a>
         <a href="?filter=in_progress&sort={{ sort_by }}" 
-            class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
-            {% if filter_type == 'in_progress' %}bg-yellow-500 text-black{% else %}bg-dark-200 text-gray-400 hover:bg-dark-300{% endif %}">
-            📖 In Progress ({{ filter_counts.in_progress }})
+            class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
+            {% if filter_type == 'in_progress' %}bg-gold-500 text-white shadow{% else %}bg-white dark:bg-dark-100 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-gold-500{% endif %}">
+            📚 In Progress ({{ filter_counts.in_progress }})
         </a>
         <a href="?filter=completed&sort={{ sort_by }}" 
-            class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
-            {% if filter_type == 'completed' %}bg-green-500 text-white{% else %}bg-dark-200 text-gray-400 hover:bg-dark-300{% endif %}">
+            class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
+            {% if filter_type == 'completed' %}bg-forest-500 text-white shadow{% else %}bg-white dark:bg-dark-100 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-forest-500{% endif %}">
             ✓ Completed ({{ filter_counts.completed }})
         </a>
     </div>
     
     {% if entries %}
-    <!-- Book Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <!-- Books Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {% for entry in entries %}
-        <div class="bg-dark-200 border border-gray-800 rounded-xl overflow-hidden hover:border-gray-700 transition-all group">
-            <!-- Cover Image -->
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all group">
+            <!-- Cover Image with Status -->
             <div class="relative aspect-[2/3] overflow-hidden">
                 {% if entry.book.cover_image %}
                 <img src="{{ entry.book.cover_image.url }}" alt="{{ entry.book.title }}" 
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                 {% else %}
-                <div class="w-full h-full bg-gradient-to-br from-primary-700 to-secondary-700 flex items-center justify-center">
-                    <span class="text-4xl font-bold text-white/50">{{ entry.book.title|first }}</span>
+                <div class="w-full h-full bg-gradient-to-br from-burgundy-500 to-forest-500 flex items-center justify-center">
+                    <span class="text-4xl font-display font-bold text-white/40">{{ entry.book.title|first }}</span>
                 </div>
                 {% endif %}
                 
-                <!-- Badges Overlay -->
+                <!-- Status Badges -->
                 <div class="absolute top-3 left-3 flex flex-col gap-2">
-                    <!-- Completion Status Badge -->
                     {% if entry.completion_status == 'completed' %}
-                    <span class="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded-full">✓ Completed</span>
+                    <span class="px-3 py-1 bg-forest-500 text-white text-xs font-medium rounded-full shadow">
+                        ✓ Completed
+                    </span>
                     {% elif entry.completion_status == 'in_progress' %}
-                    <span class="px-2 py-1 bg-yellow-500 text-black text-xs font-medium rounded-full">📖 In Progress</span>
+                    <span class="px-3 py-1 bg-gold-500 text-white text-xs font-medium rounded-full shadow">
+                        📖 Reading
+                    </span>
                     {% endif %}
                     
-                    <!-- Download Status Badge -->
                     {% if entry.download_status == 'downloaded' %}
-                    <span class="px-2 py-1 bg-blue-500 text-white text-xs font-medium rounded-full">📱 Offline</span>
+                    <span class="px-3 py-1 bg-white/90 dark:bg-dark-100/90 text-forest-500 text-xs font-medium rounded-full shadow backdrop-blur-sm">
+                        📱 Offline
+                    </span>
                     {% endif %}
                 </div>
                 
-                <!-- Format Badges -->
-                <div class="absolute bottom-3 left-3 flex gap-2">
-                    <span class="px-2 py-1 bg-black/70 text-blue-400 text-xs rounded-full">📚 Ebook</span>
+                <!-- Format Badge -->
+                <div class="absolute bottom-3 right-3 flex gap-1">
+                    <span class="px-2 py-1 bg-white/90 dark:bg-dark-100/90 text-forest-500 text-xs font-medium rounded backdrop-blur-sm">📖</span>
                     {% if entry.book.has_audiobook %}
-                    <span class="px-2 py-1 bg-black/70 text-purple-400 text-xs rounded-full">🎧 Audio</span>
+                    <span class="px-2 py-1 bg-white/90 dark:bg-dark-100/90 text-burgundy-500 text-xs font-medium rounded backdrop-blur-sm">🎧</span>
                     {% endif %}
                 </div>
             </div>
             
             <!-- Book Info -->
             <div class="p-4">
-                <h3 class="font-semibold text-white mb-1 line-clamp-1">{{ entry.book.title }}</h3>
-                <p class="text-sm text-gray-400 mb-3">{{ entry.book.author.get_display_name }}</p>
+                <h3 class="font-display font-semibold text-gray-900 dark:text-white mb-1 line-clamp-1">
+                    {{ entry.book.title }}
+                </h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    {{ entry.book.author.get_display_name }}
+                </p>
                 
                 <!-- Progress Bar -->
                 {% if entry.reading_progress > 0 or entry.listening_progress > 0 %}
-                <div class="mb-3">
-                    <div class="flex justify-between text-xs text-gray-400 mb-1">
+                <div class="mb-4">
+                    <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
                         <span>Progress</span>
-                        <span>{% if entry.reading_progress > 0 %}Page {{ entry.reading_progress }}{% else %}{{ entry.listening_progress|floatformat:0 }}s listened{% endif %}</span>
+                        <span>
+                            {% if entry.reading_progress > 0 %}
+                            Page {{ entry.reading_progress }}
+                            {% else %}
+                            {{ entry.listening_progress|floatformat:0 }}s listened
+                            {% endif %}
+                        </span>
                     </div>
-                    <div class="w-full bg-gray-700 rounded-full h-1.5">
-                        <div class="bg-primary-500 h-1.5 rounded-full" style="width: {% if entry.reading_progress > 0 %}{{ entry.reading_progress|default:0 }}{% else %}25{% endif %}%"></div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                        <div class="bg-burgundy-500 h-1.5 rounded-full transition-all" 
+                            style="width: {% if entry.reading_progress > 0 %}{{ entry.reading_progress|default:0 }}{% else %}25{% endif %}%"></div>
                     </div>
                 </div>
                 {% endif %}
                 
                 <!-- Last Accessed -->
                 {% if entry.last_accessed %}
-                <p class="text-xs text-gray-500 mb-3">
-                    Last read: {{ entry.last_accessed|timesince }} ago
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                    Last read {{ entry.last_accessed|timesince }} ago
                 </p>
                 {% endif %}
                 
                 <!-- Action Buttons -->
                 <div class="space-y-2">
-                    <!-- Read/Continue Button -->
+                    <!-- Primary Read Button -->
                     <a href="{% url 'core:book_reader' slug=entry.book.slug %}" 
-                        class="block w-full py-2 px-4 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white text-sm font-medium rounded-lg text-center transition-all">
+                        class="btn btn-primary btn-block">
                         {% if entry.reading_progress > 0 %}
                         Continue Reading
                         {% else %}
@@ -151,51 +169,38 @@
                         {% endif %}
                     </a>
                     
-                    <!-- Listen Button (if audiobook available) -->
+                    <!-- Listen Button -->
                     {% if entry.book.has_audiobook %}
                     <a href="{% url 'core:audiobook_player' slug=entry.book.slug %}" 
-                        class="block w-full py-2 px-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm font-medium rounded-lg text-center transition-all">
+                        class="btn bg-burgundy-100 dark:bg-burgundy-900/30 text-burgundy-600 dark:text-burgundy-400 hover:bg-burgundy-200 dark:hover:bg-burgundy-900/50 btn-block">
                         {% if entry.listening_progress > 0 %}
                         Continue Listening
                         {% else %}
-                        🎧 Listen to Book
+                        🎧 Listen
                         {% endif %}
                     </a>
                     {% endif %}
                     
-                    <!-- Download Toggle -->
-                    <form action="{% url 'core:toggle_download' entry_id=entry.id %}" method="post" class="w-full">
-                        {% csrf_token %}
-                        <button type="submit" 
-                            class="w-full py-2 px-4 border {% if entry.download_status == 'downloaded' %}border-blue-500 text-blue-400{% else %}border-gray-600 text-gray-400{% endif %} hover:border-gray-500 text-sm font-medium rounded-lg transition-all">
-                            {% if entry.download_status == 'downloaded' %}
-                            <span class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                </svg>
-                                Downloaded
-                            </span>
-                            {% else %}
-                            <span class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Download for Offline
-                            </span>
-                            {% endif %}
-                        </button>
-                    </form>
-                    
-                    <!-- Request Hard Copy Button -->
-                    <a href="{% url 'core:request_hard_copy' book_id=entry.book.id %}" 
-                        class="block w-full py-2 px-4 border border-amber-500/50 text-amber-400 hover:bg-amber-500/10 text-sm font-medium rounded-lg text-center transition-all">
-                        <span class="flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
-                            </svg>
-                            📦 Request Hard Copy
-                        </span>
-                    </a>
+                    <!-- Secondary Actions -->
+                    <div class="flex gap-2">
+                        <!-- Download Toggle -->
+                        <form action="{% url 'core:toggle_download' entry_id=entry.id %}" method="post" class="flex-1">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-secondary btn-block text-xs">
+                                {% if entry.download_status == 'downloaded' %}
+                                ✓ Saved
+                                {% else %}
+                                ↓ Save
+                                {% endif %}
+                            </button>
+                        </form>
+                        
+                        <!-- Request Hard Copy -->
+                        <a href="{% url 'core:request_hard_copy' book_id=entry.book.id %}" 
+                            class="btn btn-secondary flex-1 text-xs">
+                            📦 Print
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -205,24 +210,35 @@
     {% else %}
     <!-- Empty State -->
     <div class="text-center py-16">
-        <div class="w-24 h-24 bg-dark-200 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-cream dark:bg-dark-50 flex items-center justify-center">
+            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
             </svg>
         </div>
-        <h2 class="text-2xl font-bold text-white mb-2">Your Library is Empty</h2>
-        <p class="text-gray-400 mb-6 max-w-md mx-auto">
+        <h2 class="font-display text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Your Library is Empty
+        </h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
             {% if filter_type != 'all' %}
             No books match this filter. Try a different filter or browse our collection.
             {% else %}
             You haven't purchased any books yet. Start building your collection today!
             {% endif %}
         </p>
-        <a href="{% url 'core:book_list' %}" 
-            class="inline-block px-6 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-semibold rounded-lg transition-all">
+        <a href="{% url 'core:book_list' %}" class="btn btn-primary btn-lg">
             Browse Books
         </a>
     </div>
     {% endif %}
 </div>
+
+<style>
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+</style>
 {% endblock %}

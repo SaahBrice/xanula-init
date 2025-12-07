@@ -3,36 +3,32 @@
 {% block title %}Verify Email - Xanula{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 text-center">
+<div class="min-h-screen flex items-center justify-center py-12 px-4">
+    <div class="max-w-md w-full text-center">
         <!-- Header -->
-        <div>
-            <a href="/" class="inline-block">
-                <span
-                    class="text-4xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
-                    Xanula
-                </span>
+        <div class="mb-8">
+            <a href="{% url 'core:homepage' %}" class="inline-block">
+                <span class="text-3xl font-display font-bold text-burgundy-500">Xanula</span>
             </a>
-            <h2 class="mt-6 text-3xl font-bold text-white">
+            <h1 class="mt-6 font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
                 Verify your email
-            </h2>
-            <p class="mt-4 text-gray-400">
-                Please confirm that <strong class="text-white">{{ email }}</strong> is your email address.
+            </h1>
+            <p class="mt-4 text-gray-600 dark:text-gray-400">
+                Please confirm that <strong class="text-gray-900 dark:text-white">{{ email }}</strong> is your email address.
             </p>
         </div>
 
-        <!-- Confirm Form -->
-        <form method="post" action="{% url 'account_confirm_email' key=confirmation.key %}" class="mt-8">
-            {% csrf_token %}
+        <!-- Card -->
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
+            <form method="post" action="{% url 'account_confirm_email' key=confirmation.key %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-lg btn-block">
+                    Confirm Email Address
+                </button>
+            </form>
+        </div>
 
-            <button type="submit"
-                class="w-full py-3 px-4 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-medium rounded-lg transform hover:scale-[1.02] transition-all duration-200">
-                Confirm Email Address
-            </button>
-        </form>
-
-        <!-- Info -->
-        <p class="text-sm text-gray-500">
+        <p class="text-sm text-gray-500 mt-6">
             By confirming, you'll have full access to Xanula.
         </p>
     </div>

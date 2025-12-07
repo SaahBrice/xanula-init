@@ -4,48 +4,41 @@
 {% block title %}Request Payout - Xanula{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-2xl">
+<div class="container py-6 max-w-xl mx-auto">
     <!-- Header -->
-    <div class="mb-8">
-        <a href="{% url 'core:my_books' %}" class="text-gray-400 hover:text-white text-sm mb-2 inline-block">
-            ← Back to My Books
-        </a>
-        <h1 class="text-3xl font-bold text-white mb-2">Request Payout</h1>
-        <p class="text-gray-400">Withdraw your earnings to your account.</p>
+    <div class="mb-6">
+        <a href="{% url 'core:my_books' %}" class="text-gray-500 hover:text-burgundy-500 text-sm mb-2 inline-block">← Back to My Books</a>
+        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">Request Payout</h1>
+        <p class="text-gray-600 dark:text-gray-400">Withdraw your earnings to your account.</p>
     </div>
 
-    <!-- Current Balance Card -->
-    <div class="bg-dark-200 border border-gray-800 rounded-xl p-6 mb-8">
+    <!-- Balance Card -->
+    <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-6">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-400 text-sm">Available Balance</p>
-                <p class="text-3xl font-bold text-white">{{ earnings_balance|floatformat:0 }} <span class="text-lg text-gray-400">XAF</span></p>
+                <p class="text-sm text-gray-500">Available Balance</p>
+                <p class="text-3xl font-display font-bold text-gray-900 dark:text-white">{{ earnings_balance|floatformat:0 }} <span class="text-lg text-gray-400">XAF</span></p>
             </div>
-            <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
-                <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            <div class="w-14 h-14 bg-forest-100 dark:bg-forest-900/30 rounded-full flex items-center justify-center">
+                <span class="text-2xl">💰</span>
             </div>
         </div>
     </div>
 
     <!-- Pending Payouts -->
     {% if pending_payouts %}
-    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-8">
-        <h3 class="font-semibold text-yellow-400 mb-3 flex items-center">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Pending Payouts
+    <div class="bg-gold-50 dark:bg-gold-900/20 border border-gold-200 dark:border-gold-800 rounded-2xl p-4 mb-6">
+        <h3 class="font-semibold text-gold-700 dark:text-gold-400 mb-3 flex items-center gap-2">
+            <span>⏳</span> Pending Payouts
         </h3>
         <div class="space-y-2">
             {% for payout in pending_payouts %}
-            <div class="flex items-center justify-between bg-dark-100 rounded-lg p-3">
+            <div class="flex items-center justify-between bg-white dark:bg-dark-100 rounded-xl p-3">
                 <div>
-                    <p class="text-white font-medium">{{ payout.amount_requested|floatformat:0 }} XAF</p>
+                    <p class="font-medium text-gray-900 dark:text-white">{{ payout.amount_requested|floatformat:0 }} XAF</p>
                     <p class="text-xs text-gray-500">{{ payout.request_date|date:"M d, Y" }} • {{ payout.get_payout_method_display }}</p>
                 </div>
-                <span class="px-2 py-1 text-xs {% if payout.status == 'pending' %}bg-yellow-500/20 text-yellow-400{% else %}bg-blue-500/20 text-blue-400{% endif %} rounded-full">
+                <span class="px-2 py-1 text-xs {% if payout.status == 'pending' %}bg-gold-100 dark:bg-gold-900/30 text-gold-600 dark:text-gold-400{% else %}bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400{% endif %} rounded-full">
                     {{ payout.get_status_display }}
                 </span>
             </div>
@@ -54,94 +47,76 @@
     </div>
     {% endif %}
 
-    <!-- Payout Form -->
+    <!-- Form -->
     <form method="post" class="space-y-6">
         {% csrf_token %}
         
-        <div class="bg-dark-200 border border-gray-800 rounded-xl p-6">
-            <h2 class="text-xl font-semibold text-white mb-6">Payout Details</h2>
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6">Payout Details</h2>
             
             <!-- Amount -->
-            <div class="mb-6">
-                <label for="id_amount_requested" class="block text-sm font-medium text-white mb-2">Amount (XAF)</label>
+            <div class="form-group">
+                <label for="id_amount_requested" class="label">Amount (XAF)</label>
                 <div class="relative">
-                    <input type="number" name="amount_requested" id="id_amount_requested"
-                        value="{{ form.amount_requested.value|default:'' }}"
-                        class="w-full px-4 py-3 bg-dark-100 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-16"
-                        placeholder="Enter amount" min="5000" max="{{ earnings_balance }}" step="100">
+                    <input type="number" name="amount_requested" id="id_amount_requested" value="{{ form.amount_requested.value|default:'' }}"
+                        class="input pr-16" placeholder="Enter amount" min="5000" max="{{ earnings_balance }}" step="100">
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">XAF</span>
                 </div>
-                {% if form.amount_requested.errors %}
-                <p class="mt-1 text-sm text-red-400">{{ form.amount_requested.errors.0 }}</p>
-                {% endif %}
-                <p class="mt-1 text-xs text-gray-500">Minimum: 5,000 XAF • Maximum: {{ earnings_balance|floatformat:0 }} XAF</p>
+                {% if form.amount_requested.errors %}<p class="mt-1 text-sm text-red-500">{{ form.amount_requested.errors.0 }}</p>{% endif %}
+                <p class="text-xs text-gray-500 mt-1">Min: 5,000 XAF • Max: {{ earnings_balance|floatformat:0 }} XAF</p>
             </div>
             
-            <!-- Payout Method -->
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-white mb-3">Payout Method</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <label class="relative flex items-center p-4 bg-dark-100 border border-gray-700 rounded-lg cursor-pointer hover:border-primary-500 transition-colors has-[:checked]:border-primary-500 has-[:checked]:bg-primary-500/10">
+            <!-- Method -->
+            <div class="form-group">
+                <label class="label mb-3">Payout Method</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label class="relative flex items-center p-4 bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-700 rounded-xl cursor-pointer hover:border-burgundy-500 transition-colors has-[:checked]:border-burgundy-500 has-[:checked]:bg-burgundy-50 dark:has-[:checked]:bg-burgundy-900/20">
                         <input type="radio" name="payout_method" value="mobile_money"
                             {% if form.payout_method.value == 'mobile_money' or not form.payout_method.value %}checked{% endif %}
-                            class="h-4 w-4 text-primary-500 bg-dark-100 border-gray-700 focus:ring-primary-500">
+                            class="w-5 h-5 text-burgundy-500 border-gray-300 focus:ring-burgundy-500">
                         <div class="ml-3">
-                            <span class="font-medium text-white">Mobile Money</span>
-                            <p class="text-xs text-gray-400">MTN MoMo, Orange Money</p>
+                            <span class="font-medium text-gray-900 dark:text-white">Mobile Money</span>
+                            <p class="text-xs text-gray-500">MTN MoMo, Orange Money</p>
                         </div>
                     </label>
-                    <label class="relative flex items-center p-4 bg-dark-100 border border-gray-700 rounded-lg cursor-pointer hover:border-primary-500 transition-colors has-[:checked]:border-primary-500 has-[:checked]:bg-primary-500/10">
+                    <label class="relative flex items-center p-4 bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-700 rounded-xl cursor-pointer hover:border-burgundy-500 transition-colors has-[:checked]:border-burgundy-500 has-[:checked]:bg-burgundy-50 dark:has-[:checked]:bg-burgundy-900/20">
                         <input type="radio" name="payout_method" value="bank_transfer"
                             {% if form.payout_method.value == 'bank_transfer' %}checked{% endif %}
-                            class="h-4 w-4 text-primary-500 bg-dark-100 border-gray-700 focus:ring-primary-500">
+                            class="w-5 h-5 text-burgundy-500 border-gray-300 focus:ring-burgundy-500">
                         <div class="ml-3">
-                            <span class="font-medium text-white">Bank Transfer</span>
-                            <p class="text-xs text-gray-400">Local bank account</p>
+                            <span class="font-medium text-gray-900 dark:text-white">Bank Transfer</span>
+                            <p class="text-xs text-gray-500">Local bank account</p>
                         </div>
                     </label>
                 </div>
-                {% if form.payout_method.errors %}
-                <p class="mt-1 text-sm text-red-400">{{ form.payout_method.errors.0 }}</p>
-                {% endif %}
             </div>
             
             <!-- Account Details -->
-            <div class="mb-6">
-                <label for="id_account_details" class="block text-sm font-medium text-white mb-2">Account Details</label>
-                <textarea name="account_details" id="id_account_details"
-                    class="w-full px-4 py-3 bg-dark-100 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            <div class="form-group">
+                <label for="id_account_details" class="label">Account Details</label>
+                <textarea name="account_details" id="id_account_details" class="input resize-none"
                     placeholder="For Mobile Money: Enter phone number (e.g., 237 6XX XXX XXX)&#10;For Bank: Enter bank name, account number, and account holder name"
                     rows="3">{{ form.account_details.value|default_if_none:"" }}</textarea>
-                {% if form.account_details.errors %}
-                <p class="mt-1 text-sm text-red-400">{{ form.account_details.errors.0 }}</p>
-                {% endif %}
+                {% if form.account_details.errors %}<p class="mt-1 text-sm text-red-500">{{ form.account_details.errors.0 }}</p>{% endif %}
             </div>
         </div>
         
-        <!-- Info Box -->
-        <div class="bg-dark-200 border border-gray-800 rounded-xl p-4">
-            <h3 class="font-medium text-white mb-2 flex items-center">
-                <svg class="w-5 h-5 mr-2 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Processing Information
+        <!-- Info -->
+        <div class="bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-700 rounded-2xl p-4">
+            <h3 class="font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                <span class="text-burgundy-500">ℹ️</span> Processing Information
             </h3>
-            <ul class="text-sm text-gray-400 space-y-1">
+            <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                 <li>• Payouts are processed within 3-5 business days</li>
                 <li>• You will receive a confirmation email once processed</li>
                 <li>• Make sure your account details are correct</li>
             </ul>
         </div>
         
-        <!-- Submit Button -->
-        <div class="flex flex-col sm:flex-row gap-4 justify-end">
-            <a href="{% url 'core:my_books' %}" class="px-6 py-3 border border-gray-600 text-gray-300 rounded-lg text-center hover:bg-dark-200 transition-colors">
-                Cancel
-            </a>
-            <button type="submit"
-                class="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg transition-all">
-                Request Payout
-            </button>
+        <!-- Submit -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-end">
+            <a href="{% url 'core:my_books' %}" class="btn btn-secondary text-center">Cancel</a>
+            <button type="submit" class="btn bg-forest-500 hover:bg-forest-600 text-white">Request Payout</button>
         </div>
     </form>
 </div>

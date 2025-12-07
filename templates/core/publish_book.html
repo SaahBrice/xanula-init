@@ -4,7 +4,7 @@
 {% block title %}Publish Your Book - Xanula{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-4xl"
+<div class="container py-6 max-w-3xl mx-auto"
      x-data="{
          charCount: 0,
          makeFree: false,
@@ -16,16 +16,8 @@
          previewCover(event) {
              const file = event.target.files[0];
              if (file) {
-                 if (file.size > 5 * 1024 * 1024) {
-                     this.coverError = 'Cover image must be less than 5MB';
-                     event.target.value = '';
-                     return;
-                 }
-                 if (!['image/jpeg', 'image/png'].includes(file.type)) {
-                     this.coverError = 'Only JPEG and PNG images are allowed';
-                     event.target.value = '';
-                     return;
-                 }
+                 if (file.size > 5 * 1024 * 1024) { this.coverError = 'Cover image must be less than 5MB'; event.target.value = ''; return; }
+                 if (!['image/jpeg', 'image/png'].includes(file.type)) { this.coverError = 'Only JPEG and PNG images are allowed'; event.target.value = ''; return; }
                  this.coverError = '';
                  const reader = new FileReader();
                  reader.onload = (e) => this.coverPreview = e.target.result;
@@ -35,19 +27,9 @@
          checkManuscript(event) {
              const file = event.target.files[0];
              if (file) {
-                 if (file.size > 25 * 1024 * 1024) {
-                     this.manuscriptError = 'Manuscript must be less than 25MB';
-                     event.target.value = '';
-                     this.manuscriptName = '';
-                     return;
-                 }
+                 if (file.size > 25 * 1024 * 1024) { this.manuscriptError = 'Manuscript must be less than 25MB'; event.target.value = ''; this.manuscriptName = ''; return; }
                  const ext = file.name.split('.').pop().toLowerCase();
-                 if (!['pdf', 'docx', 'epub', 'txt'].includes(ext)) {
-                     this.manuscriptError = 'Only PDF, DOCX, EPUB, and TXT files are allowed';
-                     event.target.value = '';
-                     this.manuscriptName = '';
-                     return;
-                 }
+                 if (!['pdf', 'docx', 'epub', 'txt'].includes(ext)) { this.manuscriptError = 'Only PDF, DOCX, EPUB, and TXT files are allowed'; event.target.value = ''; this.manuscriptName = ''; return; }
                  this.manuscriptError = '';
                  this.manuscriptName = file.name;
              }
@@ -56,79 +38,69 @@
     
     <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-white mb-2">Publish Your Book</h1>
-        <p class="text-gray-400">Share your story with readers around the world.</p>
+        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">Publish Your Book</h1>
+        <p class="text-gray-600 dark:text-gray-400">Share your story with readers around the world.</p>
     </div>
 
     <!-- Form -->
-    <form method="post" enctype="multipart/form-data" @submit="submitting = true" class="space-y-8">
+    <form method="post" enctype="multipart/form-data" @submit="submitting = true" class="space-y-6">
         {% csrf_token %}
         
         <!-- Book Details Section -->
-        <div class="bg-dark-200 border border-gray-800 rounded-xl p-6">
-            <h2 class="text-xl font-semibold text-white mb-6 flex items-center">
-                <span class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">1</span>
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                <span class="w-8 h-8 bg-burgundy-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">1</span>
                 Book Details
             </h2>
             
             <!-- Title -->
-            <div class="mb-6">
-                <label for="id_title" class="block text-sm font-medium text-white mb-2">Book Title *</label>
+            <div class="form-group">
+                <label for="id_title" class="label">Book Title *</label>
                 {{ form.title }}
-                {% if form.title.errors %}
-                <p class="mt-1 text-sm text-red-400">{{ form.title.errors.0 }}</p>
-                {% endif %}
+                {% if form.title.errors %}<p class="mt-1 text-sm text-red-500">{{ form.title.errors.0 }}</p>{% endif %}
             </div>
             
             <!-- Short Description -->
-            <div class="mb-6">
-                <label for="id_short_description" class="block text-sm font-medium text-white mb-2">
-                    Short Description *
-                    <span class="text-gray-400 font-normal ml-2" x-text="charCount + '/200'"></span>
+            <div class="form-group">
+                <label for="id_short_description" class="label">
+                    Short Description * <span class="text-gray-400 font-normal ml-2" x-text="charCount + '/200'"></span>
                 </label>
-                <textarea name="short_description" id="id_short_description"
-                    class="w-full px-4 py-3 bg-dark-100 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                <textarea name="short_description" id="id_short_description" class="input resize-none"
                     placeholder="Brief description for book listings (max 200 characters)"
                     rows="3" maxlength="200"
                     x-on:input="charCount = $el.value.length"
                     x-init="charCount = $el.value.length">{{ form.short_description.value|default_if_none:"" }}</textarea>
-                {% if form.short_description.errors %}
-                <p class="mt-1 text-sm text-red-400">{{ form.short_description.errors.0 }}</p>
-                {% endif %}
-                <p class="mt-1 text-xs text-gray-500">This appears in book listings and search results.</p>
+                {% if form.short_description.errors %}<p class="mt-1 text-sm text-red-500">{{ form.short_description.errors.0 }}</p>{% endif %}
+                <p class="text-xs text-gray-500 mt-1">This appears in book listings and search results.</p>
             </div>
             
             <!-- Long Description -->
-            <div class="mb-6">
-                <label for="id_long_description" class="block text-sm font-medium text-white mb-2">Full Description *</label>
+            <div class="form-group">
+                <label for="id_long_description" class="label">Full Description *</label>
                 {{ form.long_description }}
-                {% if form.long_description.errors %}
-                <p class="mt-1 text-sm text-red-400">{{ form.long_description.errors.0 }}</p>
-                {% endif %}
+                {% if form.long_description.errors %}<p class="mt-1 text-sm text-red-500">{{ form.long_description.errors.0 }}</p>{% endif %}
             </div>
             
             <!-- Category and Language -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="id_category" class="block text-sm font-medium text-white mb-2">Category *</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label for="id_category" class="label">Category *</label>
                     {{ form.category }}
-                    {% if form.category.errors %}
-                    <p class="mt-1 text-sm text-red-400">{{ form.category.errors.0 }}</p>
-                    {% endif %}
+                    {% if form.category.errors %}<p class="mt-1 text-sm text-red-500">{{ form.category.errors.0 }}</p>{% endif %}
                 </div>
                 
-                <div>
-                    <label class="block text-sm font-medium text-white mb-2">Language *</label>
-                    <div class="flex gap-6">
+                <div class="form-group">
+                    <label class="label">Language *</label>
+                    <div class="flex gap-6 mt-2">
                         <label class="flex items-center">
                             <input type="radio" name="language" value="en" {% if form.language.value == 'en' or not form.language.value %}checked{% endif %}
-                                class="h-4 w-4 text-primary-500 bg-dark-100 border-gray-700 focus:ring-primary-500">
-                            <span class="ml-2 text-gray-300">English</span>
+                                class="w-5 h-5 text-burgundy-500 border-gray-300 focus:ring-burgundy-500">
+                            <span class="ml-2 text-gray-700 dark:text-gray-300">English</span>
                         </label>
                         <label class="flex items-center">
                             <input type="radio" name="language" value="fr" {% if form.language.value == 'fr' %}checked{% endif %}
-                                class="h-4 w-4 text-primary-500 bg-dark-100 border-gray-700 focus:ring-primary-500">
-                            <span class="ml-2 text-gray-300">French</span>
+                                class="w-5 h-5 text-burgundy-500 border-gray-300 focus:ring-burgundy-500">
+                            <span class="ml-2 text-gray-700 dark:text-gray-300">French</span>
                         </label>
                     </div>
                 </div>
@@ -136,125 +108,100 @@
         </div>
         
         <!-- Files Section -->
-        <div class="bg-dark-200 border border-gray-800 rounded-xl p-6">
-            <h2 class="text-xl font-semibold text-white mb-6 flex items-center">
-                <span class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">2</span>
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                <span class="w-8 h-8 bg-burgundy-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">2</span>
                 Upload Files
             </h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Cover Image Upload -->
+                <!-- Cover Upload -->
                 <div>
-                    <label class="block text-sm font-medium text-white mb-2">Cover Image *</label>
-                    <div class="relative">
-                        <div @click="$refs.coverInput.click()"
-                            class="border-2 border-dashed border-gray-700 hover:border-primary-500 rounded-xl p-6 text-center cursor-pointer transition-colors aspect-[2/3] flex flex-col items-center justify-center overflow-hidden">
-                            <template x-if="!coverPreview">
-                                <div>
-                                    <svg class="w-12 h-12 mx-auto text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    <p class="text-gray-400 text-sm">Click to upload cover</p>
-                                    <p class="text-gray-500 text-xs mt-1">JPEG or PNG, max 5MB</p>
-                                </div>
-                            </template>
-                            <template x-if="coverPreview">
-                                <img :src="coverPreview" class="w-full h-full object-cover rounded-lg" alt="Cover preview">
-                            </template>
-                        </div>
-                        <input type="file" name="cover_image" x-ref="coverInput" @change="previewCover($event)"
-                            class="hidden" accept="image/jpeg,image/png">
+                    <label class="label mb-2">Cover Image *</label>
+                    <div @click="$refs.coverInput.click()"
+                        class="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-burgundy-500 rounded-xl p-6 text-center cursor-pointer transition-colors aspect-[2/3] flex flex-col items-center justify-center overflow-hidden bg-cream dark:bg-dark-50">
+                        <template x-if="!coverPreview">
+                            <div>
+                                <span class="text-4xl mb-3 block">🖼️</span>
+                                <p class="text-gray-500 text-sm">Click to upload cover</p>
+                                <p class="text-gray-400 text-xs mt-1">JPEG or PNG, max 5MB</p>
+                            </div>
+                        </template>
+                        <template x-if="coverPreview">
+                            <img :src="coverPreview" class="w-full h-full object-cover rounded-lg" alt="Cover preview">
+                        </template>
                     </div>
-                    <p x-show="coverError" x-text="coverError" class="mt-2 text-sm text-red-400"></p>
-                    {% if form.cover_image.errors %}
-                    <p class="mt-1 text-sm text-red-400">{{ form.cover_image.errors.0 }}</p>
-                    {% endif %}
+                    <input type="file" name="cover_image" x-ref="coverInput" @change="previewCover($event)" class="hidden" accept="image/jpeg,image/png">
+                    <p x-show="coverError" x-text="coverError" class="mt-2 text-sm text-red-500"></p>
+                    {% if form.cover_image.errors %}<p class="mt-1 text-sm text-red-500">{{ form.cover_image.errors.0 }}</p>{% endif %}
                 </div>
                 
                 <!-- Manuscript Upload -->
                 <div>
-                    <label class="block text-sm font-medium text-white mb-2">Manuscript File *</label>
+                    <label class="label mb-2">Manuscript File *</label>
                     <div @click="$refs.manuscriptInput.click()"
-                        class="border-2 border-dashed border-gray-700 hover:border-primary-500 rounded-xl p-6 text-center cursor-pointer transition-colors min-h-[200px] flex flex-col items-center justify-center">
+                        class="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-burgundy-500 rounded-xl p-6 text-center cursor-pointer transition-colors min-h-[200px] flex flex-col items-center justify-center bg-cream dark:bg-dark-50">
                         <template x-if="!manuscriptName">
                             <div>
-                                <svg class="w-12 h-12 mx-auto text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                <p class="text-gray-400 text-sm">Click to upload manuscript</p>
-                                <p class="text-gray-500 text-xs mt-1">PDF, DOCX, EPUB, or TXT (max 25MB)</p>
+                                <span class="text-4xl mb-3 block">📄</span>
+                                <p class="text-gray-500 text-sm">Click to upload manuscript</p>
+                                <p class="text-gray-400 text-xs mt-1">PDF, DOCX, EPUB, or TXT (max 25MB)</p>
                             </div>
                         </template>
                         <template x-if="manuscriptName">
                             <div class="text-center">
-                                <svg class="w-12 h-12 mx-auto text-green-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <p class="text-white text-sm font-medium" x-text="manuscriptName"></p>
-                                <p class="text-gray-500 text-xs mt-1">Click to change file</p>
+                                <span class="text-4xl mb-3 block text-forest-500">✓</span>
+                                <p class="font-medium text-gray-900 dark:text-white text-sm" x-text="manuscriptName"></p>
+                                <p class="text-gray-400 text-xs mt-1">Click to change file</p>
                             </div>
                         </template>
                     </div>
-                    <input type="file" name="manuscript_file" x-ref="manuscriptInput" @change="checkManuscript($event)"
-                        class="hidden" accept=".pdf,.docx,.epub,.txt">
-                    <p x-show="manuscriptError" x-text="manuscriptError" class="mt-2 text-sm text-red-400"></p>
-                    {% if form.manuscript_file.errors %}
-                    <p class="mt-1 text-sm text-red-400">{{ form.manuscript_file.errors.0 }}</p>
-                    {% endif %}
+                    <input type="file" name="manuscript_file" x-ref="manuscriptInput" @change="checkManuscript($event)" class="hidden" accept=".pdf,.docx,.epub,.txt">
+                    <p x-show="manuscriptError" x-text="manuscriptError" class="mt-2 text-sm text-red-500"></p>
+                    {% if form.manuscript_file.errors %}<p class="mt-1 text-sm text-red-500">{{ form.manuscript_file.errors.0 }}</p>{% endif %}
                 </div>
             </div>
         </div>
         
         <!-- Pricing Section -->
-        <div class="bg-dark-200 border border-gray-800 rounded-xl p-6">
-            <h2 class="text-xl font-semibold text-white mb-6 flex items-center">
-                <span class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">3</span>
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                <span class="w-8 h-8 bg-burgundy-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">3</span>
                 Pricing
             </h2>
             
             <div class="max-w-md">
-                <label for="id_price" class="block text-sm font-medium text-white mb-2">Price (XAF)</label>
+                <label for="id_price" class="label">Price (XAF)</label>
                 <div class="relative">
                     <input type="number" name="price" id="id_price" value="{{ form.price.value|default:'0' }}"
-                        class="w-full px-4 py-3 bg-dark-100 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-16"
-                        placeholder="0" min="0" max="50000" step="100"
-                        :disabled="makeFree">
+                        class="input pr-16" placeholder="0" min="0" max="50000" step="100" :disabled="makeFree">
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">XAF</span>
                 </div>
-                {% if form.price.errors %}
-                <p class="mt-1 text-sm text-red-400">{{ form.price.errors.0 }}</p>
-                {% endif %}
+                {% if form.price.errors %}<p class="mt-1 text-sm text-red-500">{{ form.price.errors.0 }}</p>{% endif %}
                 
-                <label class="flex items-center mt-4">
+                <label class="flex items-center gap-3 mt-4">
                     <input type="checkbox" name="make_free" x-model="makeFree"
-                        class="h-4 w-4 text-primary-500 bg-dark-100 border-gray-700 rounded focus:ring-primary-500">
-                    <span class="ml-2 text-gray-300">Make this book free</span>
+                        class="w-5 h-5 rounded border-gray-300 text-burgundy-500 focus:ring-burgundy-500">
+                    <span class="text-gray-700 dark:text-gray-300">Make this book free</span>
                 </label>
-                <p class="text-xs text-gray-500 mt-2">
-                    Platform commission: 10% for books under 2,000 XAF, 30% for books 2,000 XAF and above.
+                <p class="text-xs text-gray-500 mt-3">
+                    Commission: 10% for books under 2,000 XAF, 30% for books 2,000+ XAF.
                 </p>
             </div>
         </div>
         
-        <!-- Submit Button -->
+        <!-- Submit -->
         <div class="flex flex-col sm:flex-row gap-4 justify-end">
-            <a href="{% url 'core:my_books' %}" class="px-6 py-3 border border-gray-600 text-gray-300 rounded-lg text-center hover:bg-dark-200 transition-colors">
-                Cancel
-            </a>
-            <button type="submit" :disabled="submitting"
-                class="px-8 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
-                <template x-if="!submitting">
-                    <span>Submit for Review</span>
-                </template>
-                <template x-if="submitting">
-                    <span class="flex items-center">
-                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Uploading...
-                    </span>
-                </template>
+            <a href="{% url 'core:my_books' %}" class="btn btn-secondary text-center">Cancel</a>
+            <button type="submit" :disabled="submitting" class="btn btn-primary">
+                <span x-show="!submitting">Submit for Review</span>
+                <span x-show="submitting" class="flex items-center gap-2">
+                    <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    Uploading...
+                </span>
             </button>
         </div>
     </form>

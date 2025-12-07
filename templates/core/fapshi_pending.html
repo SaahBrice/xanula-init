@@ -4,94 +4,73 @@
 {% block title %}Processing Payment - Xanula{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-12 max-w-xl text-center" x-data="paymentPoller()">
+<div class="container py-12 max-w-lg mx-auto text-center" x-data="paymentPoller()">
     <!-- Processing State -->
     <div class="mb-8">
-        <div class="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg class="w-10 h-10 text-yellow-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <div class="w-20 h-20 bg-gold-100 dark:bg-gold-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-gold-500 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>
         </div>
-        <h1 class="text-3xl font-bold text-white mb-2">Processing Payment</h1>
-        <p class="text-gray-400" x-text="statusMessage">Waiting for mobile money confirmation...</p>
+        <h1 class="font-display text-3xl font-bold text-gray-900 dark:text-white mb-2">Processing Payment</h1>
+        <p class="text-gray-600 dark:text-gray-400" x-text="statusMessage">Waiting for mobile money confirmation...</p>
     </div>
 
-    <!-- Book Info Card -->
-    <div class="bg-dark-200 border border-gray-800 rounded-xl p-6 mb-8">
+    <!-- Book Info -->
+    <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-8">
         <div class="flex items-center gap-4">
-            <div class="w-16 h-24 flex-shrink-0 rounded-lg overflow-hidden">
+            <div class="w-14 h-20 flex-shrink-0 rounded-lg overflow-hidden shadow">
                 {% if book.cover_image %}
-                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full h-full object-cover" width="64" height="96">
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full h-full object-cover" width="56" height="80">
                 {% else %}
-                <div class="w-full h-full bg-gradient-to-br from-primary-700 to-secondary-700 flex items-center justify-center">
-                    <span class="text-lg font-bold text-white/50">{{ book.title|first }}</span>
+                <div class="w-full h-full bg-gradient-to-br from-burgundy-500 to-forest-500 flex items-center justify-center">
+                    <span class="font-display font-bold text-white/40">{{ book.title|first }}</span>
                 </div>
                 {% endif %}
             </div>
             <div class="text-left">
-                <h3 class="font-semibold text-white">{{ book.title }}</h3>
-                <p class="text-sm text-gray-400">{{ purchase.amount_paid|floatformat:0 }} XAF</p>
+                <h3 class="font-display font-semibold text-gray-900 dark:text-white">{{ book.title }}</h3>
+                <p class="text-sm text-burgundy-500 font-medium">{{ purchase.amount_paid|floatformat:0 }} XAF</p>
             </div>
         </div>
     </div>
 
-    <!-- Progress Indicator -->
+    <!-- Progress -->
     <div class="mb-8">
-        <div class="flex items-center justify-center gap-3 text-sm text-gray-400 mb-4">
-            <svg class="w-5 h-5 text-yellow-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-            </svg>
+        <div class="flex items-center justify-center gap-2 text-sm text-gray-500 mb-4">
+            <span class="animate-pulse">⏳</span>
             <span>This usually takes 1-2 minutes</span>
         </div>
         
-        <div class="w-full bg-gray-700 rounded-full h-2">
-            <div class="bg-yellow-400 h-2 rounded-full transition-all duration-500" :style="'width: ' + progressPercent + '%'"></div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div class="bg-gold-500 h-2 rounded-full transition-all duration-500" :style="'width: ' + progressPercent + '%'"></div>
         </div>
         
         <p class="text-xs text-gray-500 mt-2">Checking every 3 seconds... (<span x-text="pollCount"></span> checks)</p>
     </div>
 
-    <!-- Timeout Message (shown after 2 minutes) -->
-    <div x-show="timedOut" x-cloak class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6 mb-6">
-        <p class="text-yellow-400 mb-4">
-            Payment is taking longer than expected. This can happen with mobile money during busy periods.
-        </p>
+    <!-- Timeout -->
+    <div x-show="timedOut" x-cloak class="bg-gold-50 dark:bg-gold-900/20 border border-gold-200 dark:border-gold-800 rounded-2xl p-6 mb-6">
+        <p class="text-gold-600 dark:text-gold-400 mb-4">Payment is taking longer than expected.</p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
-            <button @click="resetPolling()" class="px-4 py-2 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors">
-                Keep Waiting
-            </button>
-            <a href="{% url 'core:book_detail' slug=book.slug %}" class="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:border-gray-500 transition-colors">
-                Try Again Later
-            </a>
+            <button @click="resetPolling()" class="btn bg-gold-500 hover:bg-gold-600 text-white">Keep Waiting</button>
+            <a href="{% url 'core:book_detail' slug=book.slug %}" class="btn btn-secondary">Try Again Later</a>
         </div>
     </div>
 
-    <!-- Error Message -->
-    <div x-show="hasFailed" x-cloak class="bg-red-500/10 border border-red-500/30 rounded-xl p-6 mb-6">
-        <p class="text-red-400 mb-4" x-text="errorMessage">Payment failed. Please try again.</p>
-        <a href="{{ book.get_absolute_url }}" class="inline-block px-6 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold rounded-lg hover:from-primary-600 hover:to-secondary-600 transition-all">
-            Try Again
-        </a>
+    <!-- Error -->
+    <div x-show="hasFailed" x-cloak class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 mb-6">
+        <p class="text-red-600 dark:text-red-400 mb-4" x-text="errorMessage">Payment failed.</p>
+        <a href="{{ book.get_absolute_url }}" class="btn btn-primary">Try Again</a>
     </div>
 
     <!-- Tips -->
-    <div class="text-left bg-dark-200 border border-gray-800 rounded-xl p-4" x-show="!timedOut && !hasFailed">
-        <p class="text-sm text-gray-400 mb-3">
-            <strong class="text-white">While you wait:</strong>
-        </p>
-        <ul class="text-sm text-gray-500 space-y-2">
-            <li class="flex items-start gap-2">
-                <span class="text-yellow-400">📱</span>
-                Check your phone for an MTN/Orange Money confirmation prompt
-            </li>
-            <li class="flex items-start gap-2">
-                <span class="text-yellow-400">✅</span>
-                Approve the payment on your mobile money app
-            </li>
-            <li class="flex items-start gap-2">
-                <span class="text-yellow-400">⏳</span>
-                This page will update automatically once confirmed
-            </li>
+    <div class="text-left bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-700 rounded-2xl p-4" x-show="!timedOut && !hasFailed">
+        <p class="text-sm text-gray-700 dark:text-gray-300 mb-3"><strong>While you wait:</strong></p>
+        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+            <li class="flex items-start gap-2"><span>📱</span> Check your phone for a confirmation prompt</li>
+            <li class="flex items-start gap-2"><span>✅</span> Approve the payment on your mobile money app</li>
+            <li class="flex items-start gap-2"><span>⏳</span> This page will update automatically</li>
         </ul>
     </div>
 </div>
@@ -101,7 +80,7 @@ function paymentPoller() {
     return {
         purchaseId: {{ purchase.id }},
         pollCount: 0,
-        maxPolls: 40, // 2 minutes at 3 second intervals
+        maxPolls: 40,
         progressPercent: 0,
         statusMessage: 'Waiting for mobile money confirmation...',
         timedOut: false,
@@ -109,55 +88,24 @@ function paymentPoller() {
         errorMessage: '',
         pollInterval: null,
         
-        init() {
-            this.startPolling();
-        },
-        
-        startPolling() {
-            this.pollInterval = setInterval(() => {
-                this.checkStatus();
-            }, 3000);
-        },
-        
-        stopPolling() {
-            if (this.pollInterval) {
-                clearInterval(this.pollInterval);
-                this.pollInterval = null;
-            }
-        },
-        
-        resetPolling() {
-            this.pollCount = 0;
-            this.timedOut = false;
-            this.progressPercent = 0;
-            this.startPolling();
-        },
+        init() { this.startPolling(); },
+        startPolling() { this.pollInterval = setInterval(() => this.checkStatus(), 3000); },
+        stopPolling() { if (this.pollInterval) { clearInterval(this.pollInterval); this.pollInterval = null; } },
+        resetPolling() { this.pollCount = 0; this.timedOut = false; this.progressPercent = 0; this.startPolling(); },
         
         async checkStatus() {
             this.pollCount++;
             this.progressPercent = Math.min((this.pollCount / this.maxPolls) * 100, 100);
-            
-            if (this.pollCount >= this.maxPolls) {
-                this.timedOut = true;
-                this.stopPolling();
-                return;
-            }
+            if (this.pollCount >= this.maxPolls) { this.timedOut = true; this.stopPolling(); return; }
             
             try {
-                const response = await fetch(`/api/check-purchase-status/${this.purchaseId}/`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                
+                const response = await fetch(`/api/check-purchase-status/${this.purchaseId}/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
                 const data = await response.json();
                 
                 if (data.status === 'completed') {
                     this.stopPolling();
                     this.statusMessage = 'Payment successful! Redirecting...';
-                    setTimeout(() => {
-                        window.location.href = data.redirect_url || '/my-books/';
-                    }, 1500);
+                    setTimeout(() => { window.location.href = data.redirect_url || '/library/'; }, 1500);
                 } else if (data.status === 'failed') {
                     this.stopPolling();
                     this.hasFailed = true;

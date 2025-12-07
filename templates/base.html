@@ -1,499 +1,380 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Xanula - Your gateway to African literature">
-    <meta name="theme-color" content="#1a1a2e">
+    <meta name="theme-color" content="#FAF7F2">
     
-    <!-- iOS PWA Meta Tags -->
-    <meta name="mobile-web-app-capable" content="yes">
+    <!-- iOS PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Xanula">
-    <link rel="apple-touch-icon" href="{% load static %}{% static 'images/icons/icon-192x192.png' %}">
-
+    <link rel="apple-touch-icon" href="{% static 'images/icons/icon-192x192.png' %}">
+    
     <title>{% block title %}Xanula{% endblock %}</title>
-
-    <!-- Tailwind CSS (loaded from CDN for development) -->
+    
+    <!-- Fonts: Playfair Display (serif) + Source Sans 3 (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: ['class', '[data-theme="dark"]'],
             theme: {
                 extend: {
                     colors: {
-                        primary: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            300: '#7dd3fc',
-                            400: '#38bdf8',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
+                        paper: '#FAF7F2',
+                        cream: '#F5F0E8',
+                        burgundy: {
+                            50: '#FDF2F4',
+                            100: '#FCE8EB',
+                            200: '#F9D0D6',
+                            300: '#F3A3B0',
+                            400: '#EA7085',
+                            500: '#8B2635',
+                            600: '#722030',
+                            700: '#5C1A27',
+                            800: '#4A1520',
+                            900: '#3D121A',
                         },
-                        secondary: {
-                            50: '#fdf4ff',
-                            100: '#fae8ff',
-                            200: '#f5d0fe',
-                            300: '#f0abfc',
-                            400: '#e879f9',
-                            500: '#d946ef',
-                            600: '#c026d3',
-                            700: '#a21caf',
-                            800: '#86198f',
-                            900: '#701a75',
+                        forest: {
+                            50: '#F3F7F4',
+                            100: '#E7F0EA',
+                            200: '#C4DBC9',
+                            300: '#9CC4A6',
+                            400: '#6EA87C',
+                            500: '#2D4739',
+                            600: '#243A2E',
+                            700: '#1C2E24',
+                            800: '#14231B',
+                            900: '#0D1712',
+                        },
+                        gold: {
+                            400: '#E8C59E',
+                            500: '#D4A574',
+                            600: '#C49664',
                         },
                         dark: {
-                            100: '#1a1a2e',
-                            200: '#16213e',
-                            300: '#0f3460',
+                            50: '#2D2C27',
+                            100: '#252420',
+                            200: '#1A1915',
                         }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    }
+                        display: ['Playfair Display', 'Georgia', 'serif'],
+                        sans: ['Source Sans 3', 'system-ui', 'sans-serif'],
+                    },
                 }
             }
         }
     </script>
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Alpine.js for interactivity -->
+    
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    
+    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
+    
     <!-- PWA Manifest -->
     <link rel="manifest" href="{% url 'pwa:manifest' %}">
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{% load static %}{% static 'images/icons/favicon.ico' %}">
-
+    <link rel="icon" type="image/png" href="{% static 'images/icons/favicon.ico' %}">
+    
     <style>
-        /* Custom styles */
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-        }
-
-        /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #1a1a2e;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #0ea5e9;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #0284c7;
-        }
+        [x-cloak] { display: none !important; }
     </style>
-
+    
     {% block extra_head %}{% endblock %}
 </head>
 
-<body class="bg-dark-100 text-gray-100 min-h-screen" x-data="pwaApp()">
-    <!-- Navigation -->
-    <nav class="bg-dark-200 shadow-lg sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <a href="/" class="flex-shrink-0 flex items-center">
-                        <span
-                            class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
-                            Xanula
-                        </span>
-                    </a>
-                </div>
-
-                <!-- Desktop Navigation -->
-                <div class="hidden md:flex items-center space-x-4">
-                    <a href="{% url 'core:homepage' %}"
-                        class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Home
-                    </a>
-                    <a href="{% url 'core:book_list' %}"
-                        class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Browse
-                    </a>
-                    {% if user.is_authenticated %}
-                    <a href="{% url 'core:library' %}"
-                        class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Library
-                    </a>
-                    <a href="{% url 'core:wishlist' %}"
-                        class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Wishlist
-                    </a>
-                    <a href="{% url 'core:my_books' %}"
-                        class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        My Books
-                    </a>
-                    <a href="{% url 'core:publish_book' %}"
-                        class="bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all">
-                        Publish
-                    </a>
-                    
-                    <!-- User Dropdown -->
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" @click.outside="open = false"
-                            class="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-white rounded-lg transition-colors">
-                            <div class="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center">
-                                <span class="text-primary-400 font-medium text-sm">{{ user.get_display_name|first|upper }}</span>
-                            </div>
-                            <svg class="w-4 h-4" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
-                        
-                        <div x-show="open" x-transition x-cloak
-                            class="absolute right-0 mt-2 w-56 bg-dark-200 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
-                            <div class="p-3 border-b border-gray-700">
-                                <p class="text-white font-medium truncate">{{ user.get_display_name }}</p>
-                                <p class="text-gray-400 text-sm truncate">{{ user.email }}</p>
-                            </div>
-                            <div class="py-2">
-                                <a href="{% url 'core:user_settings' %}" class="flex items-center gap-3 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                    Settings
-                                </a>
-                                <a href="{% url 'core:author_analytics' %}" class="flex items-center gap-3 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                                    </svg>
-                                    Analytics
-                                </a>
-                                <a href="{% url 'core:purchase_history' %}" class="flex items-center gap-3 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                    </svg>
-                                    Purchases
-                                </a>
-                            </div>
-                            <div class="border-t border-gray-700 py-2">
-                                <a href="{% url 'account_logout' %}" class="flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                                    </svg>
-                                    Sign Out
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    {% else %}
-                    <a href="{% url 'account_login' %}"
-                        class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Login
-                    </a>
-                    <a href="{% url 'account_signup' %}"
-                        class="bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105">
-                        Sign Up
-                    </a>
-                    {% endif %}
-                </div>
-
-                <!-- Mobile menu button -->
-                <div class="md:hidden flex items-center">
-                    <button @click="mobileMenuOpen = !mobileMenuOpen"
-                        class="text-gray-400 hover:text-white focus:outline-none">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round"
-                                stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                            <path x-show="mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round"
-                                stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile menu -->
-        <div x-show="mobileMenuOpen" x-transition class="md:hidden bg-dark-200">
-            <div class="px-2 pt-2 pb-3 space-y-1">
-                <a href="{% url 'core:homepage' %}"
-                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
-                    Home
-                </a>
-                <a href="{% url 'core:book_list' %}"
-                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+<body class="bg-paper dark:bg-dark-200 text-gray-800 dark:text-gray-100" x-data="app()" x-init="init()">
+    
+    <!-- Desktop Top Navigation -->
+    <header class="top-nav">
+        <div class="top-nav-inner">
+            <!-- Logo -->
+            <a href="{% url 'core:homepage' %}" class="nav-logo">Xanula</a>
+            
+            <!-- Nav Links -->
+            <nav class="nav-links">
+                <a href="{% url 'core:book_list' %}" class="nav-link {% if request.resolver_match.url_name == 'book_list' %}active{% endif %}">
                     Browse
                 </a>
                 {% if user.is_authenticated %}
-                <a href="{% url 'core:library' %}"
-                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                <a href="{% url 'core:library' %}" class="nav-link {% if request.resolver_match.url_name == 'library' %}active{% endif %}">
                     Library
                 </a>
-                <a href="{% url 'core:wishlist' %}"
-                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
-                    Wishlist
-                </a>
-                <a href="{% url 'core:my_books' %}"
-                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                <a href="{% url 'core:my_books' %}" class="nav-link {% if request.resolver_match.url_name == 'my_books' %}active{% endif %}">
                     My Books
                 </a>
-                <a href="{% url 'core:publish_book' %}"
-                    class="block text-primary-400 hover:text-primary-300 px-3 py-2 rounded-md text-base font-medium">
-                    Publish Book
+                <a href="{% url 'core:publish_book' %}" class="btn btn-primary">
+                    Publish
                 </a>
-                <div class="border-t border-gray-700 my-2"></div>
-                <a href="{% url 'core:user_settings' %}"
-                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
-                    ⚙️ Settings
-                </a>
-                <a href="{% url 'core:author_analytics' %}"
-                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
-                    📊 Analytics
-                </a>
-                <a href="{% url 'core:purchase_history' %}"
-                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
-                    🧾 Purchases
-                </a>
-                <a href="{% url 'account_logout' %}"
-                    class="block text-red-400 hover:text-red-300 px-3 py-2 rounded-md text-base font-medium">
-                    Sign Out
-                </a>
-                {% else %}
-                <a href="{% url 'account_login' %}"
-                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
-                    Login
-                </a>
-                <a href="{% url 'account_signup' %}"
-                    class="block text-primary-400 hover:text-primary-300 px-3 py-2 rounded-md text-base font-medium">
-                    Sign Up
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-
-    <!-- Messages -->
-    {% if messages %}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        {% for message in messages %}
-        <div class="mb-2 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-500/20 text-red-400 border border-red-500/50{% elif message.tags == 'success' %}bg-green-500/20 text-green-400 border border-green-500/50{% else %}bg-blue-500/20 text-blue-400 border border-blue-500/50{% endif %}"
-            x-data="{ show: true }" x-show="show" x-transition>
-            <div class="flex justify-between items-center">
-                <span>{{ message }}</span>
-                <button @click="show = false" class="ml-4 text-current hover:opacity-75">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
+                
+                <!-- User Menu -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" @click.outside="open = false"
+                        class="flex items-center gap-2 p-1 pl-3 rounded-full bg-paper dark:bg-dark-100 border border-gray-200 dark:border-gray-700 hover:border-burgundy-500 transition-colors">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ user.get_display_name|truncatechars:12 }}</span>
+                        <div class="w-8 h-8 rounded-full bg-burgundy-500 flex items-center justify-center">
+                            <span class="text-white text-sm font-semibold">{{ user.get_display_name|first|upper }}</span>
+                        </div>
+                    </button>
+                    
+                    <div x-show="open" x-transition x-cloak
+                        class="absolute right-0 mt-2 w-56 bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
+                        <div class="p-3 border-b border-gray-100 dark:border-gray-700">
+                            <p class="font-semibold text-gray-900 dark:text-white">{{ user.get_display_name }}</p>
+                            <p class="text-sm text-gray-500">{{ user.email }}</p>
+                        </div>
+                        <div class="py-1">
+                            <a href="{% url 'core:user_settings' %}" class="flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-50">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                Settings
+                            </a>
+                            <a href="{% url 'core:author_analytics' %}" class="flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-50">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+                                </svg>
+                                Analytics
+                            </a>
+                            <a href="{% url 'core:purchase_history' %}" class="flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-50">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+                                </svg>
+                                Purchases
+                            </a>
+                        </div>
+                        <div class="border-t border-gray-100 dark:border-gray-700 py-1">
+                            <a href="{% url 'account_logout' %}" class="flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
+                                </svg>
+                                Sign Out
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Theme Toggle -->
+                <button @click="toggleTheme()" class="theme-toggle" title="Toggle theme">
+                    <svg x-show="isDark" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+                    </svg>
+                    <svg x-show="!isDark" x-cloak class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
                     </svg>
                 </button>
-            </div>
+                {% else %}
+                <a href="{% url 'account_login' %}" class="nav-link">Login</a>
+                <a href="{% url 'account_signup' %}" class="btn btn-primary">Sign Up</a>
+                {% endif %}
+            </nav>
         </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+    </header>
 
-    <!-- Main Content -->
-    <main class="min-h-screen">
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Page Content -->
+    <main class="page">
+        {% if messages %}
+        <div x-init="{% for message in messages %}showToast('{{ message|escapejs }}', '{{ message.tags }}');{% endfor %}"></div>
+        {% endif %}
+        
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-dark-200 border-t border-gray-800 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <!-- Brand -->
-                <div class="col-span-1 md:col-span-2">
-                    <span
-                        class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
-                        Xanula
-                    </span>
-                    <p class="mt-4 text-gray-400 text-sm">
-                        Your gateway to African literature. Discover, read, and listen to books from talented African
-                        authors.
-                    </p>
-                </div>
-
-                <!-- Quick Links -->
-                <div>
-                    <h3 class="text-white font-semibold mb-4">Quick Links</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Browse
-                                Books</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Publish</a>
-                        </li>
-                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">About Us</a>
-                        </li>
-                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Contact</a>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Legal -->
-                <div>
-                    <h3 class="text-white font-semibold mb-4">Legal</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Privacy
-                                Policy</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Terms of
-                                Service</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Refund
-                                Policy</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="mt-8 pt-8 border-t border-gray-800 text-center">
-                <p class="text-gray-400 text-sm">
-                    &copy; {% now "Y" %} Xanula. All rights reserved.
-                </p>
-            </div>
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-inner">
+            <a href="{% url 'core:homepage' %}" class="nav-tab {% if request.resolver_match.url_name == 'homepage' %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
+                </svg>
+                <span>Home</span>
+            </a>
+            
+            <a href="{% url 'core:book_list' %}" class="nav-tab {% if request.resolver_match.url_name == 'book_list' %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                </svg>
+                <span>Browse</span>
+            </a>
+            
+            {% if user.is_authenticated %}
+            <a href="{% url 'core:publish_book' %}" class="nav-tab {% if request.resolver_match.url_name == 'publish_book' %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                <span>Publish</span>
+            </a>
+            
+            <a href="{% url 'core:library' %}" class="nav-tab {% if request.resolver_match.url_name == 'library' %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+                </svg>
+                <span>Library</span>
+            </a>
+            
+            <a href="{% url 'core:user_settings' %}" class="nav-tab {% if request.resolver_match.url_name == 'user_settings' %}active{% endif %}">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                </svg>
+                <span>Profile</span>
+            </a>
+            {% else %}
+            <a href="{% url 'account_login' %}" class="nav-tab">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                </svg>
+                <span>Login</span>
+            </a>
+            {% endif %}
         </div>
-    </footer>
+    </nav>
 
-    {% block extra_js %}{% endblock %}
-    
-    <!-- Offline Indicator Banner -->
-    <div x-show="isOffline" x-cloak x-transition
-        class="fixed bottom-0 left-0 right-0 z-50 bg-yellow-600 text-yellow-100 py-3 px-4 text-center text-sm font-medium">
-        <svg class="inline-block w-4 h-4 mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"/>
-        </svg>
-        You're offline. Downloaded books are still available.
-        <button @click="dismissOfflineBanner()" class="ml-4 underline">Dismiss</button>
-    </div>
-    
-    <!-- Install App Prompt -->
-    <div x-show="showInstallPrompt && !isAppInstalled" x-cloak x-transition
-        class="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 z-50 bg-dark-200 border border-gray-700 rounded-xl p-4 shadow-xl">
-        <div class="flex items-start gap-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                <span class="text-white text-xl">📚</span>
+    <!-- PWA Install Prompt -->
+    <div x-show="showInstall && !isInstalled" x-cloak x-transition
+        class="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-80 z-40 
+        bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-xl">
+        <div class="flex items-start gap-3">
+            <div class="w-12 h-12 bg-burgundy-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+                </svg>
             </div>
             <div class="flex-1">
-                <h4 class="text-white font-semibold mb-1">Install Xanula</h4>
-                <p class="text-gray-400 text-sm mb-3">Install for quick access & offline reading</p>
-                <div class="flex gap-2">
-                    <button @click="installApp()" 
-                        class="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg">
-                        Install
-                    </button>
-                    <button @click="dismissInstallPrompt()"
-                        class="px-4 py-2 text-gray-400 hover:text-white text-sm">
-                        Not now
-                    </button>
+                <h4 class="font-display font-semibold text-gray-900 dark:text-white">Install Xanula</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Read offline & get quick access</p>
+                <div class="flex gap-2 mt-3">
+                    <button @click="installApp()" class="btn btn-primary btn-sm">Install</button>
+                    <button @click="dismissInstall()" class="btn btn-ghost btn-sm">Not now</button>
                 </div>
             </div>
-            <button @click="dismissInstallPrompt()" class="text-gray-500 hover:text-white">
+            <button @click="dismissInstall()" class="text-gray-400 hover:text-gray-600">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
     </div>
-    
-    <!-- PWA JavaScript -->
+
     <script>
-    function pwaApp() {
+    // Toast System
+    function showToast(message, type = 'info', duration = 4000) {
+        const container = document.getElementById('toast-container');
+        const id = 'toast-' + Date.now();
+        
+        const icons = {
+            success: '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>',
+            error: '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>',
+            warning: '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+            info: '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+        };
+        
+        const toastType = type.includes('error') ? 'error' : type.includes('success') ? 'success' : type.includes('warning') ? 'warning' : 'info';
+        
+        const toast = document.createElement('div');
+        toast.id = id;
+        toast.className = `toast toast-${toastType}`;
+        toast.innerHTML = `
+            <div class="toast-icon">${icons[toastType]}</div>
+            <div class="toast-content"><p class="toast-message">${message}</p></div>
+            <button class="toast-close" onclick="removeToast('${id}')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <div class="toast-progress"></div>
+        `;
+        
+        container.appendChild(toast);
+        setTimeout(() => removeToast(id), duration);
+    }
+    
+    function removeToast(id) {
+        const toast = document.getElementById(id);
+        if (toast) {
+            toast.classList.add('removing');
+            setTimeout(() => toast.remove(), 300);
+        }
+    }
+    
+    // Main App
+    function app() {
         return {
-            isOffline: !navigator.onLine,
-            showInstallPrompt: false,
-            isAppInstalled: false,
+            isDark: false,
+            showInstall: false,
+            isInstalled: false,
             deferredPrompt: null,
-            offlineBannerDismissed: false,
             
             init() {
-                // Service Worker Registration
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register('/static/js/serviceworker.js')
-                        .then(reg => console.log('Service Worker registered:', reg.scope))
-                        .catch(err => console.log('Service Worker registration failed:', err));
+                // Theme
+                const saved = localStorage.getItem('theme');
+                if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    this.isDark = true;
+                    document.documentElement.setAttribute('data-theme', 'dark');
                 }
                 
-                // Network status listeners
-                window.addEventListener('online', () => {
-                    this.isOffline = false;
-                    this.syncProgress();
-                });
-                window.addEventListener('offline', () => {
-                    if (!this.offlineBannerDismissed) {
-                        this.isOffline = true;
-                    }
-                });
-                
-                // Install prompt
+                // PWA
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     this.deferredPrompt = e;
-                    // Check if dismissed and if 6 hours have passed
-                    const dismissedAt = localStorage.getItem('installPromptDismissedAt');
+                    const dismissed = localStorage.getItem('installDismissed');
                     const sixHours = 6 * 60 * 60 * 1000;
-                    const showPrompt = !dismissedAt || (Date.now() - parseInt(dismissedAt)) > sixHours;
-                    if (showPrompt) {
-                        setTimeout(() => { this.showInstallPrompt = true; }, 3000);
+                    if (!dismissed || (Date.now() - parseInt(dismissed)) > sixHours) {
+                        setTimeout(() => this.showInstall = true, 2000);
                     }
                 });
                 
-                // Check if already installed
                 window.addEventListener('appinstalled', () => {
-                    this.isAppInstalled = true;
-                    this.showInstallPrompt = false;
-                    this.deferredPrompt = null;
+                    this.isInstalled = true;
+                    this.showInstall = false;
+                    showToast('Xanula installed!', 'success');
                 });
                 
-                // Check standalone mode (already installed)
                 if (window.matchMedia('(display-mode: standalone)').matches) {
-                    this.isAppInstalled = true;
+                    this.isInstalled = true;
+                }
+                
+                // Service Worker
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/static/js/serviceworker.js');
                 }
             },
             
-            dismissOfflineBanner() {
-                this.isOffline = false;
-                this.offlineBannerDismissed = true;
+            toggleTheme() {
+                this.isDark = !this.isDark;
+                document.documentElement.setAttribute('data-theme', this.isDark ? 'dark' : 'light');
+                localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
+                document.querySelector('meta[name="theme-color"]').content = this.isDark ? '#1A1915' : '#FAF7F2';
             },
             
             async installApp() {
                 if (!this.deferredPrompt) return;
                 this.deferredPrompt.prompt();
                 const { outcome } = await this.deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    this.isAppInstalled = true;
-                }
-                this.showInstallPrompt = false;
+                if (outcome === 'accepted') this.isInstalled = true;
+                this.showInstall = false;
                 this.deferredPrompt = null;
             },
             
-            dismissInstallPrompt() {
-                this.showInstallPrompt = false;
-                // Store timestamp instead of boolean - will be asked again after 7 days
-                localStorage.setItem('installPromptDismissedAt', Date.now().toString());
-            },
-            
-            async syncProgress() {
-                // Sync any queued progress updates
-                const queue = JSON.parse(localStorage.getItem('progressQueue') || '[]');
-                if (queue.length > 0) {
-                    console.log('Syncing', queue.length, 'progress updates...');
-                    // Sync logic handled by individual readers/players
-                }
+            dismissInstall() {
+                this.showInstall = false;
+                localStorage.setItem('installDismissed', Date.now().toString());
             }
         }
     }
     </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
-
 </html>

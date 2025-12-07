@@ -4,31 +4,29 @@
 {% block title %}Preview: {{ book.title }} - Xanula{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-dark-100">
+<div class="min-h-screen bg-cream dark:bg-dark-200">
     <!-- Preview Header -->
-    <div class="bg-dark-200 border-b border-gray-800 sticky top-0 z-40">
-        <div class="max-w-4xl mx-auto px-4 py-4">
+    <div class="bg-white dark:bg-dark-100 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+        <div class="container py-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <a href="{% url 'core:book_detail' slug=book.slug %}" 
-                        class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
-                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="{% url 'core:book_detail' slug=book.slug %}" class="p-2 hover:bg-gray-100 dark:hover:bg-dark-50 rounded-lg transition-colors">
+                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                     </a>
                     <div>
-                        <h1 class="text-lg font-semibold text-white">{{ book.title }}</h1>
-                        <p class="text-sm text-gray-400">Preview (First {{ preview_percent }}%)</p>
+                        <h1 class="font-display text-lg font-semibold text-gray-900 dark:text-white">{{ book.title }}</h1>
+                        <p class="text-sm text-gray-500">Preview (First {{ preview_percent }}%)</p>
                     </div>
                 </div>
                 
                 <div class="flex items-center gap-3">
-                    <span class="px-3 py-1 bg-yellow-500/20 text-yellow-400 text-sm font-medium rounded-full">
+                    <span class="px-3 py-1 bg-gold-100 dark:bg-gold-900/30 text-gold-600 dark:text-gold-400 text-sm font-medium rounded-full">
                         Preview Mode
                     </span>
                     {% if not user_owns_book %}
-                    <a href="{% url 'core:book_detail' slug=book.slug %}#purchase" 
-                        class="px-4 py-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium rounded-lg text-sm">
+                    <a href="{% url 'core:book_detail' slug=book.slug %}#purchase" class="btn btn-primary btn-sm hidden sm:inline-flex">
                         Buy Full Book
                     </a>
                     {% endif %}
@@ -38,53 +36,46 @@
     </div>
     
     <!-- Preview Content -->
-    <div class="max-w-3xl mx-auto px-4 py-8">
+    <div class="container py-8 max-w-3xl mx-auto">
         {% if book.ebook_file %}
-        <div id="preview-reader" class="bg-dark-200 border border-gray-800 rounded-xl p-8 min-h-[60vh]"
-            x-data="bookPreview()" x-init="init()">
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 min-h-[60vh]" x-data="bookPreview()" x-init="init()">
             
             <!-- Book Cover and Info -->
-            <div class="text-center mb-8 pb-8 border-b border-gray-700">
+            <div class="text-center mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
                 {% if book.cover_image %}
-                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" 
-                    class="w-32 h-48 object-cover rounded-lg mx-auto mb-4 shadow-xl">
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-32 h-48 object-cover rounded-xl mx-auto mb-4 shadow-xl">
                 {% endif %}
-                <h2 class="text-2xl font-bold text-white mb-2">{{ book.title }}</h2>
-                <p class="text-gray-400">by {{ book.author.get_display_name }}</p>
+                <h2 class="font-display text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ book.title }}</h2>
+                <p class="text-gray-600 dark:text-gray-400">by {{ book.author.get_display_name }}</p>
             </div>
             
             <!-- Preview Text Content -->
-            <div class="prose prose-invert max-w-none">
-                <div id="book-content" class="text-gray-300 leading-relaxed text-lg space-y-4">
-                    <!-- Sample preview content -->
-                    <p class="text-gray-300 leading-relaxed">
-                        <em class="text-gray-400">[This is a preview of the first 10% of the book. Purchase the full book to read the complete story.]</em>
+            <div class="prose dark:prose-invert max-w-none">
+                <div id="book-content" class="text-gray-700 dark:text-gray-300 leading-relaxed text-lg space-y-4">
+                    <p class="text-gray-500 italic">
+                        [This is a preview of the first 10% of the book. Purchase the full book to read the complete story.]
                     </p>
                     
-                    <div class="my-8 py-8 border-y border-gray-700">
-                        <h3 class="text-xl font-semibold text-white mb-4">Chapter 1</h3>
-                        <p class="text-gray-300 leading-relaxed mb-4">{{ book.full_description|truncatewords:200|default:"The story begins here. This compelling narrative will take you on a journey through the heart of African literature..." }}</p>
-                        <p class="text-gray-300 leading-relaxed">{{ book.short_description|default:"Experience the rich storytelling traditions of Africa through this captivating book. Each page brings new discoveries and deeper understanding." }}</p>
+                    <div class="my-8 py-8 border-y border-gray-200 dark:border-gray-700">
+                        <h3 class="font-display text-xl font-semibold text-gray-900 dark:text-white mb-4">Chapter 1</h3>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">{{ book.full_description|truncatewords:200|default:"The story begins here. This compelling narrative will take you on a journey through the heart of African literature..." }}</p>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed">{{ book.short_description|default:"Experience the rich storytelling traditions of Africa through this captivating book. Each page brings new discoveries and deeper understanding." }}</p>
                     </div>
                 </div>
             </div>
             
             <!-- Preview Limit Banner -->
-            <div class="mt-12 pt-8 border-t border-gray-700">
-                <div class="bg-gradient-to-r from-primary-500/20 to-secondary-500/20 border border-primary-500/30 rounded-xl p-6 text-center">
-                    <svg class="w-12 h-12 text-primary-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                    </svg>
-                    <h3 class="text-xl font-bold text-white mb-2">You've Reached the Preview Limit</h3>
-                    <p class="text-gray-400 mb-6">Purchase the full book to continue reading and discover how the story unfolds.</p>
+            <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+                <div class="bg-gradient-to-r from-burgundy-50 to-forest-50 dark:from-burgundy-900/20 dark:to-forest-900/20 border border-burgundy-200 dark:border-burgundy-800/30 rounded-2xl p-6 text-center">
+                    <span class="text-4xl block mb-4">📚</span>
+                    <h3 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-2">You've Reached the Preview Limit</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">Purchase the full book to continue reading and discover how the story unfolds.</p>
                     
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <a href="{% url 'core:book_detail' slug=book.slug %}#purchase" 
-                            class="px-8 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-semibold rounded-lg transition-all">
+                        <a href="{% url 'core:book_detail' slug=book.slug %}#purchase" class="btn btn-primary btn-lg">
                             Buy Now - {{ book.price|floatformat:0 }} XAF
                         </a>
-                        <a href="{% url 'core:book_detail' slug=book.slug %}" 
-                            class="px-8 py-3 border border-gray-600 hover:border-white text-gray-300 hover:text-white font-medium rounded-lg transition-colors">
+                        <a href="{% url 'core:book_detail' slug=book.slug %}" class="btn btn-secondary">
                             Back to Book Details
                         </a>
                     </div>
@@ -92,13 +83,10 @@
             </div>
         </div>
         {% else %}
-        <div class="text-center py-16">
-            <svg class="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-            </svg>
-            <p class="text-gray-400 text-lg mb-4">Preview not available for this book.</p>
-            <a href="{% url 'core:book_detail' slug=book.slug %}" 
-                class="text-primary-400 hover:text-primary-300">
+        <div class="text-center py-16 bg-white dark:bg-dark-100 rounded-2xl">
+            <span class="text-5xl block mb-4">📖</span>
+            <p class="text-gray-600 dark:text-gray-400 text-lg mb-4">Preview not available for this book.</p>
+            <a href="{% url 'core:book_detail' slug=book.slug %}" class="text-burgundy-500 hover:text-burgundy-600 font-medium">
                 ← Back to book details
             </a>
         </div>
@@ -107,12 +95,6 @@
 </div>
 
 <script>
-function bookPreview() {
-    return {
-        init() {
-            console.log('Preview reader initialized');
-        }
-    }
-}
+function bookPreview() { return { init() { console.log('Preview reader initialized'); } } }
 </script>
 {% endblock %}
