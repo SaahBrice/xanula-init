@@ -19,4 +19,11 @@ urlpatterns = [
     # Wishlist
     path('wishlist/', views.my_wishlist, name='wishlist'),
     path('wishlist/toggle/<int:book_id>/', views.toggle_wishlist, name='toggle_wishlist'),
+    
+    # Author publishing
+    path('publish/', views.publish_book, name='publish_book'),
+    path('my-books/', views.my_books, name='my_books'),
+    path('my-books/<int:book_id>/edit/', views.edit_book, name='edit_book'),
+    path('my-books/payout/', views.request_payout, name='request_payout'),
 ]
+

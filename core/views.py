@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.conf import settings
 
-from .models import Book, Review, LibraryEntry
+from .models import Book, Review, LibraryEntry, PayoutRequest
 
 
 def get_available_books():
@@ -319,3 +319,196 @@ def my_wishlist(request):
         'books': books,
     }
     return render(request, 'core/wishlist.html', context)
+
+
+# =============================================================================
+# Author Publishing Views
+# Per Planning Document Section 3 and Architecture Document Section 6
+# =============================================================================
+
+@login_required
+def publish_book(request):
+    """
+    Book submission page for authors.
+    Per Planning Document Section 3.
+    """
+    from .forms import BookSubmissionForm
+    
+    if request.method == 'POST':
+        form = BookSubmissionForm(request.POST, request.FILES)
+        if form.is_valid():
+            book = form.save(commit=False)
+            book.author = request.user
+            book.status = Book.Status.IN_REVIEW
+            book.save()
+            
+            messages.success(
+                request,
+                f'Your book "{book.title}" has been submitted for review. '
+                'We will notify you once it\'s been processed.'
+            )
+            return redirect('core:my_books')
+    else:
+        form = BookSubmissionForm()
+    
+    context = {
+        'form': form,
+        'categories': Book.Category.choices,
+    }
+    return render(request, 'core/publish_book.html', context)
+
+
+@login_required
+def my_books(request):
+    """
+    Author's books dashboard with earnings.
+    Per Planning Document Section 3.
+    """
+    # Get filter parameter
+    status_filter = request.GET.get('status', 'all')
+    
+    # Get user's books
+    books = Book.objects.filter(author=request.user).order_by('-submission_date')
+    
+    # Apply status filter
+    if status_filter != 'all':
+        books = books.filter(status=status_filter)
+    
+    # Calculate earnings per book (from completed purchases)
+    from django.db.models import Sum, Count
+    from .models import Purchase
+    
+    book_earnings = {}
+    for book in books:
+        stats = Purchase.objects.filter(
+            book=book,
+            payment_status=Purchase.PaymentStatus.COMPLETED
+        ).aggregate(
+            total_earnings=Sum('author_earning'),
+            sales_count=Count('id')
+        )
+        book_earnings[book.id] = {
+            'earnings': stats['total_earnings'] or 0,
+            'sales': stats['sales_count'] or 0,
+        }
+    
+    # Get pending payout requests
+    payout_requests = request.user.payout_requests.order_by('-request_date')[:5]
+    
+    # Status counts for tabs
+    status_counts = {
+        'all': Book.objects.filter(author=request.user).count(),
+        'in_review': Book.objects.filter(author=request.user, status=Book.Status.IN_REVIEW).count(),
+        'approved': Book.objects.filter(author=request.user, status=Book.Status.APPROVED).count(),
+        'denied': Book.objects.filter(author=request.user, status=Book.Status.DENIED).count(),
+        'completed': Book.objects.filter(author=request.user, status__in=[
+            Book.Status.EBOOK_READY,
+            Book.Status.AUDIOBOOK_GENERATED,
+            Book.Status.COMPLETED
+        ]).count(),
+    }
+    
+    context = {
+        'books': books,
+        'book_earnings': book_earnings,
+        'status_filter': status_filter,
+        'status_counts': status_counts,
+        'payout_requests': payout_requests,
+        'can_request_payout': request.user.can_request_payout(),
+        'earnings_balance': request.user.earnings_balance,
+    }
+    return render(request, 'core/my_books.html', context)
+
+
+@login_required
+def edit_book(request, book_id):
+    """
+    Edit a denied book for resubmission.
+    Per Planning Document answer 3.
+    """
+    from .forms import BookEditForm
+    
+    book = get_object_or_404(Book, id=book_id, author=request.user)
+    
+    # Only allow editing denied books
+    if book.status != Book.Status.DENIED:
+        messages.error(
+            request,
+            'You can only edit books that have been denied. '
+            'Approved books cannot be modified.'
+        )
+        return redirect('core:my_books')
+    
+    if request.method == 'POST':
+        form = BookEditForm(request.POST, request.FILES, instance=book)
+        if form.is_valid():
+            book = form.save(commit=False)
+            book.status = Book.Status.IN_REVIEW
+            book.denial_reason = ''  # Clear denial reason
+            book.save()
+            
+            messages.success(
+                request,
+                f'Your book "{book.title}" has been resubmitted for review.'
+            )
+            return redirect('core:my_books')
+    else:
+        form = BookEditForm(instance=book)
+    
+    context = {
+        'form': form,
+        'book': book,
+        'categories': Book.Category.choices,
+    }
+    return render(request, 'core/edit_book.html', context)
+
+
+@login_required
+def request_payout(request):
+    """
+    Request a payout of earnings.
+    Per Planning Document Section 6.
+    """
+    from .forms import PayoutRequestForm
+    
+    # Check if user can request payout
+    if not request.user.can_request_payout():
+        messages.warning(
+            request,
+            f'You need at least 5,000 XAF to request a payout. '
+            f'Your current balance is {request.user.formatted_earnings}.'
+        )
+        return redirect('core:my_books')
+    
+    if request.method == 'POST':
+        form = PayoutRequestForm(request.POST, user=request.user)
+        if form.is_valid():
+            payout = form.save(commit=False)
+            payout.author = request.user
+            payout.save()
+            
+            # Deduct from earnings balance (will be restored if failed)
+            request.user.earnings_balance -= payout.amount_requested
+            request.user.save(update_fields=['earnings_balance'])
+            
+            messages.success(
+                request,
+                f'Your payout request for {payout.amount_requested:,.0f} XAF has been submitted. '
+                'We will process it within 3-5 business days.'
+            )
+            return redirect('core:my_books')
+    else:
+        form = PayoutRequestForm(user=request.user)
+    
+    # Get pending payout requests
+    pending_payouts = request.user.payout_requests.filter(
+        status__in=[PayoutRequest.Status.PENDING, PayoutRequest.Status.PROCESSING]
+    ).order_by('-request_date')
+    
+    context = {
+        'form': form,
+        'earnings_balance': request.user.earnings_balance,
+        'pending_payouts': pending_payouts,
+    }
+    return render(request, 'core/request_payout.html', context)
+

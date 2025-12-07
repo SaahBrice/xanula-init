@@ -131,8 +131,16 @@
                         class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
                         Wishlist
                     </a>
+                    <a href="{% url 'core:my_books' %}"
+                        class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        My Books
+                    </a>
+                    <a href="{% url 'core:publish_book' %}"
+                        class="bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        Publish
+                    </a>
                     <a href="{% url 'account_logout' %}"
-                        class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        class="border border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                         Logout
                     </a>
                     {% else %}
@@ -178,8 +186,16 @@
                     class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
                     Wishlist
                 </a>
-                <a href="{% url 'account_logout' %}"
+                <a href="{% url 'core:my_books' %}"
+                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                    My Books
+                </a>
+                <a href="{% url 'core:publish_book' %}"
                     class="block text-primary-400 hover:text-primary-300 px-3 py-2 rounded-md text-base font-medium">
+                    Publish Book
+                </a>
+                <a href="{% url 'account_logout' %}"
+                    class="block text-gray-400 hover:text-gray-300 px-3 py-2 rounded-md text-base font-medium">
                     Logout
                 </a>
                 {% else %}
