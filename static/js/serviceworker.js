@@ -9,7 +9,7 @@
  * - Book files: Cache-only when downloaded
  */
 
-const CACHE_VERSION = 'v1.0.0';
+const CACHE_VERSION = 'v1.1.0';
 const STATIC_CACHE = `xanula-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `xanula-dynamic-${CACHE_VERSION}`;
 const BOOK_CACHE = 'xanula-books';
@@ -19,7 +19,7 @@ const SHELL_FILES = [
     '/',
     '/library/',
     '/offline/',
-    '/static/css/style.css',
+    '/static/css/main.css',
 ];
 
 // Files to cache on first visit
@@ -28,9 +28,9 @@ const CACHE_ON_DEMAND = [
     '/wishlist/',
 ];
 
-// Install event - cache shell files
+// Install event - cache shell files but wait for activation
 self.addEventListener('install', (event) => {
-    console.log('[SW] Installing service worker...');
+    console.log('[SW] Installing service worker v' + CACHE_VERSION);
     event.waitUntil(
         caches.open(STATIC_CACHE)
             .then(cache => {
@@ -39,13 +39,13 @@ self.addEventListener('install', (event) => {
                     console.log('[SW] Some shell files failed to cache:', err);
                 });
             })
-            .then(() => self.skipWaiting())
+        // Don't skipWaiting - wait for user to confirm update
     );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and notify clients
 self.addEventListener('activate', (event) => {
-    console.log('[SW] Activating service worker...');
+    console.log('[SW] Activating service worker v' + CACHE_VERSION);
     event.waitUntil(
         caches.keys()
             .then(cacheNames => {
@@ -62,6 +62,14 @@ self.addEventListener('activate', (event) => {
                 );
             })
             .then(() => self.clients.claim())
+            .then(() => {
+                // Notify all clients that update is complete
+                self.clients.matchAll().then(clients => {
+                    clients.forEach(client => {
+                        client.postMessage({ type: 'SW_UPDATED', version: CACHE_VERSION });
+                    });
+                });
+            })
     );
 });
 

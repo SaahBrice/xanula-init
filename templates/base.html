@@ -82,7 +82,8 @@
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="{% url 'pwa:manifest' %}">
-    <link rel="icon" type="image/png" href="{% static 'images/icons/favicon.ico' %}">
+    <!-- Inline SVG Favicon - X in circle -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%238B2635'/%3E%3Cpath d='M35 35L65 65M65 35L35 65' stroke='white' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
     
     <style>
         [x-cloak] { display: none !important; }
@@ -97,7 +98,9 @@
     <header class="top-nav">
         <div class="top-nav-inner">
             <!-- Logo -->
-            <a href="{% url 'core:homepage' %}" class="nav-logo">Xanula</a>
+            <a href="{% url 'core:homepage' %}" class="nav-logo">
+                <span class="font-display text-2xl font-bold bg-gradient-to-r from-burgundy-500 via-burgundy-600 to-forest-500 bg-clip-text text-transparent">Xanula</span>
+            </a>
             
             <!-- Nav Links -->
             <nav class="nav-links">
@@ -267,6 +270,26 @@
         </div>
     </div>
 
+    <!-- PWA Update Available Prompt -->
+    <div x-show="showUpdate" x-cloak x-transition
+        class="fixed top-4 left-4 right-4 md:left-auto md:right-6 md:w-96 z-50 
+        bg-forest-500 text-white rounded-xl p-4 shadow-xl">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+            </div>
+            <div class="flex-1">
+                <p class="font-semibold">Update Available</p>
+                <p class="text-sm text-forest-100">A new version is ready</p>
+            </div>
+            <button @click="applyUpdate()" class="px-4 py-2 bg-white text-forest-600 text-sm font-semibold rounded-lg hover:bg-forest-50">
+                Update
+            </button>
+        </div>
+    </div>
+
     <script>
     // Toast System
     function showToast(message, type = 'info', duration = 4000) {
@@ -313,8 +336,10 @@
         return {
             isDark: false,
             showInstall: false,
+            showUpdate: false,
             isInstalled: false,
             deferredPrompt: null,
+            waitingSW: null,
             
             init() {
                 // Theme
@@ -345,9 +370,36 @@
                     this.isInstalled = true;
                 }
                 
-                // Service Worker
+                // Service Worker with update detection
                 if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register('/static/js/serviceworker.js');
+                    navigator.serviceWorker.register('/static/js/serviceworker.js').then(reg => {
+                        // Check for updates
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    this.waitingSW = newWorker;
+                                    this.showUpdate = true;
+                                }
+                            });
+                        });
+                    });
+                    
+                    // Listen for SW messages
+                    navigator.serviceWorker.addEventListener('message', (event) => {
+                        if (event.data.type === 'SW_UPDATED') {
+                            showToast('App updated to ' + event.data.version, 'success');
+                        }
+                    });
+                    
+                    // Reload when new SW takes control
+                    let refreshing = false;
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                        if (!refreshing) {
+                            refreshing = true;
+                            window.location.reload();
+                        }
+                    });
                 }
             },
             
@@ -370,6 +422,13 @@
             dismissInstall() {
                 this.showInstall = false;
                 localStorage.setItem('installDismissed', Date.now().toString());
+            },
+            
+            applyUpdate() {
+                if (this.waitingSW) {
+                    this.waitingSW.postMessage({ type: 'SKIP_WAITING' });
+                }
+                this.showUpdate = false;
             }
         }
     }
