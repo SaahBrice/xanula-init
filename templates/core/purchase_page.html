@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Purchase {{ book.title }} - Xanula{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <!-- Header -->
+    <div class="mb-8 text-center">
+        <a href="{{ book.get_absolute_url }}" class="text-gray-400 hover:text-white text-sm mb-4 inline-block">
+            ← Back to Book Details
+        </a>
+        <h1 class="text-2xl font-bold text-white mb-2">Complete Your Purchase</h1>
+    </div>
+
+    <!-- Book Card -->
+    <div class="bg-dark-200 border border-gray-800 rounded-xl p-6 mb-8">
+        <div class="flex flex-col sm:flex-row gap-6">
+            <!-- Cover -->
+            <div class="w-32 h-48 mx-auto sm:mx-0 flex-shrink-0 rounded-lg overflow-hidden shadow-xl">
+                {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full h-full object-cover">
+                {% else %}
+                <div class="w-full h-full bg-gradient-to-br from-primary-700 to-secondary-700 flex items-center justify-center">
+                    <span class="text-3xl font-bold text-white/50">{{ book.title|first }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Info -->
+            <div class="flex-1 text-center sm:text-left">
+                <h2 class="text-xl font-bold text-white mb-1">{{ book.title }}</h2>
+                <p class="text-gray-400 mb-4">by {{ book.author.get_full_name }}</p>
+                
+                <div class="text-3xl font-bold text-white mb-4">
+                    {{ book.formatted_price }}
+                </div>
+                
+                <!-- Format Badges -->
+                <div class="flex flex-wrap gap-2 justify-center sm:justify-start">
+                    <span class="px-3 py-1 bg-blue-500/20 text-blue-400 text-sm rounded-full">
+                        📚 Ebook
+                    </span>
+                    {% if book.has_audiobook %}
+                    <span class="px-3 py-1 bg-purple-500/20 text-purple-400 text-sm rounded-full">
+                        🎧 Audiobook
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="space-y-4 mb-8">
+        <h3 class="text-lg font-semibold text-white text-center">Choose Payment Method</h3>
+        
+        <!-- Stripe / Card -->
+        <a href="{% url 'core:create_stripe_checkout' book_id=book.id %}"
+            class="block w-full p-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl text-white text-center font-semibold transition-all transform hover:scale-[1.02] shadow-lg">
+            <div class="flex items-center justify-center gap-3">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+                </svg>
+                <span>Pay with Card</span>
+            </div>
+            <div class="flex items-center justify-center gap-2 mt-2 opacity-80">
+                <span class="text-xs bg-white/20 px-2 py-0.5 rounded">VISA</span>
+                <span class="text-xs bg-white/20 px-2 py-0.5 rounded">Mastercard</span>
+                <span class="text-xs bg-white/20 px-2 py-0.5 rounded">AMEX</span>
+            </div>
+        </a>
+        
+        <!-- Mobile Money (Coming Soon) -->
+        <button disabled
+            class="block w-full p-4 bg-gray-700 opacity-50 cursor-not-allowed rounded-xl text-white text-center font-semibold">
+            <div class="flex items-center justify-center gap-3">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>
+                </svg>
+                <span>Pay with Mobile Money</span>
+            </div>
+            <div class="flex items-center justify-center gap-2 mt-2 opacity-80">
+                <span class="text-xs bg-white/20 px-2 py-0.5 rounded">MTN MoMo</span>
+                <span class="text-xs bg-white/20 px-2 py-0.5 rounded">Orange Money</span>
+                <span class="text-xs bg-yellow-500/80 text-black px-2 py-0.5 rounded font-medium">Coming Soon</span>
+            </div>
+        </button>
+    </div>
+
+    <!-- What You'll Get -->
+    <div class="bg-dark-200 border border-gray-800 rounded-xl p-6">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            What You'll Get
+        </h3>
+        <ul class="space-y-3 text-gray-300">
+            <li class="flex items-center">
+                <span class="w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center mr-3">📚</span>
+                <span>Digital Ebook - Read on any device</span>
+            </li>
+            {% if book.has_audiobook %}
+            <li class="flex items-center">
+                <span class="w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center mr-3">🎧</span>
+                <span>AI-Generated Audiobook - Listen anywhere</span>
+            </li>
+            {% endif %}
+            <li class="flex items-center">
+                <span class="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center mr-3">♾️</span>
+                <span>Lifetime Access - No subscriptions</span>
+            </li>
+            <li class="flex items-center">
+                <span class="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center mr-3">📲</span>
+                <span>Offline Reading - Download for later</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Security Note -->
+    <p class="text-center text-sm text-gray-500 mt-6">
+        🔒 Secure payment powered by Stripe
+    </p>
+</div>
+{% endblock %}

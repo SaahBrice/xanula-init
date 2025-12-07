@@ -25,5 +25,12 @@ urlpatterns = [
     path('my-books/', views.my_books, name='my_books'),
     path('my-books/<int:book_id>/edit/', views.edit_book, name='edit_book'),
     path('my-books/payout/', views.request_payout, name='request_payout'),
+    
+    # Purchase & Payment
+    path('books/<slug:slug>/purchase/', views.initiate_purchase, name='initiate_purchase'),
+    path('purchase/stripe/<int:book_id>/', views.create_stripe_checkout, name='create_stripe_checkout'),
+    path('purchase/success/<int:purchase_id>/', views.purchase_success, name='purchase_success'),
+    path('account/purchases/', views.purchase_history, name='purchase_history'),
 ]
+
 

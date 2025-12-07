@@ -96,17 +96,17 @@
 
                 <div class="flex flex-col sm:flex-row gap-3">
                     {% if user_owns_book %}
-                    <a href="#" class="flex-1 py-3 px-6 bg-green-600 text-white font-semibold rounded-lg text-center">
+                    <a href="{% url 'core:my_books' %}" class="flex-1 py-3 px-6 bg-green-600 text-white font-semibold rounded-lg text-center">
                         ✓ In Your Library
                     </a>
                     {% elif user.is_authenticated %}
                     {% if book.is_free %}
-                    <a href="#"
+                    <a href="{% url 'core:initiate_purchase' slug=book.slug %}"
                         class="flex-1 py-3 px-6 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-semibold rounded-lg text-center transform hover:scale-[1.02] transition-all">
                         Get Free Book
                     </a>
                     {% else %}
-                    <a href="#"
+                    <a href="{% url 'core:initiate_purchase' slug=book.slug %}"
                         class="flex-1 py-3 px-6 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-semibold rounded-lg text-center transform hover:scale-[1.02] transition-all">
                         Buy Now
                     </a>

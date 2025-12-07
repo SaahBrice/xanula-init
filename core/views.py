@@ -512,3 +512,306 @@ def request_payout(request):
     }
     return render(request, 'core/request_payout.html', context)
 
+
+# =============================================================================
+# Purchase & Payment Views
+# Per Planning Document Section 5 and Architecture Document Section 9
+# =============================================================================
+
+@login_required
+def initiate_purchase(request, slug):
+    """
+    Purchase initiation page.
+    Handles ownership check and free book flow.
+    """
+    book = get_object_or_404(Book, slug=slug)
+    
+    # Check if book is available for purchase
+    if not book.is_available:
+        messages.error(request, 'This book is not available for purchase yet.')
+        return redirect('core:book_detail', slug=slug)
+    
+    # Anti-duplicate: Check if user already owns the book
+    if LibraryEntry.objects.filter(user=request.user, book=book).exists():
+        messages.info(request, 'You already own this book! It\'s in your library.')
+        return redirect('core:my_books')
+    
+    # Handle free books - skip payment completely
+    if book.is_free:
+        from .models import Purchase
+        
+        # Create purchase record
+        purchase = Purchase.objects.create(
+            buyer=request.user,
+            book=book,
+            amount_paid=0,
+            payment_method=Purchase.PaymentMethod.STRIPE,
+            payment_status=Purchase.PaymentStatus.COMPLETED,
+            platform_commission=0,
+            author_earning=0,
+            payment_transaction_id='FREE'
+        )
+        
+        # Create library entry
+        LibraryEntry.objects.create(
+            user=request.user,
+            book=book
+        )
+        
+        # Increment book sales
+        book.total_sales += 1
+        book.save(update_fields=['total_sales'])
+        
+        messages.success(request, f'"{book.title}" has been added to your library for free!')
+        return redirect('core:my_books')
+    
+    # For priced books, show payment selection page
+    context = {
+        'book': book,
+        'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
+    }
+    return render(request, 'core/purchase_page.html', context)
+
+
+@login_required
+def create_stripe_checkout(request, book_id):
+    """
+    Create Stripe checkout session and redirect to Stripe.
+    """
+    import stripe
+    from .models import Purchase
+    
+    book = get_object_or_404(Book, id=book_id)
+    
+    # Anti-duplicate check
+    if LibraryEntry.objects.filter(user=request.user, book=book).exists():
+        messages.info(request, 'You already own this book!')
+        return redirect('core:my_books')
+    
+    # Configure Stripe
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    
+    # Create pending purchase record
+    purchase = Purchase.objects.create(
+        buyer=request.user,
+        book=book,
+        amount_paid=book.price,
+        payment_method=Purchase.PaymentMethod.STRIPE,
+        payment_status=Purchase.PaymentStatus.PENDING
+    )
+    
+    # Build URLs
+    domain = request.build_absolute_uri('/').rstrip('/')
+    success_url = f"{domain}/purchase/success/{purchase.id}/?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{domain}/books/{book.slug}/?cancelled=1"
+    
+    try:
+        # Create Stripe Checkout Session
+        checkout_session = stripe.checkout.Session.create(
+            customer_email=request.user.email,
+            line_items=[{
+                'price_data': {
+                    'currency': 'xaf',
+                    'product_data': {
+                        'name': book.title,
+                        'description': book.short_description[:200] if book.short_description else '',
+                    },
+                    'unit_amount': int(book.price),  # XAF doesn't use cents
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                'purchase_id': str(purchase.id),
+                'user_id': str(request.user.id),
+                'book_id': str(book.id),
+            }
+        )
+        
+        # Store session ID
+        purchase.payment_transaction_id = checkout_session.id
+        purchase.save(update_fields=['payment_transaction_id'])
+        
+        # Redirect to Stripe
+        return redirect(checkout_session.url)
+        
+    except stripe.error.StripeError as e:
+        # Log error and show message
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Stripe error for purchase {purchase.id}: {str(e)}")
+        
+        purchase.payment_status = Purchase.PaymentStatus.FAILED
+        purchase.save(update_fields=['payment_status'])
+        
+        messages.error(request, 'There was an error processing your payment. Please try again.')
+        return redirect('core:book_detail', slug=book.slug)
+
+
+@login_required
+def purchase_success(request, purchase_id):
+    """
+    Handle successful payment return from Stripe.
+    Verifies payment and creates library entry.
+    """
+    import stripe
+    from decimal import Decimal
+    from django.core.mail import send_mail
+    from django.template.loader import render_to_string
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    purchase = get_object_or_404(Purchase, id=purchase_id, buyer=request.user)
+    
+    # If already completed, just show success
+    if purchase.payment_status == Purchase.PaymentStatus.COMPLETED:
+        context = {
+            'purchase': purchase,
+            'book': purchase.book,
+            'already_processed': True,
+        }
+        return render(request, 'core/purchase_success.html', context)
+    
+    # Get session_id from URL
+    session_id = request.GET.get('session_id')
+    
+    if not session_id:
+        messages.error(request, 'Invalid payment session.')
+        return redirect('core:book_detail', slug=purchase.book.slug)
+    
+    # Verify payment with Stripe
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status == 'paid':
+            # Payment successful!
+            logger.info(f"Payment verified for purchase {purchase.id}")
+            
+            # Update purchase record
+            purchase.payment_status = Purchase.PaymentStatus.COMPLETED
+            purchase.payment_transaction_id = session.payment_intent or session_id
+            
+            # Calculate commission based on book format
+            # Per Planning Document Section 6:
+            # - With audiobook: 30% platform commission
+            # - Ebook only: 10% platform commission
+            amount = purchase.amount_paid
+            if purchase.book.has_audiobook:
+                commission_rate = Decimal('0.30')
+            else:
+                commission_rate = Decimal('0.10')
+            
+            purchase.platform_commission = amount * commission_rate
+            purchase.author_earning = amount - purchase.platform_commission
+            purchase.save()
+            
+            # Update author's earnings balance
+            author = purchase.book.author
+            author.earnings_balance += purchase.author_earning
+            author.save(update_fields=['earnings_balance'])
+            
+            # Create library entry (check for duplicates)
+            LibraryEntry.objects.get_or_create(
+                user=request.user,
+                book=purchase.book
+            )
+            
+            # Increment book sales
+            purchase.book.total_sales += 1
+            purchase.book.save(update_fields=['total_sales'])
+            
+            # Send email receipt
+            try:
+                html_content = render_to_string('emails/purchase_receipt.html', {
+                    'purchase': purchase,
+                    'book': purchase.book,
+                    'user': request.user,
+                })
+                send_mail(
+                    subject=f'Your Xanula Purchase Receipt - {purchase.book.title}',
+                    message=f'Thank you for purchasing {purchase.book.title}!',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[request.user.email],
+                    html_message=html_content,
+                    fail_silently=True,
+                )
+                logger.info(f"Receipt email sent for purchase {purchase.id}")
+            except Exception as e:
+                logger.error(f"Failed to send receipt email: {str(e)}")
+            
+            context = {
+                'purchase': purchase,
+                'book': purchase.book,
+                'success': True,
+            }
+            return render(request, 'core/purchase_success.html', context)
+        else:
+            # Payment not completed
+            logger.warning(f"Payment not completed for purchase {purchase.id}: {session.payment_status}")
+            context = {
+                'purchase': purchase,
+                'book': purchase.book,
+                'success': False,
+                'error_message': 'Payment was not completed. Please try again.',
+            }
+            return render(request, 'core/purchase_success.html', context)
+            
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe verification error for purchase {purchase.id}: {str(e)}")
+        context = {
+            'purchase': purchase,
+            'book': purchase.book,
+            'success': False,
+            'error_message': 'Unable to verify payment. Please contact support if you were charged.',
+        }
+        return render(request, 'core/purchase_success.html', context)
+
+
+@login_required
+def purchase_history(request):
+    """
+    Display user's purchase history.
+    """
+    from .models import Purchase
+    from django.core.paginator import Paginator
+    
+    # Get filter
+    status_filter = request.GET.get('status', 'all')
+    
+    # Base queryset
+    purchases = Purchase.objects.filter(buyer=request.user).select_related('book', 'book__author')
+    
+    # Apply filter
+    if status_filter == 'completed':
+        purchases = purchases.filter(payment_status=Purchase.PaymentStatus.COMPLETED)
+    elif status_filter == 'pending':
+        purchases = purchases.filter(payment_status=Purchase.PaymentStatus.PENDING)
+    elif status_filter == 'failed':
+        purchases = purchases.filter(payment_status=Purchase.PaymentStatus.FAILED)
+    
+    # Paginate
+    paginator = Paginator(purchases, 20)
+    page = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page)
+    
+    # Status counts
+    status_counts = {
+        'all': Purchase.objects.filter(buyer=request.user).count(),
+        'completed': Purchase.objects.filter(buyer=request.user, payment_status=Purchase.PaymentStatus.COMPLETED).count(),
+        'pending': Purchase.objects.filter(buyer=request.user, payment_status=Purchase.PaymentStatus.PENDING).count(),
+        'failed': Purchase.objects.filter(buyer=request.user, payment_status=Purchase.PaymentStatus.FAILED).count(),
+    }
+    
+    context = {
+        'page_obj': page_obj,
+        'status_filter': status_filter,
+        'status_counts': status_counts,
+    }
+    return render(request, 'core/purchase_history.html', context)
+
+
