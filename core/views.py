@@ -1640,4 +1640,297 @@ def check_purchase_status_api(request, purchase_id):
         })
 
 
+# =============================================================================
+# PWA / Offline Views
+# Per Planning Document Section 7 and Architecture Document Section 12
+# =============================================================================
 
+def offline_page(request):
+    """
+    Offline fallback page for service worker.
+    """
+    return render(request, 'core/offline.html')
+
+
+@login_required
+def download_book_api(request, book_id):
+    """
+    API endpoint for PWA to get book file URLs for caching.
+    Returns URLs that the service worker can cache for offline use.
+    """
+    book = get_object_or_404(Book, id=book_id)
+    
+    # Verify user owns the book
+    entry = LibraryEntry.objects.filter(user=request.user, book=book).first()
+    if not entry:
+        return JsonResponse({'error': 'You do not own this book.'}, status=403)
+    
+    # Build file URLs
+    files = {}
+    
+    if book.ebook_file:
+        files['ebook_url'] = book.ebook_file.url
+        try:
+            files['ebook_size'] = book.ebook_file.size
+        except:
+            files['ebook_size'] = 0
+    
+    if book.audiobook_file:
+        files['audiobook_url'] = book.audiobook_file.url
+        try:
+            files['audiobook_size'] = book.audiobook_file.size
+        except:
+            files['audiobook_size'] = 0
+    
+    if book.cover_image:
+        files['cover_url'] = book.cover_image.url
+    
+    # Update download status
+    entry.download_status = LibraryEntry.DownloadStatus.DOWNLOADED
+    entry.save(update_fields=['download_status'])
+    
+    return JsonResponse({
+        'success': True,
+        'book_id': book.id,
+        'book_title': book.title,
+        'files': files,
+        'message': 'Book ready for offline use'
+    })
+
+
+@login_required
+@require_POST
+def remove_download_api(request, book_id):
+    """
+    API endpoint to mark book as not downloaded (after service worker clears cache).
+    """
+    book = get_object_or_404(Book, id=book_id)
+    
+    # Verify user owns the book
+    entry = LibraryEntry.objects.filter(user=request.user, book=book).first()
+    if not entry:
+        return JsonResponse({'error': 'You do not own this book.'}, status=403)
+    
+    # Update download status
+    entry.download_status = LibraryEntry.DownloadStatus.NOT_DOWNLOADED
+    entry.save(update_fields=['download_status'])
+    
+    # Build file URLs for service worker to remove from cache
+    files = {}
+    if book.ebook_file:
+        files['ebook_url'] = book.ebook_file.url
+    if book.audiobook_file:
+        files['audiobook_url'] = book.audiobook_file.url
+    if book.cover_image:
+        files['cover_url'] = book.cover_image.url
+    
+    return JsonResponse({
+        'success': True,
+        'book_id': book.id,
+        'files': files,
+        'message': 'Download removed'
+    })
+
+
+# =============================================================================
+# User Settings Views
+# =============================================================================
+
+@login_required
+def user_settings(request):
+    """
+    User profile settings page.
+    """
+    user = request.user
+    
+    if request.method == 'POST':
+        # Handle profile update
+        user.first_name = request.POST.get('first_name', '').strip()
+        user.last_name = request.POST.get('last_name', '').strip()
+        user.bio = request.POST.get('bio', '').strip()[:500]
+        
+        # Handle profile picture
+        if 'profile_picture' in request.FILES:
+            user.profile_picture = request.FILES['profile_picture']
+        
+        user.save()
+        messages.success(request, 'Profile updated successfully!')
+        return redirect('core:user_settings')
+    
+    context = {
+        'user': user,
+    }
+    return render(request, 'core/settings.html', context)
+
+
+@login_required
+@require_POST
+def notification_settings(request):
+    """
+    Update notification preferences.
+    """
+    import json
+    user = request.user
+    
+    try:
+        data = json.loads(request.body)
+        user.email_notifications = data.get('email_notifications', True)
+        user.reading_reminders = data.get('reading_reminders', True)
+        user.save(update_fields=['email_notifications', 'reading_reminders'])
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+# =============================================================================
+# Book Preview View
+# =============================================================================
+
+def book_preview(request, slug):
+    """
+    Preview first 10% of a book (for non-owners).
+    """
+    book = get_object_or_404(
+        Book.objects.select_related('author'),
+        slug=slug,
+        status__in=[
+            Book.Status.EBOOK_READY,
+            Book.Status.AUDIOBOOK_GENERATED,
+            Book.Status.COMPLETED
+        ]
+    )
+    
+    # Check if user already owns the book
+    user_owns_book = False
+    if request.user.is_authenticated:
+        user_owns_book = LibraryEntry.objects.filter(
+            user=request.user, book=book
+        ).exists()
+    
+    context = {
+        'book': book,
+        'user_owns_book': user_owns_book,
+        'preview_mode': True,
+        'preview_percent': 10,
+    }
+    return render(request, 'core/book_preview.html', context)
+
+
+# =============================================================================
+# Author Analytics Dashboard
+# =============================================================================
+
+@login_required
+def author_analytics(request):
+    """
+    Author analytics dashboard with sales charts and earnings data.
+    """
+    from .models import Purchase
+    from django.db.models import Sum
+    from django.db.models.functions import TruncDate, TruncMonth
+    from datetime import datetime, timedelta
+    
+    user = request.user
+    
+    # Get author's books
+    author_books = Book.objects.filter(author=user)
+    
+    if not author_books.exists():
+        messages.info(request, 'You haven\'t published any books yet.')
+        return redirect('core:my_books')
+    
+    # Total stats
+    total_sales = author_books.aggregate(total=Sum('total_sales'))['total'] or 0
+    total_earnings = user.earnings_balance
+    total_reviews = Review.objects.filter(book__author=user).count()
+    
+    # Get purchases for the last 30 days
+    thirty_days_ago = datetime.now() - timedelta(days=30)
+    recent_purchases = Purchase.objects.filter(
+        book__author=user,
+        payment_status=Purchase.PaymentStatus.COMPLETED,
+        purchase_date__gte=thirty_days_ago
+    ).select_related('book', 'buyer')
+    
+    # Book performance
+    book_performance = []
+    for book in author_books:
+        book_performance.append({
+            'id': book.id,
+            'title': book.title,
+            'sales': book.total_sales,
+            'rating': float(book.average_rating),
+            'reviews': book.reviews.filter(is_visible=True).count(),
+            'earnings': Purchase.objects.filter(
+                book=book,
+                payment_status=Purchase.PaymentStatus.COMPLETED
+            ).aggregate(total=Sum('author_earning'))['total'] or 0
+        })
+    
+    # Sort by sales
+    book_performance.sort(key=lambda x: x['sales'], reverse=True)
+    
+    context = {
+        'total_sales': total_sales,
+        'total_earnings': total_earnings,
+        'total_reviews': total_reviews,
+        'book_count': author_books.count(),
+        'recent_purchases': recent_purchases[:10],
+        'book_performance': book_performance,
+    }
+    return render(request, 'core/author_analytics.html', context)
+
+
+@login_required
+def analytics_data_api(request):
+    """
+    API endpoint for analytics chart data.
+    Returns daily sales data for the last 30 days.
+    """
+    from .models import Purchase
+    from django.db.models import Count, Sum
+    from django.db.models.functions import TruncDate
+    from datetime import datetime, timedelta
+    import json
+    
+    user = request.user
+    thirty_days_ago = datetime.now() - timedelta(days=30)
+    
+    # Daily sales
+    daily_sales = Purchase.objects.filter(
+        book__author=user,
+        payment_status=Purchase.PaymentStatus.COMPLETED,
+        purchase_date__gte=thirty_days_ago
+    ).annotate(
+        date=TruncDate('purchase_date')
+    ).values('date').annotate(
+        count=Count('id'),
+        earnings=Sum('author_earning')
+    ).order_by('date')
+    
+    # Format for Chart.js
+    labels = []
+    sales_data = []
+    earnings_data = []
+    
+    # Fill in all dates (including zeros)
+    current = thirty_days_ago.date()
+    end = datetime.now().date()
+    sales_by_date = {s['date']: s for s in daily_sales}
+    
+    while current <= end:
+        labels.append(current.strftime('%b %d'))
+        if current in sales_by_date:
+            sales_data.append(sales_by_date[current]['count'])
+            earnings_data.append(float(sales_by_date[current]['earnings'] or 0))
+        else:
+            sales_data.append(0)
+            earnings_data.append(0)
+        current += timedelta(days=1)
+    
+    return JsonResponse({
+        'labels': labels,
+        'sales': sales_data,
+        'earnings': earnings_data,
+    })

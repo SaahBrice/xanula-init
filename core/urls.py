@@ -55,6 +55,22 @@ urlpatterns = [
     path('reviews/submit/<int:book_id>/', views.submit_review, name='submit_review'),
     path('reviews/<int:review_id>/edit/', views.edit_review, name='edit_review'),
     path('reviews/<int:review_id>/delete/', views.delete_review, name='delete_review'),
+    
+    # PWA / Offline
+    path('offline/', views.offline_page, name='offline'),
+    path('api/download-book/<int:book_id>/', views.download_book_api, name='download_book_api'),
+    path('api/remove-download/<int:book_id>/', views.remove_download_api, name='remove_download_api'),
+    
+    # User Settings
+    path('settings/', views.user_settings, name='user_settings'),
+    path('settings/notifications/', views.notification_settings, name='notification_settings'),
+    
+    # Book Preview
+    path('preview/<slug:slug>/', views.book_preview, name='book_preview'),
+    
+    # Author Analytics
+    path('my-books/analytics/', views.author_analytics, name='author_analytics'),
+    path('api/analytics-data/', views.analytics_data_api, name='analytics_data_api'),
 ]
 
 

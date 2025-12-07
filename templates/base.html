@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Xanula - Your gateway to African literature">
     <meta name="theme-color" content="#1a1a2e">
+    
+    <!-- iOS PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Xanula">
+    <link rel="apple-touch-icon" href="{% load static %}{% static 'images/icons/icon-192x192.png' %}">
 
     <title>{% block title %}Xanula{% endblock %}</title>
 
@@ -101,7 +108,7 @@
     {% block extra_head %}{% endblock %}
 </head>
 
-<body class="bg-dark-100 text-gray-100 min-h-screen">
+<body class="bg-dark-100 text-gray-100 min-h-screen" x-data="pwaApp()">
     <!-- Navigation -->
     <nav class="bg-dark-200 shadow-lg sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -143,10 +150,56 @@
                         class="bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all">
                         Publish
                     </a>
-                    <a href="{% url 'account_logout' %}"
-                        class="border border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                        Logout
-                    </a>
+                    
+                    <!-- User Dropdown -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" @click.outside="open = false"
+                            class="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-white rounded-lg transition-colors">
+                            <div class="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center">
+                                <span class="text-primary-400 font-medium text-sm">{{ user.get_display_name|first|upper }}</span>
+                            </div>
+                            <svg class="w-4 h-4" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        
+                        <div x-show="open" x-transition x-cloak
+                            class="absolute right-0 mt-2 w-56 bg-dark-200 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                            <div class="p-3 border-b border-gray-700">
+                                <p class="text-white font-medium truncate">{{ user.get_display_name }}</p>
+                                <p class="text-gray-400 text-sm truncate">{{ user.email }}</p>
+                            </div>
+                            <div class="py-2">
+                                <a href="{% url 'core:user_settings' %}" class="flex items-center gap-3 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    Settings
+                                </a>
+                                <a href="{% url 'core:author_analytics' %}" class="flex items-center gap-3 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    </svg>
+                                    Analytics
+                                </a>
+                                <a href="{% url 'core:purchase_history' %}" class="flex items-center gap-3 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                    </svg>
+                                    Purchases
+                                </a>
+                            </div>
+                            <div class="border-t border-gray-700 py-2">
+                                <a href="{% url 'account_logout' %}" class="flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                    </svg>
+                                    Sign Out
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     {% else %}
                     <a href="{% url 'account_login' %}"
                         class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
@@ -202,9 +255,22 @@
                     class="block text-primary-400 hover:text-primary-300 px-3 py-2 rounded-md text-base font-medium">
                     Publish Book
                 </a>
+                <div class="border-t border-gray-700 my-2"></div>
+                <a href="{% url 'core:user_settings' %}"
+                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                    ⚙️ Settings
+                </a>
+                <a href="{% url 'core:author_analytics' %}"
+                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                    📊 Analytics
+                </a>
+                <a href="{% url 'core:purchase_history' %}"
+                    class="block text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium">
+                    🧾 Purchases
+                </a>
                 <a href="{% url 'account_logout' %}"
-                    class="block text-gray-400 hover:text-gray-300 px-3 py-2 rounded-md text-base font-medium">
-                    Logout
+                    class="block text-red-400 hover:text-red-300 px-3 py-2 rounded-md text-base font-medium">
+                    Sign Out
                 </a>
                 {% else %}
                 <a href="{% url 'account_login' %}"
@@ -299,6 +365,135 @@
     </footer>
 
     {% block extra_js %}{% endblock %}
+    
+    <!-- Offline Indicator Banner -->
+    <div x-show="isOffline" x-cloak x-transition
+        class="fixed bottom-0 left-0 right-0 z-50 bg-yellow-600 text-yellow-100 py-3 px-4 text-center text-sm font-medium">
+        <svg class="inline-block w-4 h-4 mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"/>
+        </svg>
+        You're offline. Downloaded books are still available.
+        <button @click="dismissOfflineBanner()" class="ml-4 underline">Dismiss</button>
+    </div>
+    
+    <!-- Install App Prompt -->
+    <div x-show="showInstallPrompt && !isAppInstalled" x-cloak x-transition
+        class="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 z-50 bg-dark-200 border border-gray-700 rounded-xl p-4 shadow-xl">
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span class="text-white text-xl">📚</span>
+            </div>
+            <div class="flex-1">
+                <h4 class="text-white font-semibold mb-1">Install Xanula</h4>
+                <p class="text-gray-400 text-sm mb-3">Install for quick access & offline reading</p>
+                <div class="flex gap-2">
+                    <button @click="installApp()" 
+                        class="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg">
+                        Install
+                    </button>
+                    <button @click="dismissInstallPrompt()"
+                        class="px-4 py-2 text-gray-400 hover:text-white text-sm">
+                        Not now
+                    </button>
+                </div>
+            </div>
+            <button @click="dismissInstallPrompt()" class="text-gray-500 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    
+    <!-- PWA JavaScript -->
+    <script>
+    function pwaApp() {
+        return {
+            isOffline: !navigator.onLine,
+            showInstallPrompt: false,
+            isAppInstalled: false,
+            deferredPrompt: null,
+            offlineBannerDismissed: false,
+            
+            init() {
+                // Service Worker Registration
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/static/js/serviceworker.js')
+                        .then(reg => console.log('Service Worker registered:', reg.scope))
+                        .catch(err => console.log('Service Worker registration failed:', err));
+                }
+                
+                // Network status listeners
+                window.addEventListener('online', () => {
+                    this.isOffline = false;
+                    this.syncProgress();
+                });
+                window.addEventListener('offline', () => {
+                    if (!this.offlineBannerDismissed) {
+                        this.isOffline = true;
+                    }
+                });
+                
+                // Install prompt
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredPrompt = e;
+                    // Check if dismissed and if 6 hours have passed
+                    const dismissedAt = localStorage.getItem('installPromptDismissedAt');
+                    const sixHours = 6 * 60 * 60 * 1000;
+                    const showPrompt = !dismissedAt || (Date.now() - parseInt(dismissedAt)) > sixHours;
+                    if (showPrompt) {
+                        setTimeout(() => { this.showInstallPrompt = true; }, 3000);
+                    }
+                });
+                
+                // Check if already installed
+                window.addEventListener('appinstalled', () => {
+                    this.isAppInstalled = true;
+                    this.showInstallPrompt = false;
+                    this.deferredPrompt = null;
+                });
+                
+                // Check standalone mode (already installed)
+                if (window.matchMedia('(display-mode: standalone)').matches) {
+                    this.isAppInstalled = true;
+                }
+            },
+            
+            dismissOfflineBanner() {
+                this.isOffline = false;
+                this.offlineBannerDismissed = true;
+            },
+            
+            async installApp() {
+                if (!this.deferredPrompt) return;
+                this.deferredPrompt.prompt();
+                const { outcome } = await this.deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    this.isAppInstalled = true;
+                }
+                this.showInstallPrompt = false;
+                this.deferredPrompt = null;
+            },
+            
+            dismissInstallPrompt() {
+                this.showInstallPrompt = false;
+                // Store timestamp instead of boolean - will be asked again after 7 days
+                localStorage.setItem('installPromptDismissedAt', Date.now().toString());
+            },
+            
+            async syncProgress() {
+                // Sync any queued progress updates
+                const queue = JSON.parse(localStorage.getItem('progressQueue') || '[]');
+                if (queue.length > 0) {
+                    console.log('Syncing', queue.length, 'progress updates...');
+                    // Sync logic handled by individual readers/players
+                }
+            }
+        }
+    }
+    </script>
 </body>
 
 </html>
