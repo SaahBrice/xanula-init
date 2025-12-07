@@ -81,6 +81,9 @@ class BookAdmin(admin.ModelAdmin):
     date_hierarchy = 'submission_date'
     ordering = ['-submission_date']
     
+    class Media:
+        js = ('js/admin_upload.js',)
+    
     actions = ['approve_books', 'deny_books', 'mark_as_ebook_ready', 'mark_as_completed']
     
     def price_display(self, obj):
