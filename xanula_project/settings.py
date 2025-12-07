@@ -309,6 +309,8 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@xanula.com")
 
+# Site URL for emails
+SITE_URL = config("SITE_URL", default="http://localhost:8000")
 
 # =============================================================================
 # PAYMENT GATEWAY CONFIGURATION

@@ -1,0 +1,51 @@
+{% extends "emails/base_email.html" %}
+{% block title %}Your Book Has Been Approved - Xanula{% endblock %}
+
+{% block content %}
+<h1>🎉 Great News!</h1>
+
+<p>Hello {{ book.author.get_display_name }},</p>
+
+<p>We're excited to let you know that your book <strong>"{{ book.title }}"</strong> has been <span class="text-success">approved</span> and is now live on Xanula!</p>
+
+<div class="book-card">
+    <table cellpadding="0" cellspacing="0">
+        <tr>
+            <td style="width: 100px; vertical-align: top;">
+                {% if book.cover_image %}
+                <img src="{{ site_url }}{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+                {% else %}
+                <div style="width: 80px; height: 120px; background: linear-gradient(135deg, #8b5cf6, #ec4899); border-radius: 8px;"></div>
+                {% endif %}
+            </td>
+            <td style="padding-left: 20px; vertical-align: top;">
+                <p class="book-title">{{ book.title }}</p>
+                <p class="book-author">by {{ book.author.get_display_name }}</p>
+                <p style="margin-top: 12px;">
+                    <span class="badge badge-success">✓ Approved</span>
+                </p>
+                <p class="text-muted" style="font-size: 14px; margin-top: 8px;">
+                    {{ book.get_category_display }} • {{ book.get_language_display }}
+                </p>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<h2 style="font-size: 18px;">What's Next?</h2>
+
+<ul style="color: #e0e0e0;">
+    <li>Your book is now visible to all Xanula users</li>
+    <li>Readers can purchase and start reading/listening immediately</li>
+    <li>You'll receive earnings notifications for each sale</li>
+    <li>Track your sales in the Author Dashboard</li>
+</ul>
+
+<div class="text-center">
+    <a href="{{ site_url }}/books/{{ book.slug }}/" class="btn">View Your Book</a>
+</div>
+
+<p class="text-muted" style="font-size: 14px;">
+    Thank you for publishing with Xanula. We're proud to share African literature with the world!
+</p>
+{% endblock %}

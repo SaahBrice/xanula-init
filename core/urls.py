@@ -42,6 +42,19 @@ urlpatterns = [
     path('library/<int:entry_id>/toggle-download/', views.toggle_download_status, name='toggle_download'),
     path('library/<int:entry_id>/progress/', views.update_reading_progress, name='update_progress'),
     path('library/<int:entry_id>/access/', views.access_book, name='access_book'),
+    
+    # Ebook Reader
+    path('read/<slug:slug>/', views.book_reader, name='book_reader'),
+    path('api/update-reading-progress/', views.update_reading_progress_api, name='update_reading_progress_api'),
+    
+    # Audiobook Player
+    path('listen/<slug:slug>/', views.audiobook_player, name='audiobook_player'),
+    path('api/update-listening-progress/', views.update_listening_progress_api, name='update_listening_progress_api'),
+    
+    # Reviews
+    path('reviews/submit/<int:book_id>/', views.submit_review, name='submit_review'),
+    path('reviews/<int:review_id>/edit/', views.edit_review, name='edit_review'),
+    path('reviews/<int:review_id>/delete/', views.delete_review, name='delete_review'),
 ]
 
 

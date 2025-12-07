@@ -142,14 +142,26 @@
                 <!-- Action Buttons -->
                 <div class="space-y-2">
                     <!-- Read/Continue Button -->
-                    <a href="{% url 'core:access_book' entry_id=entry.id %}" 
+                    <a href="{% url 'core:book_reader' slug=entry.book.slug %}" 
                         class="block w-full py-2 px-4 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white text-sm font-medium rounded-lg text-center transition-all">
-                        {% if entry.reading_progress > 0 or entry.listening_progress > 0 %}
+                        {% if entry.reading_progress > 0 %}
                         Continue Reading
                         {% else %}
-                        Start Reading
+                        📚 Start Reading
                         {% endif %}
                     </a>
+                    
+                    <!-- Listen Button (if audiobook available) -->
+                    {% if entry.book.has_audiobook %}
+                    <a href="{% url 'core:audiobook_player' slug=entry.book.slug %}" 
+                        class="block w-full py-2 px-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm font-medium rounded-lg text-center transition-all">
+                        {% if entry.listening_progress > 0 %}
+                        Continue Listening
+                        {% else %}
+                        🎧 Listen to Book
+                        {% endif %}
+                    </a>
+                    {% endif %}
                     
                     <!-- Download Toggle -->
                     <form action="{% url 'core:toggle_download' entry_id=entry.id %}" method="post" class="w-full">

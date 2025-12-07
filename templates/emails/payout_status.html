@@ -1,0 +1,117 @@
+{% extends "emails/base_email.html" %}
+{% block title %}Payout Update - Xanula{% endblock %}
+
+{% block content %}
+<h1>💰 Payout Update</h1>
+
+<p>Hello {{ payout.author.get_display_name }},</p>
+
+{% if status == 'processing' %}
+<p>Great news! Your payout request is now being <span class="text-warning">processed</span>.</p>
+
+<div class="book-card">
+    <table cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td>
+                <p class="text-muted" style="font-size: 13px; margin: 0 0 4px 0;">Payout Amount</p>
+                <p style="font-size: 28px; font-weight: bold; color: #ffffff; margin: 0;">{{ payout.amount|floatformat:0 }} XAF</p>
+            </td>
+            <td style="text-align: right;">
+                <span class="badge badge-warning">⏳ Processing</span>
+            </td>
+        </tr>
+    </table>
+    
+    <hr style="border: none; border-top: 1px solid #333; margin: 16px 0;">
+    
+    <table cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td class="text-muted" style="font-size: 14px;">Payment Method</td>
+            <td style="text-align: right; color: #fff;">{{ payout.payment_method }}</td>
+        </tr>
+        <tr>
+            <td class="text-muted" style="font-size: 14px; padding-top: 8px;">Account</td>
+            <td style="text-align: right; color: #fff; padding-top: 8px;">{{ payout.payment_details }}</td>
+        </tr>
+        <tr>
+            <td class="text-muted" style="font-size: 14px; padding-top: 8px;">Requested</td>
+            <td style="text-align: right; color: #fff; padding-top: 8px;">{{ payout.requested_at|date:"M d, Y" }}</td>
+        </tr>
+    </table>
+</div>
+
+<p>We're working on transferring your funds. This typically takes 1-3 business days. We'll notify you once the transfer is complete.</p>
+
+{% elif status == 'completed' %}
+<p>Your payout has been <span class="text-success">successfully completed</span>! 🎉</p>
+
+<div class="book-card">
+    <table cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td>
+                <p class="text-muted" style="font-size: 13px; margin: 0 0 4px 0;">Amount Transferred</p>
+                <p style="font-size: 28px; font-weight: bold; color: #22c55e; margin: 0;">{{ payout.amount|floatformat:0 }} XAF</p>
+            </td>
+            <td style="text-align: right;">
+                <span class="badge badge-success">✓ Completed</span>
+            </td>
+        </tr>
+    </table>
+    
+    <hr style="border: none; border-top: 1px solid #333; margin: 16px 0;">
+    
+    <table cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td class="text-muted" style="font-size: 14px;">Payment Method</td>
+            <td style="text-align: right; color: #fff;">{{ payout.payment_method }}</td>
+        </tr>
+        <tr>
+            <td class="text-muted" style="font-size: 14px; padding-top: 8px;">Account</td>
+            <td style="text-align: right; color: #fff; padding-top: 8px;">{{ payout.payment_details }}</td>
+        </tr>
+        <tr>
+            <td class="text-muted" style="font-size: 14px; padding-top: 8px;">Completed</td>
+            <td style="text-align: right; color: #fff; padding-top: 8px;">{{ payout.processed_at|date:"M d, Y" }}</td>
+        </tr>
+    </table>
+</div>
+
+<p>The funds should appear in your account shortly. Thank you for publishing with Xanula!</p>
+
+<div class="text-center">
+    <a href="{{ site_url }}/my-books/" class="btn">View Dashboard</a>
+</div>
+
+{% elif status == 'failed' %}
+<p>Unfortunately, we encountered an issue processing your payout.</p>
+
+<div class="book-card" style="border-left: 4px solid #ef4444;">
+    <table cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td>
+                <p class="text-muted" style="font-size: 13px; margin: 0 0 4px 0;">Payout Amount</p>
+                <p style="font-size: 28px; font-weight: bold; color: #ef4444; margin: 0;">{{ payout.amount|floatformat:0 }} XAF</p>
+            </td>
+            <td style="text-align: right;">
+                <span class="badge badge-danger">✗ Failed</span>
+            </td>
+        </tr>
+    </table>
+    
+    <hr style="border: none; border-top: 1px solid #333; margin: 16px 0;">
+    
+    <p class="text-muted" style="font-size: 14px; margin: 0;">Reason:</p>
+    <p style="color: #fca5a5; margin: 4px 0 0 0;">{{ payout.failure_reason }}</p>
+</div>
+
+<p>Please verify your payment details and try again. If the issue persists, contact our support team.</p>
+
+<div class="text-center">
+    <a href="{{ site_url }}/my-books/payout/" class="btn">Update Payment Details</a>
+</div>
+{% endif %}
+
+<p class="text-muted" style="font-size: 14px; margin-top: 24px;">
+    Questions? Reply to this email or contact support@xanula.com
+</p>
+{% endblock %}

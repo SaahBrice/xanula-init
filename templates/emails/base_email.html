@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Xanula{% endblock %}</title>
+    <style>
+        /* Reset styles */
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; }
+        table { border-collapse: collapse; }
+        img { border: 0; outline: none; text-decoration: none; }
+        
+        /* Container styles */
+        .email-wrapper { background-color: #0a0a0a; padding: 40px 20px; }
+        .email-container { max-width: 600px; margin: 0 auto; background: #1a1a1a; border-radius: 16px; overflow: hidden; }
+        
+        /* Header */
+        .header { background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); padding: 30px 40px; text-align: center; }
+        .logo { font-size: 28px; font-weight: bold; color: #ffffff; text-decoration: none; }
+        
+        /* Content */
+        .content { padding: 40px; color: #e0e0e0; line-height: 1.7; }
+        .content h1, .content h2 { color: #ffffff; margin: 0 0 20px 0; }
+        .content p { margin: 0 0 16px 0; }
+        
+        /* Button */
+        .btn { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+        .btn:hover { opacity: 0.9; }
+        
+        /* Book card */
+        .book-card { background: #262626; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .book-cover { width: 80px; height: 120px; border-radius: 8px; object-fit: cover; }
+        .book-title { color: #ffffff; font-weight: 600; font-size: 18px; margin: 0 0 4px 0; }
+        .book-author { color: #a0a0a0; font-size: 14px; margin: 0; }
+        
+        /* Footer */
+        .footer { padding: 30px 40px; text-align: center; border-top: 1px solid #333; }
+        .footer p { color: #666; font-size: 12px; margin: 0 0 8px 0; }
+        .footer a { color: #8b5cf6; text-decoration: none; }
+        .social-links { margin: 20px 0; }
+        .social-links a { display: inline-block; margin: 0 8px; color: #888; }
+        
+        /* Utilities */
+        .text-center { text-align: center; }
+        .text-muted { color: #888; }
+        .text-success { color: #22c55e; }
+        .text-warning { color: #eab308; }
+        .text-danger { color: #ef4444; }
+        .mt-4 { margin-top: 24px; }
+        .mb-4 { margin-bottom: 24px; }
+        
+        /* Progress bar */
+        .progress-bar { background: #333; border-radius: 100px; height: 8px; overflow: hidden; margin: 10px 0; }
+        .progress-fill { background: linear-gradient(90deg, #8b5cf6, #ec4899); height: 100%; border-radius: 100px; }
+        
+        /* Badge */
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .badge-warning { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+        .badge-danger { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .badge-info { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <table class="email-container" width="100%" cellpadding="0" cellspacing="0">
+            <!-- Header -->
+            <tr>
+                <td class="header">
+                    <a href="{{ site_url }}" class="logo">📚 Xanula</a>
+                </td>
+            </tr>
+            
+            <!-- Content -->
+            <tr>
+                <td class="content">
+                    {% block content %}{% endblock %}
+                </td>
+            </tr>
+            
+            <!-- Footer -->
+            <tr>
+                <td class="footer">
+                    <div class="social-links">
+                        <a href="#">Twitter</a> • 
+                        <a href="#">Instagram</a> • 
+                        <a href="#">Facebook</a>
+                    </div>
+                    <p>© {{ current_year }} Xanula. All rights reserved.</p>
+                    <p>Your gateway to African literature.</p>
+                    <p class="mt-4">
+                        <a href="{{ site_url }}">Visit Xanula</a> • 
+                        <a href="{{ site_url }}/library">My Library</a>
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

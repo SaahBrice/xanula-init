@@ -209,6 +209,9 @@ def book_detail(request, slug):
     Book detail page with all information.
     Per Planning Document Section 4.
     """
+    from .models import Review
+    from django.db.models import Count
+    
     book = get_object_or_404(
         Book.objects.select_related('author'),
         slug=slug,
@@ -232,12 +235,21 @@ def book_detail(request, slug):
     reviews = book.reviews.filter(is_visible=True).select_related('user').order_by('-date_posted')[:10]
     review_count = book.reviews.filter(is_visible=True).count()
     
+    # Calculate rating distribution for breakdown visualization
+    rating_distribution = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+    if review_count > 0:
+        dist_qs = book.reviews.filter(is_visible=True).values('rating').annotate(count=Count('id'))
+        for item in dist_qs:
+            rating_distribution[item['rating']] = item['count']
+    
     # Check if user has already reviewed
     user_has_reviewed = False
     user_review = None
+    can_review = False
     if request.user.is_authenticated:
         user_review = book.reviews.filter(user=request.user).first()
         user_has_reviewed = user_review is not None
+        can_review = user_owns_book and not user_has_reviewed
     
     # Get more books by author
     more_by_author = get_available_books().filter(
@@ -250,11 +262,181 @@ def book_detail(request, slug):
         'in_wishlist': in_wishlist,
         'reviews': reviews,
         'review_count': review_count,
+        'rating_distribution': rating_distribution,
         'user_has_reviewed': user_has_reviewed,
         'user_review': user_review,
+        'can_review': can_review,
         'more_by_author': more_by_author,
     }
     return render(request, 'core/book_detail.html', context)
+
+
+# =============================================================================
+# Review Management Views
+# Per Planning Document Section 10 (Reviews & Ratings)
+# =============================================================================
+
+@login_required
+@require_POST
+def submit_review(request, book_id):
+    """
+    Submit a new review for a book.
+    User must own the book and not have already reviewed it.
+    """
+    from .models import Review
+    import json
+    
+    book = get_object_or_404(Book, id=book_id)
+    
+    # Check ownership
+    if not LibraryEntry.objects.filter(user=request.user, book=book).exists():
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'You must own this book to review it.'}, status=403)
+        messages.error(request, 'You must own this book to review it.')
+        return redirect('core:book_detail', slug=book.slug)
+    
+    # Check for existing review
+    if Review.objects.filter(user=request.user, book=book).exists():
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'You have already reviewed this book.'}, status=400)
+        messages.error(request, 'You have already reviewed this book.')
+        return redirect('core:book_detail', slug=book.slug)
+    
+    # Get data
+    if request.content_type == 'application/json':
+        data = json.loads(request.body)
+        rating = data.get('rating')
+        review_text = data.get('review_text', '').strip()
+    else:
+        rating = request.POST.get('rating')
+        review_text = request.POST.get('review_text', '').strip()
+    
+    # Validate rating
+    try:
+        rating = int(rating)
+        if rating < 1 or rating > 5:
+            raise ValueError
+    except (TypeError, ValueError):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'Please select a rating between 1 and 5 stars.'}, status=400)
+        messages.error(request, 'Please select a rating between 1 and 5 stars.')
+        return redirect('core:book_detail', slug=book.slug)
+    
+    # Truncate review text if too long
+    if len(review_text) > 1000:
+        review_text = review_text[:1000]
+    
+    # Create review
+    review = Review.objects.create(
+        user=request.user,
+        book=book,
+        rating=rating,
+        review_text=review_text
+    )
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'review_id': review.id,
+            'message': 'Your review has been submitted!',
+            'new_average': float(book.average_rating),
+            'new_count': book.reviews.filter(is_visible=True).count()
+        })
+    
+    messages.success(request, 'Your review has been submitted!')
+    return redirect('core:book_detail', slug=book.slug)
+
+
+@login_required
+@require_POST
+def edit_review(request, review_id):
+    """
+    Edit an existing review. Users can only edit their own reviews.
+    """
+    from .models import Review
+    import json
+    
+    review = get_object_or_404(Review, id=review_id)
+    
+    # Check ownership
+    if review.user != request.user:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'You can only edit your own reviews.'}, status=403)
+        messages.error(request, 'You can only edit your own reviews.')
+        return redirect('core:book_detail', slug=review.book.slug)
+    
+    # Get data
+    if request.content_type == 'application/json':
+        data = json.loads(request.body)
+        rating = data.get('rating')
+        review_text = data.get('review_text', '').strip()
+    else:
+        rating = request.POST.get('rating')
+        review_text = request.POST.get('review_text', '').strip()
+    
+    # Validate rating
+    try:
+        rating = int(rating)
+        if rating < 1 or rating > 5:
+            raise ValueError
+    except (TypeError, ValueError):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'Please select a rating between 1 and 5 stars.'}, status=400)
+        messages.error(request, 'Please select a rating between 1 and 5 stars.')
+        return redirect('core:book_detail', slug=review.book.slug)
+    
+    # Truncate review text if too long
+    if len(review_text) > 1000:
+        review_text = review_text[:1000]
+    
+    # Update review
+    review.rating = rating
+    review.review_text = review_text
+    review.save()  # This will also update book.average_rating
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': 'Your review has been updated!',
+            'new_average': float(review.book.average_rating),
+            'new_count': review.book.reviews.filter(is_visible=True).count()
+        })
+    
+    messages.success(request, 'Your review has been updated!')
+    return redirect('core:book_detail', slug=review.book.slug)
+
+
+@login_required
+@require_POST
+def delete_review(request, review_id):
+    """
+    Delete a review. Users can only delete their own reviews.
+    """
+    from .models import Review
+    
+    review = get_object_or_404(Review, id=review_id)
+    book = review.book
+    
+    # Check ownership
+    if review.user != request.user:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'You can only delete your own reviews.'}, status=403)
+        messages.error(request, 'You can only delete your own reviews.')
+        return redirect('core:book_detail', slug=book.slug)
+    
+    # Delete review (this will trigger book.update_average_rating in the model's delete method)
+    review.delete()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': 'Your review has been deleted.',
+            'new_average': float(book.average_rating),
+            'new_count': book.reviews.filter(is_visible=True).count()
+        })
+    
+    messages.success(request, 'Your review has been deleted.')
+    return redirect('core:book_detail', slug=book.slug)
 
 
 def author_profile(request, user_id):
@@ -947,9 +1129,205 @@ def access_book(request, entry_id):
     
     entry.save(update_fields=['last_accessed', 'completion_status'])
     
-    # For now, redirect to a placeholder - reader implementation in Phase 8
-    messages.info(request, f'Opening "{entry.book.title}"... (Reader coming soon)')
-    return redirect('core:library')
+    # Redirect to the reader
+    return redirect('core:book_reader', slug=entry.book.slug)
+
+
+@login_required
+def book_reader(request, slug):
+    """
+    Ebook reader page using epub.js.
+    Per Architecture Document Section 10 (Ebook Reading System).
+    """
+    from django.utils import timezone
+    
+    book = get_object_or_404(Book, slug=slug)
+    
+    # Check if user owns this book
+    try:
+        entry = LibraryEntry.objects.get(user=request.user, book=book)
+    except LibraryEntry.DoesNotExist:
+        messages.error(request, 'You need to purchase this book first.')
+        return redirect('core:book_detail', slug=slug)
+    
+    # Update last accessed
+    entry.last_accessed = timezone.now()
+    if entry.completion_status == LibraryEntry.CompletionStatus.NOT_STARTED:
+        entry.completion_status = LibraryEntry.CompletionStatus.IN_PROGRESS
+    entry.save(update_fields=['last_accessed', 'completion_status'])
+    
+    # Get ebook file URL
+    ebook_url = None
+    if book.ebook_file:
+        ebook_url = book.ebook_file.url
+    
+    context = {
+        'book': book,
+        'entry': entry,
+        'ebook_url': ebook_url,
+        'reading_progress': entry.reading_progress,
+    }
+    return render(request, 'core/reader.html', context)
+
+
+@login_required
+def update_reading_progress_api(request):
+    """
+    API endpoint to update reading progress.
+    Called via AJAX every 30 seconds during reading.
+    """
+    from django.http import JsonResponse
+    from django.utils import timezone
+    import json
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    # Verify AJAX request
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        data = json.loads(request.body)
+        book_id = data.get('book_id')
+        current_page = data.get('current_page', 0)
+        total_pages = data.get('total_pages', 0)
+        current_cfi = data.get('current_cfi', '')  # epub.js location
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    
+    if not book_id:
+        return JsonResponse({'error': 'book_id required'}, status=400)
+    
+    # Get library entry
+    try:
+        entry = LibraryEntry.objects.get(user=request.user, book_id=book_id)
+    except LibraryEntry.DoesNotExist:
+        return JsonResponse({'error': 'Book not in library'}, status=404)
+    
+    # Update progress
+    entry.reading_progress = current_page
+    entry.last_accessed = timezone.now()
+    
+    # Calculate completion status
+    if total_pages > 0:
+        progress_percent = (current_page / total_pages) * 100
+        if progress_percent >= 98:  # Consider 98%+ as completed
+            entry.completion_status = LibraryEntry.CompletionStatus.COMPLETED
+        elif current_page > 0:
+            entry.completion_status = LibraryEntry.CompletionStatus.IN_PROGRESS
+    
+    entry.save()
+    
+    return JsonResponse({
+        'success': True,
+        'progress': entry.reading_progress,
+        'status': entry.completion_status,
+    })
+
+
+# =============================================================================
+# Audiobook Player Views
+# Per Architecture Document Section 11 (Audiobook Playback System)
+# =============================================================================
+
+@login_required
+def audiobook_player(request, slug):
+    """
+    Audiobook player page using HTML5 audio.
+    Per Architecture Document Section 11 and Planning Document Section 9.
+    """
+    from django.utils import timezone
+    
+    book = get_object_or_404(Book, slug=slug)
+    
+    # Check if user owns this book
+    try:
+        entry = LibraryEntry.objects.get(user=request.user, book=book)
+    except LibraryEntry.DoesNotExist:
+        messages.error(request, 'You need to purchase this book first.')
+        return redirect('core:book_detail', slug=slug)
+    
+    # Check if audiobook exists
+    if not book.audiobook_file:
+        messages.error(request, 'This book does not have an audiobook version.')
+        return redirect('core:library')
+    
+    # Update last accessed
+    entry.last_accessed = timezone.now()
+    if entry.completion_status == LibraryEntry.CompletionStatus.NOT_STARTED:
+        entry.completion_status = LibraryEntry.CompletionStatus.IN_PROGRESS
+    entry.save(update_fields=['last_accessed', 'completion_status'])
+    
+    # Get audiobook file URL
+    audiobook_url = book.audiobook_file.url
+    
+    # Get cover image URL
+    cover_url = book.cover_image.url if book.cover_image else None
+    
+    context = {
+        'book': book,
+        'entry': entry,
+        'audiobook_url': audiobook_url,
+        'cover_url': cover_url,
+        'listening_progress': entry.listening_progress,
+    }
+    return render(request, 'core/audiobook_player.html', context)
+
+
+@login_required
+def update_listening_progress_api(request):
+    """
+    API endpoint to update listening progress.
+    Called via AJAX every 30 seconds during playback.
+    Per Architecture Document Section 11.
+    """
+    from django.utils import timezone
+    import json
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    # Verify AJAX request
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        data = json.loads(request.body)
+        book_id = data.get('book_id')
+        current_time = data.get('current_time', 0)  # in seconds
+        total_duration = data.get('total_duration', 0)  # in seconds
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    
+    if not book_id:
+        return JsonResponse({'error': 'book_id required'}, status=400)
+    
+    # Get library entry
+    try:
+        entry = LibraryEntry.objects.get(user=request.user, book_id=book_id)
+    except LibraryEntry.DoesNotExist:
+        return JsonResponse({'error': 'Book not in library'}, status=404)
+    
+    # Update progress (store as integer seconds)
+    entry.listening_progress = int(current_time)
+    entry.last_accessed = timezone.now()
+    
+    # Calculate completion status
+    if total_duration > 0:
+        progress_percent = (current_time / total_duration) * 100
+        if progress_percent >= 98:  # Consider 98%+ as completed
+            entry.completion_status = LibraryEntry.CompletionStatus.COMPLETED
+        elif current_time > 0:
+            entry.completion_status = LibraryEntry.CompletionStatus.IN_PROGRESS
+    
+    entry.save()
+    
+    return JsonResponse({
+        'success': True,
+        'progress': entry.listening_progress,
+        'status': entry.completion_status,
+    })
 
 
 # =============================================================================
