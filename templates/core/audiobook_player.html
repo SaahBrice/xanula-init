@@ -1,22 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" x-data="{ darkMode: localStorage.getItem('theme') === 'dark' }" :class="darkMode ? 'dark' : ''">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0a0a">
+    <meta name="theme-color" :content="darkMode ? '#1A1915' : '#FAF7F2'">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>{{ book.title }} - Xanula Audio</title>
     
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        dark: { 50: '#262626', 100: '#1a1a1a', 200: '#121212', 300: '#0a0a0a' },
-                        primary: { 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9' },
-                        accent: { 400: '#f472b6', 500: '#ec4899', 600: '#db2777' }
+                        burgundy: { 50: '#fdf2f4', 100: '#fce7ea', 400: '#C45C6A', 500: '#8B2635', 600: '#7A2130' },
+                        forest: { 50: '#f0f5f1', 400: '#5A8B6F', 500: '#2D4739' },
+                        gold: { 400: '#E8C59E', 500: '#D4A574' },
+                        cream: '#FAF7F2',
+                        dark: { 50: '#252420', 100: '#1A1915', 200: '#141310' }
+                    },
+                    fontFamily: {
+                        display: ['Playfair Display', 'serif'],
+                        sans: ['Source Sans Pro', 'sans-serif']
                     }
                 }
             }
@@ -28,266 +40,218 @@
     <style>
         [x-cloak] { display: none !important; }
         * { -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Source Sans Pro', sans-serif; }
         
-        /* Glassmorphism */
-        .glass {
-            background: rgba(18, 18, 18, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        /* Cover Shadow */
+        .cover-shadow {
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25), 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .dark .cover-shadow {
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 8px 20px rgba(0, 0, 0, 0.4);
         }
         
-        /* Cover image glow */
-        .cover-glow {
-            box-shadow: 0 30px 100px rgba(139, 92, 246, 0.3), 0 10px 40px rgba(0, 0, 0, 0.5);
-        }
-        
-        /* Progress slider */
+        /* Progress Slider */
         input[type="range"] {
             -webkit-appearance: none;
-            height: 6px;
-            border-radius: 100px;
+            height: 4px;
+            border-radius: 2px;
             outline: none;
-            background: rgba(255, 255, 255, 0.1);
         }
-        
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            background: white;
+            width: 14px;
+            height: 14px;
+            background: #8B2635;
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.15s;
+        }
+        .dark input[type="range"]::-webkit-slider-thumb {
+            background: #FAF7F2;
+        }
+        input[type="range"]:active::-webkit-slider-thumb {
+            transform: scale(1.2);
         }
         
-        /* Audio bars animation */
-        .audio-bar {
-            animation: audioBar 0.8s ease-in-out infinite;
+        /* Playing indicator */
+        .audio-dot {
+            animation: pulse 1.5s ease-in-out infinite;
         }
-        .audio-bar:nth-child(2) { animation-delay: 0.1s; }
-        .audio-bar:nth-child(3) { animation-delay: 0.2s; }
-        .audio-bar:nth-child(4) { animation-delay: 0.3s; }
-        .audio-bar:nth-child(5) { animation-delay: 0.4s; }
-        
-        @keyframes audioBar {
-            0%, 100% { transform: scaleY(0.3); }
-            50% { transform: scaleY(1); }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
         }
         
-        /* Pulse animation for play button */
-        .pulse-ring {
-            animation: pulseRing 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulseRing {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 0.1; transform: scale(1.1); }
-        }
+        /* Safe areas */
+        .safe-area-top { padding-top: max(12px, env(safe-area-inset-top)); }
+        .safe-area-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
     </style>
 </head>
-<body class="bg-dark-300 text-white min-h-screen overflow-x-hidden" x-data="audioPlayer()">
+<body class="bg-cream dark:bg-dark-100 text-gray-900 dark:text-white min-h-screen transition-colors" x-data="audioPlayer()">
     
-    <!-- Background Gradient -->
-    <div class="fixed inset-0 bg-gradient-to-br from-primary-700/20 via-dark-300 to-accent-600/10 -z-10"></div>
-    
-    <!-- Loading Screen -->
-    <div x-show="loading" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-dark-300">
+    <!-- Loading -->
+    <div x-show="loading" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-cream dark:bg-dark-100">
         <div class="text-center">
-            <div class="relative w-20 h-20 mx-auto mb-6">
-                <div class="absolute inset-0 rounded-full border-4 border-primary-500/20"></div>
-                <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-primary-500 animate-spin"></div>
-            </div>
-            <p class="text-gray-400">Loading audiobook...</p>
+            <div class="w-12 h-12 mx-auto mb-4 border-2 border-burgundy-500/30 border-t-burgundy-500 rounded-full animate-spin"></div>
+            <p class="text-gray-500 dark:text-gray-400">Loading audiobook...</p>
         </div>
     </div>
     
-    <!-- Error Screen -->
-    <div x-show="error" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-dark-300 p-6">
-        <div class="text-center max-w-md">
-            <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-red-500/20 flex items-center justify-center">
-                <svg class="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
+    <!-- Error -->
+    <div x-show="error" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-cream dark:bg-dark-100 p-6">
+        <div class="text-center max-w-sm">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-xl bg-burgundy-500/10 flex items-center justify-center">
+                <span class="text-3xl">📕</span>
             </div>
-            <h2 class="text-2xl font-bold text-white mb-3">Audio Error</h2>
-            <p class="text-gray-400 mb-6" x-text="errorMessage"></p>
-            <button @click="retryLoad()" class="px-6 py-3 bg-primary-500 text-white font-semibold rounded-xl hover:bg-primary-600 transition-colors mr-2">
-                Retry
-            </button>
-            <a href="{% url 'core:library' %}" class="inline-block px-6 py-3 bg-dark-100 text-white font-semibold rounded-xl hover:bg-dark-50 transition-colors">
-                Back to Library
-            </a>
+            <h2 class="font-display text-xl font-semibold text-gray-900 dark:text-cream mb-2">Unable to Load</h2>
+            <p class="text-gray-500 dark:text-gray-400 text-sm mb-6" x-text="errorMessage"></p>
+            <div class="flex gap-3 justify-center">
+                <button @click="retryLoad()" class="px-5 py-2 bg-burgundy-500 text-white text-sm font-semibold rounded-lg">Retry</button>
+                <a href="{% url 'core:library' %}" class="px-5 py-2 bg-gray-200 dark:bg-dark-50 text-gray-900 dark:text-cream text-sm font-semibold rounded-lg">Library</a>
+            </div>
         </div>
     </div>
     
-    <!-- Main Player -->
+    <!-- Main Layout -->
     <div class="min-h-screen flex flex-col">
         
         <!-- Header -->
-        <header class="fixed top-0 left-0 right-0 z-40 glass safe-area-top">
-            <div class="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto">
-                <a href="{% url 'core:library' %}" class="p-2 -ml-2 rounded-xl hover:bg-white/5 transition-colors">
-                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        <header class="fixed top-0 left-0 right-0 z-40 bg-cream/90 dark:bg-dark-100/90 backdrop-blur-lg border-b border-gray-200 dark:border-white/5 safe-area-top">
+            <div class="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
+                <a href="{% url 'core:library' %}" class="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5">
+                    <svg class="w-5 h-5 text-gray-500 dark:text-cream/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                 </a>
                 
-                <div class="text-center flex-1 px-4">
-                    <p class="text-xs text-gray-500 uppercase tracking-wider">Now Playing</p>
+                <!-- Playing Indicator -->
+                <div x-show="isPlaying && !loading" class="flex items-center gap-2 text-xs text-burgundy-500 font-medium">
+                    <span class="w-2 h-2 rounded-full bg-burgundy-500 audio-dot"></span>
+                    Powered by REEPLS
                 </div>
+                <div x-show="!isPlaying || loading" class="text-xs text-gray-400 dark:text-cream/40 font-medium">Audiobook</div>
                 
-                <!-- Speed Button -->
-                <button @click="showSpeedMenu = !showSpeedMenu" class="px-3 py-1.5 rounded-lg bg-white/5 text-sm font-medium text-primary-400 hover:bg-white/10 transition-colors">
-                    <span x-text="playbackSpeed + 'x'"></span>
+                <!-- Speed -->
+                <button @click="showSpeedMenu = !showSpeedMenu" class="px-2.5 py-1 rounded-md bg-gray-100 dark:bg-white/5 text-xs font-semibold text-gray-600 dark:text-cream/70 hover:bg-gray-200 dark:hover:bg-white/10">
+                    <span x-text="playbackSpeed + '×'"></span>
                 </button>
             </div>
         </header>
         
         <!-- Speed Menu -->
         <div x-show="showSpeedMenu" x-cloak @click.away="showSpeedMenu = false"
-            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter="transition ease-out duration-150"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
-            class="fixed top-16 right-4 z-50 w-48 glass rounded-2xl shadow-2xl p-2">
-            <p class="px-3 py-2 text-xs text-gray-500 uppercase tracking-wider">Playback Speed</p>
-            <template x-for="speed in [0.5, 0.75, 1, 1.25, 1.5, 2]" :key="speed">
+            class="fixed top-14 right-4 z-50 w-40 bg-white dark:bg-dark-50 rounded-xl shadow-xl border border-gray-200 dark:border-white/10 p-1.5">
+            <template x-for="speed in [0.75, 1, 1.25, 1.5, 2]" :key="speed">
                 <button @click="setSpeed(speed)" 
-                    :class="playbackSpeed === speed ? 'bg-primary-500 text-white' : 'text-gray-300 hover:bg-white/5'" 
-                    class="w-full px-4 py-2.5 text-left rounded-xl font-medium transition-colors"
-                    x-text="speed + 'x'"></button>
+                    :class="playbackSpeed === speed ? 'bg-burgundy-500 text-white' : 'text-gray-700 dark:text-cream/70 hover:bg-gray-100 dark:hover:bg-white/5'" 
+                    class="w-full px-3 py-2 text-left text-sm rounded-lg font-medium"
+                    x-text="speed + '×'"></button>
             </template>
         </div>
         
         <!-- Sleep Timer Menu -->
         <div x-show="showSleepMenu" x-cloak @click.away="showSleepMenu = false"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
-            class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-72 glass rounded-2xl shadow-2xl p-4">
-            <h3 class="text-lg font-semibold text-white mb-4 text-center">Sleep Timer</h3>
-            <div class="space-y-2">
+            x-transition:enter="transition ease-out duration-150"
+            class="fixed inset-x-4 bottom-40 z-50 max-w-xs mx-auto bg-white dark:bg-dark-50 rounded-2xl shadow-xl border border-gray-200 dark:border-white/10 p-4">
+            <p class="text-center text-sm font-semibold text-gray-900 dark:text-cream mb-3">Sleep Timer</p>
+            <div class="grid grid-cols-3 gap-2">
                 <template x-for="mins in [15, 30, 45, 60]" :key="mins">
                     <button @click="setSleepTimer(mins)" 
-                        class="w-full px-4 py-3 text-left rounded-xl font-medium text-gray-300 hover:bg-white/5 transition-colors"
-                        x-text="mins + ' minutes'"></button>
+                        class="py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-cream/70 bg-gray-100 dark:bg-white/5 hover:bg-burgundy-500 hover:text-white transition-colors"
+                        x-text="mins + 'm'"></button>
                 </template>
-                <button @click="cancelSleepTimer()" x-show="sleepTimerActive"
-                    class="w-full px-4 py-3 text-left rounded-xl font-medium text-red-400 hover:bg-red-500/10 transition-colors">
-                    Cancel Timer
-                </button>
             </div>
+            <button @click="cancelSleepTimer()" x-show="sleepTimerActive" class="w-full mt-2 py-2 text-sm text-burgundy-500 hover:bg-burgundy-50 dark:hover:bg-burgundy-500/10 rounded-lg">Cancel</button>
         </div>
         
         <!-- Cover & Info -->
-        <main class="flex-1 flex flex-col items-center justify-center px-6 pt-24 pb-64">
+        <main class="flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-48">
+            
             <!-- Cover Art -->
-            <div class="relative mb-8">
-                <div class="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary-500/30 to-accent-500/30 blur-3xl"></div>
-                {% if cover_url %}
-                <img src="{{ cover_url }}" alt="{{ book.title }}" 
-                    class="relative w-64 h-64 sm:w-80 sm:h-80 object-cover rounded-3xl cover-glow">
-                {% else %}
-                <div class="relative w-64 h-64 sm:w-80 sm:h-80 rounded-3xl cover-glow bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center">
-                    <svg class="w-24 h-24 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-                    </svg>
-                </div>
-                {% endif %}
-                
-                <!-- Audio Bars (when playing) -->
-                <div x-show="isPlaying && !loading" class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1 items-end h-6">
-                    <template x-for="i in 5" :key="i">
-                        <div class="w-1 bg-primary-400 rounded-full audio-bar" :style="'height: ' + (Math.random() * 16 + 8) + 'px'"></div>
-                    </template>
+            <div class="mb-8">
+                <div class="w-52 h-52 sm:w-64 sm:h-64 rounded-2xl overflow-hidden cover-shadow">
+                    {% if cover_url %}
+                    <img src="{{ cover_url }}" alt="{{ book.title }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full bg-gradient-to-br from-burgundy-500 to-forest-500 flex items-center justify-center">
+                        <span class="font-display text-5xl text-white/30">{{ book.title|first }}</span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             
             <!-- Book Info -->
-            <div class="text-center max-w-md">
-                <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">{{ book.title }}</h1>
-                <p class="text-gray-400 text-lg">{{ book.author.get_display_name }}</p>
-            </div>
-            
-            <!-- Sleep Timer Countdown -->
-            <div x-show="sleepTimerActive" x-cloak class="mt-6 px-4 py-2 rounded-full bg-accent-500/20 text-accent-400 text-sm font-medium">
-                💤 Sleep in <span x-text="sleepTimerDisplay"></span>
-            </div>
-            
-            <!-- Buffering Indicator -->
-            <div x-show="isBuffering" x-cloak class="mt-6 flex items-center gap-2 text-gray-400">
-                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Buffering...
+            <div class="text-center max-w-sm">
+                <h1 class="font-display text-xl sm:text-2xl font-semibold text-gray-900 dark:text-cream mb-1 leading-snug">{{ book.title }}</h1>
+                <p class="text-gray-500 dark:text-cream/50">{{ book.author.get_display_name }}</p>
+                
+                <!-- Sleep Timer Badge -->
+                <div x-show="sleepTimerActive" x-cloak class="inline-flex items-center gap-1.5 mt-4 px-3 py-1 rounded-full bg-forest-50 dark:bg-forest-500/20 text-forest-500 dark:text-forest-400 text-xs font-medium">
+                    <span>🌙</span>
+                    <span x-text="sleepTimerDisplay"></span>
+                </div>
             </div>
         </main>
         
         <!-- Player Controls -->
-        <footer class="fixed bottom-0 left-0 right-0 z-40 glass safe-area-bottom">
-            <div class="max-w-2xl mx-auto px-6 py-5 space-y-5">
+        <footer class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-dark-200/95 backdrop-blur-lg border-t border-gray-200 dark:border-white/5 safe-area-bottom">
+            <div class="max-w-lg mx-auto px-5 py-4">
                 
-                <!-- Progress Bar -->
-                <div class="space-y-2">
-                    <input type="range" min="0" :max="duration" x-model="currentTime" @input="seekTo($event.target.value)" @change="seekTo($event.target.value)"
-                        class="w-full cursor-pointer" :style="'background: linear-gradient(to right, #8b5cf6 ' + progressPercent + '%, rgba(255,255,255,0.1) ' + progressPercent + '%)'">
-                    <div class="flex justify-between text-xs text-gray-400">
+                <!-- Progress -->
+                <div class="mb-4">
+                    <input type="range" min="0" :max="duration" x-model="currentTime" 
+                        @input="seekTo($event.target.value)" @change="seekTo($event.target.value)"
+                        class="w-full cursor-pointer bg-gray-200 dark:bg-white/10" 
+                        :style="'background: linear-gradient(to right, #8B2635 ' + progressPercent + '%, transparent ' + progressPercent + '%)'">
+                    <div class="flex justify-between mt-1.5 text-xs text-gray-400 dark:text-cream/40 font-medium">
                         <span x-text="formatTime(currentTime)"></span>
                         <span x-text="formatTime(duration)"></span>
                     </div>
                 </div>
                 
-                <!-- Main Controls -->
-                <div class="flex items-center justify-center gap-6">
-                    <!-- Skip Back -->
-                    <button @click="skipBack()" class="p-3 rounded-full hover:bg-white/5 transition-colors group">
-                        <svg class="w-8 h-8 text-gray-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z"/>
-                        </svg>
-                        <span class="text-xs text-gray-500">15</span>
-                    </button>
-                    
-                    <!-- Play/Pause -->
-                    <button @click="togglePlay()" class="relative p-5 rounded-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 transition-all transform hover:scale-105 active:scale-95">
-                        <div x-show="isPlaying" class="absolute inset-0 rounded-full bg-gradient-to-r from-primary-500 to-accent-500 pulse-ring"></div>
-                        <svg x-show="!isPlaying" class="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
-                        </svg>
-                        <svg x-show="isPlaying" x-cloak class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                        </svg>
-                    </button>
-                    
-                    <!-- Skip Forward -->
-                    <button @click="skipForward()" class="p-3 rounded-full hover:bg-white/5 transition-colors group">
-                        <svg class="w-8 h-8 text-gray-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z"/>
-                        </svg>
-                        <span class="text-xs text-gray-500">15</span>
-                    </button>
-                </div>
-                
-                <!-- Secondary Controls -->
+                <!-- Controls Row -->
                 <div class="flex items-center justify-between">
-                    <!-- Volume -->
-                    <div class="flex items-center gap-2 flex-1">
-                        <button @click="toggleMute()" class="p-2 rounded-lg hover:bg-white/5 transition-colors">
-                            <svg x-show="!isMuted && volume > 0" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
-                            </svg>
-                            <svg x-show="isMuted || volume === 0" x-cloak class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+                    <!-- Left: Volume -->
+                    <button @click="toggleMute()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5">
+                        <svg x-show="!isMuted && volume > 0" class="w-5 h-5 text-gray-400 dark:text-cream/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                        </svg>
+                        <svg x-show="isMuted || volume === 0" x-cloak class="w-5 h-5 text-burgundy-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- Center: Main Controls -->
+                    <div class="flex items-center gap-3">
+                        <button @click="skipBack()" class="p-2 active:scale-95 transition-transform">
+                            <svg class="w-7 h-7 text-gray-500 dark:text-cream/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z"/>
                             </svg>
                         </button>
-                        <input type="range" min="0" max="1" step="0.01" x-model="volume" @input="audio.volume = volume"
-                            class="w-20 sm:w-24 h-1 rounded-full appearance-none cursor-pointer"
-                            :style="'background: linear-gradient(to right, #8b5cf6 ' + (volume * 100) + '%, rgba(255,255,255,0.1) ' + (volume * 100) + '%)'">
+                        
+                        <button @click="togglePlay()" class="p-4 rounded-full bg-burgundy-500 hover:bg-burgundy-600 active:scale-95 transition-all">
+                            <svg x-show="!isPlaying" class="w-7 h-7 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            <svg x-show="isPlaying" x-cloak class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                            </svg>
+                        </button>
+                        
+                        <button @click="skipForward()" class="p-2 active:scale-95 transition-transform">
+                            <svg class="w-7 h-7 text-gray-500 dark:text-cream/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z"/>
+                            </svg>
+                        </button>
                     </div>
                     
-                    <!-- Sleep Timer -->
-                    <button @click="showSleepMenu = true" class="p-3 rounded-xl hover:bg-white/5 transition-colors" :class="sleepTimerActive ? 'text-accent-400' : 'text-gray-400'">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- Right: Sleep Timer -->
+                    <button @click="showSleepMenu = true" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5" :class="sleepTimerActive ? 'text-forest-500' : 'text-gray-400 dark:text-cream/50'">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
                         </svg>
                     </button>
@@ -296,244 +260,76 @@
         </footer>
     </div>
     
-    <!-- Hidden Audio Element -->
+    <!-- Audio -->
     <audio x-ref="audio" preload="auto" @loadedmetadata="onMetadataLoaded()" @timeupdate="onTimeUpdate()" 
         @play="isPlaying = true" @pause="isPlaying = false" @waiting="isBuffering = true" @playing="isBuffering = false"
         @ended="onEnded()" @error="onError($event)">
         <source src="{{ audiobook_url }}" type="audio/mpeg">
-        Your browser does not support the audio element.
     </audio>
     
     <script>
         function audioPlayer() {
             return {
-                // State
-                loading: true,
-                error: false,
-                errorMessage: '',
-                isPlaying: false,
-                isBuffering: false,
-                isMuted: false,
-                
-                // Audio refs
-                audio: null,
-                
-                // Progress
-                currentTime: 0,
-                duration: 0,
-                progressPercent: 0,
-                
-                // Settings
+                loading: true, error: false, errorMessage: '', isPlaying: false, isBuffering: false, isMuted: false,
+                audio: null, currentTime: 0, duration: 0, progressPercent: 0,
                 volume: parseFloat(localStorage.getItem('audio-volume') || '1'),
                 playbackSpeed: parseFloat(localStorage.getItem('audio-speed') || '1'),
-                showSpeedMenu: false,
-                showSleepMenu: false,
-                
-                // Sleep Timer
-                sleepTimerActive: false,
-                sleepTimerMinutes: 0,
-                sleepTimerEndTime: null,
-                sleepTimerDisplay: '',
-                sleepTimerInterval: null,
-                
-                // Sync
-                bookId: {{ book.id }},
-                initialProgress: {{ listening_progress|default:0 }},
-                syncInterval: null,
-                lastSyncTime: 0,
+                showSpeedMenu: false, showSleepMenu: false,
+                sleepTimerActive: false, sleepTimerEndTime: null, sleepTimerDisplay: '', sleepTimerInterval: null,
+                bookId: {{ book.id }}, initialProgress: {{ listening_progress|default:0 }},
                 
                 init() {
                     this.audio = this.$refs.audio;
                     this.audio.volume = this.volume;
                     this.audio.playbackRate = this.playbackSpeed;
-                    
-                    // Start sync interval
-                    this.syncInterval = setInterval(() => this.syncProgress(), 30000);
-                    
-                    // Local storage save every 10 seconds
-                    setInterval(() => {
-                        localStorage.setItem(`audiobook-${this.bookId}-progress`, this.currentTime);
-                    }, 10000);
-                    
-                    // Setup Media Session API
+                    setInterval(() => this.syncProgress(), 30000);
+                    setInterval(() => localStorage.setItem(`audiobook-${this.bookId}-progress`, this.currentTime), 10000);
                     this.setupMediaSession();
-                    
-                    // Handle page visibility for background playback
-                    document.addEventListener('visibilitychange', () => {
-                        if (document.hidden && this.isPlaying) {
-                            // Continue playing in background
-                            console.log('Playing in background');
-                        }
-                    });
-                    
-                    // Save before leaving
-                    window.addEventListener('beforeunload', () => {
-                        this.syncProgress();
-                    });
-                    
-                    // Network status handling
-                    window.addEventListener('online', () => {
-                        if (this.audio.paused && this.audio.readyState < 3) {
-                            this.audio.load();
-                        }
-                    });
-                    
-                    window.addEventListener('offline', () => {
-                        if (this.isPlaying) {
-                            this.isBuffering = true;
-                        }
-                    });
+                    window.addEventListener('beforeunload', () => this.syncProgress());
                 },
                 
                 onMetadataLoaded() {
                     this.duration = this.audio.duration;
                     this.loading = false;
-                    
-                    // Resume from saved position
-                    const localProgress = parseFloat(localStorage.getItem(`audiobook-${this.bookId}-progress`)) || 0;
-                    const resumeTime = Math.max(localProgress, this.initialProgress);
-                    
-                    if (resumeTime > 0 && resumeTime < this.duration) {
-                        this.audio.currentTime = resumeTime;
-                        this.currentTime = resumeTime;
-                    }
-                    
+                    const local = parseFloat(localStorage.getItem(`audiobook-${this.bookId}-progress`)) || 0;
+                    const resume = Math.max(local, this.initialProgress);
+                    if (resume > 0 && resume < this.duration) { this.audio.currentTime = resume; this.currentTime = resume; }
                     this.updateProgressPercent();
                 },
                 
-                onTimeUpdate() {
-                    this.currentTime = this.audio.currentTime;
-                    this.updateProgressPercent();
-                },
+                onTimeUpdate() { this.currentTime = this.audio.currentTime; this.updateProgressPercent(); },
+                onEnded() { this.isPlaying = false; this.syncProgress(); },
+                onError() { this.loading = false; this.error = true; this.errorMessage = 'Failed to load audio'; },
+                retryLoad() { this.error = false; this.loading = true; this.audio.load(); },
+                togglePlay() { this.audio.paused ? this.audio.play().catch(e => {}) : this.audio.pause(); },
+                skipBack() { this.audio.currentTime = Math.max(0, this.audio.currentTime - 15); },
+                skipForward() { this.audio.currentTime = Math.min(this.duration, this.audio.currentTime + 15); },
+                seekTo(t) { this.audio.currentTime = parseFloat(t); },
+                toggleMute() { this.isMuted = !this.isMuted; this.audio.muted = this.isMuted; },
+                setSpeed(s) { this.playbackSpeed = s; this.audio.playbackRate = s; localStorage.setItem('audio-speed', s); this.showSpeedMenu = false; },
                 
-                onEnded() {
-                    this.isPlaying = false;
-                    this.syncProgress();
-                },
-                
-                onError(event) {
-                    console.error('Audio error:', event);
-                    this.loading = false;
-                    this.error = true;
-                    
-                    const errorCodes = {
-                        1: 'Loading was aborted',
-                        2: 'Network error occurred',
-                        3: 'Audio decoding failed',
-                        4: 'Audio format not supported'
-                    };
-                    
-                    this.errorMessage = errorCodes[this.audio.error?.code] || 'Failed to load audio';
-                },
-                
-                retryLoad() {
-                    this.error = false;
-                    this.loading = true;
-                    this.audio.load();
-                },
-                
-                togglePlay() {
-                    if (this.audio.paused) {
-                        this.audio.play().catch(e => console.error('Play error:', e));
-                    } else {
-                        this.audio.pause();
-                    }
-                },
-                
-                skipBack() {
-                    this.audio.currentTime = Math.max(0, this.audio.currentTime - 15);
-                },
-                
-                skipForward() {
-                    this.audio.currentTime = Math.min(this.duration, this.audio.currentTime + 15);
-                },
-                
-                seekTo(time) {
-                    this.audio.currentTime = parseFloat(time);
-                },
-                
-                toggleMute() {
-                    this.isMuted = !this.isMuted;
-                    this.audio.muted = this.isMuted;
-                },
-                
-                setSpeed(speed) {
-                    this.playbackSpeed = speed;
-                    this.audio.playbackRate = speed;
-                    localStorage.setItem('audio-speed', speed);
-                    this.showSpeedMenu = false;
-                },
-                
-                setSleepTimer(minutes) {
+                setSleepTimer(mins) {
                     this.sleepTimerActive = true;
-                    this.sleepTimerMinutes = minutes;
-                    this.sleepTimerEndTime = Date.now() + (minutes * 60 * 1000);
+                    this.sleepTimerEndTime = Date.now() + mins * 60000;
                     this.showSleepMenu = false;
-                    
-                    // Clear existing interval
                     if (this.sleepTimerInterval) clearInterval(this.sleepTimerInterval);
-                    
-                    // Update countdown every second
                     this.sleepTimerInterval = setInterval(() => {
-                        const remaining = this.sleepTimerEndTime - Date.now();
-                        
-                        if (remaining <= 0) {
-                            this.audio.pause();
-                            this.cancelSleepTimer();
-                            return;
-                        }
-                        
-                        const mins = Math.floor(remaining / 60000);
-                        const secs = Math.floor((remaining % 60000) / 1000);
-                        this.sleepTimerDisplay = `${mins}:${secs.toString().padStart(2, '0')}`;
+                        const r = this.sleepTimerEndTime - Date.now();
+                        if (r <= 0) { this.audio.pause(); this.cancelSleepTimer(); return; }
+                        this.sleepTimerDisplay = Math.floor(r/60000) + ':' + String(Math.floor((r%60000)/1000)).padStart(2,'0');
                     }, 1000);
                 },
-                
-                cancelSleepTimer() {
-                    this.sleepTimerActive = false;
-                    if (this.sleepTimerInterval) {
-                        clearInterval(this.sleepTimerInterval);
-                        this.sleepTimerInterval = null;
-                    }
-                    this.showSleepMenu = false;
-                },
-                
-                updateProgressPercent() {
-                    if (this.duration > 0) {
-                        this.progressPercent = (this.currentTime / this.duration) * 100;
-                    }
-                },
-                
-                formatTime(seconds) {
-                    if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
-                    
-                    const hrs = Math.floor(seconds / 3600);
-                    const mins = Math.floor((seconds % 3600) / 60);
-                    const secs = Math.floor(seconds % 60);
-                    
-                    if (hrs > 0) {
-                        return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                    }
-                    return `${mins}:${secs.toString().padStart(2, '0')}`;
-                },
+                cancelSleepTimer() { this.sleepTimerActive = false; if (this.sleepTimerInterval) clearInterval(this.sleepTimerInterval); this.showSleepMenu = false; },
+                updateProgressPercent() { if (this.duration > 0) this.progressPercent = (this.currentTime / this.duration) * 100; },
+                formatTime(s) { if (isNaN(s)) return '0:00'; const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=Math.floor(s%60); return h>0 ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`; },
                 
                 setupMediaSession() {
                     if ('mediaSession' in navigator) {
-                        navigator.mediaSession.metadata = new MediaMetadata({
-                            title: '{{ book.title|escapejs }}',
-                            artist: '{{ book.author.get_display_name|escapejs }}',
-                            album: 'Xanula Audiobook',
-                            artwork: [
-                                { src: '{{ cover_url|default:"" }}', sizes: '512x512', type: 'image/png' }
-                            ]
-                        });
-                        
+                        navigator.mediaSession.metadata = new MediaMetadata({ title: '{{ book.title|escapejs }}', artist: '{{ book.author.get_display_name|escapejs }}', album: 'Xanula', artwork: [{ src: '{{ cover_url|default:"" }}', sizes: '512x512' }] });
                         navigator.mediaSession.setActionHandler('play', () => this.togglePlay());
                         navigator.mediaSession.setActionHandler('pause', () => this.togglePlay());
                         navigator.mediaSession.setActionHandler('seekbackward', () => this.skipBack());
                         navigator.mediaSession.setActionHandler('seekforward', () => this.skipForward());
-                        navigator.mediaSession.setActionHandler('previoustrack', () => this.skipBack());
-                        navigator.mediaSession.setActionHandler('nexttrack', () => this.skipForward());
                     }
                 },
                 
@@ -546,16 +342,9 @@
                                 'X-Requested-With': 'XMLHttpRequest',
                                 'X-CSRFToken': '{{ csrf_token }}'
                             },
-                            body: JSON.stringify({
-                                book_id: this.bookId,
-                                current_time: this.currentTime,
-                                total_duration: this.duration
-                            })
+                            body: JSON.stringify({ book_id: this.bookId, current_time: this.currentTime, total_duration: this.duration })
                         });
-                        console.log('Progress synced:', this.currentTime);
-                    } catch (e) {
-                        console.log('Offline - progress saved locally');
-                    }
+                    } catch (e) { console.log('Sync failed - saved locally'); }
                 }
             }
         }
