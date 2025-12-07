@@ -12,8 +12,7 @@
             <li><span>/</span></li>
             <li><a href="{% url 'core:book_list' %}" class="hover:text-white">Books</a></li>
             <li><span>/</span></li>
-            <li><a href="{% url 'core:category_books' category_slug=book.category %}" class="hover:text-white">{{
-                    book.get_category_display }}</a></li>
+            <li><a href="{% url 'core:category_books' category_slug=book.category %}" class="hover:text-white">{{ book.get_category_display }}</a></li>
             <li><span>/</span></li>
             <li class="text-white truncate max-w-xs">{{ book.title }}</li>
         </ol>

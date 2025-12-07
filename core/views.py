@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
 from django.conf import settings
 
 from .models import Book, Review, LibraryEntry, PayoutRequest
@@ -651,12 +652,14 @@ def create_stripe_checkout(request, book_id):
 
 
 @login_required
+@never_cache
 def purchase_success(request, purchase_id):
     """
     Handle successful payment return from Stripe.
     Verifies payment and creates library entry.
     """
     import stripe
+    from .models import Purchase
     from decimal import Decimal
     from django.core.mail import send_mail
     from django.template.loader import render_to_string
@@ -813,5 +816,316 @@ def purchase_history(request):
         'status_counts': status_counts,
     }
     return render(request, 'core/purchase_history.html', context)
+
+
+# =============================================================================
+# Fapshi Mobile Money Payment Views
+# Per Architecture Document Section 9 (Payment Processing)
+# =============================================================================
+
+@login_required
+def create_fapshi_checkout(request, book_id):
+    """
+    Create Fapshi mobile money payment and redirect to Fapshi.
+    """
+    from .models import Purchase
+    from . import fapshi_utils
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    book = get_object_or_404(Book, id=book_id)
+    
+    # Anti-duplicate check
+    if LibraryEntry.objects.filter(user=request.user, book=book).exists():
+        messages.info(request, 'You already own this book!')
+        return redirect('core:my_books')
+    
+    # Check if book is free (shouldn't reach here but safety check)
+    if book.is_free:
+        return redirect('core:initiate_purchase', slug=book.slug)
+    
+    # Create pending purchase record
+    purchase = Purchase.objects.create(
+        buyer=request.user,
+        book=book,
+        amount_paid=book.price,
+        payment_method=Purchase.PaymentMethod.FAPSHI,
+        payment_status=Purchase.PaymentStatus.PENDING
+    )
+    
+    # Build return URL
+    domain = request.build_absolute_uri('/').rstrip('/')
+    return_url = f"{domain}/purchase/fapshi/return/{purchase.id}/"
+    
+    # Call Fapshi API
+    result = fapshi_utils.create_payment(
+        amount=int(book.price),
+        email=request.user.email,
+        redirect_url=return_url,
+        user_id=str(request.user.id),
+        external_id=str(purchase.id),
+        message=f"Purchase: {book.title}"
+    )
+    
+    if result['success']:
+        # Save transaction ID
+        purchase.payment_transaction_id = result['trans_id']
+        purchase.save(update_fields=['payment_transaction_id'])
+        
+        logger.info(f"Fapshi checkout created for purchase {purchase.id}, redirecting to {result['link']}")
+        
+        # Redirect to Fapshi payment page
+        return redirect(result['link'])
+    else:
+        # API error
+        logger.error(f"Fapshi checkout failed for purchase {purchase.id}: {result.get('error')}")
+        
+        purchase.payment_status = Purchase.PaymentStatus.FAILED
+        purchase.save(update_fields=['payment_status'])
+        
+        messages.error(
+            request, 
+            'Mobile money payment is temporarily unavailable. Please try card payment.'
+        )
+        return redirect('core:initiate_purchase', slug=book.slug)
+
+
+@login_required
+@never_cache
+def fapshi_return(request, purchase_id):
+    """
+    Handle return from Fapshi after payment attempt.
+    Verifies payment and creates library entry.
+    """
+    from .models import Purchase
+    from . import fapshi_utils
+    from decimal import Decimal
+    from django.core.mail import send_mail
+    from django.template.loader import render_to_string
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    purchase = get_object_or_404(Purchase, id=purchase_id, buyer=request.user)
+    
+    # If already completed, just show success
+    if purchase.payment_status == Purchase.PaymentStatus.COMPLETED:
+        context = {
+            'purchase': purchase,
+            'book': purchase.book,
+            'success': True,
+            'already_processed': True,
+        }
+        return render(request, 'core/purchase_success.html', context)
+    
+    # Check payment status with Fapshi
+    trans_id = purchase.payment_transaction_id
+    
+    if not trans_id:
+        logger.error(f"No transaction ID for purchase {purchase_id}")
+        context = {
+            'purchase': purchase,
+            'book': purchase.book,
+            'success': False,
+            'error_message': 'Payment reference not found. Please try again.',
+        }
+        return render(request, 'core/purchase_success.html', context)
+    
+    # Query Fapshi for status
+    result = fapshi_utils.check_payment_status(trans_id)
+    
+    if result['success']:
+        status = result['status']
+        logger.info(f"Fapshi status for purchase {purchase_id}: {status}")
+        
+        if fapshi_utils.is_payment_successful(status):
+            # Payment successful!
+            purchase.payment_status = Purchase.PaymentStatus.COMPLETED
+            
+            # Calculate commission based on book format
+            amount = purchase.amount_paid
+            if purchase.book.has_audiobook:
+                commission_rate = Decimal('0.30')
+            else:
+                commission_rate = Decimal('0.10')
+            
+            purchase.platform_commission = amount * commission_rate
+            purchase.author_earning = amount - purchase.platform_commission
+            purchase.save()
+            
+            # Update author's earnings balance
+            author = purchase.book.author
+            author.earnings_balance += purchase.author_earning
+            author.save(update_fields=['earnings_balance'])
+            
+            # Create library entry
+            LibraryEntry.objects.get_or_create(
+                user=request.user,
+                book=purchase.book
+            )
+            
+            # Increment book sales
+            purchase.book.total_sales += 1
+            purchase.book.save(update_fields=['total_sales'])
+            
+            # Send email receipt
+            try:
+                html_content = render_to_string('emails/purchase_receipt.html', {
+                    'purchase': purchase,
+                    'book': purchase.book,
+                    'user': request.user,
+                })
+                send_mail(
+                    subject=f'Your Xanula Purchase Receipt - {purchase.book.title}',
+                    message=f'Thank you for purchasing {purchase.book.title}!',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[request.user.email],
+                    html_message=html_content,
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.error(f"Failed to send receipt email: {str(e)}")
+            
+            context = {
+                'purchase': purchase,
+                'book': purchase.book,
+                'success': True,
+            }
+            return render(request, 'core/purchase_success.html', context)
+            
+        elif fapshi_utils.is_payment_pending(status):
+            # Payment still pending - show polling page
+            context = {
+                'purchase': purchase,
+                'book': purchase.book,
+                'pending': True,
+            }
+            return render(request, 'core/fapshi_pending.html', context)
+            
+        else:
+            # Payment failed or expired
+            purchase.payment_status = Purchase.PaymentStatus.FAILED
+            purchase.save(update_fields=['payment_status'])
+            
+            context = {
+                'purchase': purchase,
+                'book': purchase.book,
+                'success': False,
+                'error_message': 'Payment was not completed. Please try again.',
+            }
+            return render(request, 'core/purchase_success.html', context)
+    else:
+        # Could not check status
+        logger.error(f"Fapshi status check failed for purchase {purchase_id}: {result.get('error')}")
+        context = {
+            'purchase': purchase,
+            'book': purchase.book,
+            'pending': True,  # Show pending page with polling
+        }
+        return render(request, 'core/fapshi_pending.html', context)
+
+
+@login_required
+def check_purchase_status_api(request, purchase_id):
+    """
+    API endpoint for polling purchase status (used by Fapshi pending page).
+    """
+    from .models import Purchase
+    from . import fapshi_utils
+    from django.http import JsonResponse
+    from decimal import Decimal
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    # Verify this is an AJAX request
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    # Get and verify purchase
+    try:
+        purchase = Purchase.objects.get(id=purchase_id, buyer=request.user)
+    except Purchase.DoesNotExist:
+        return JsonResponse({'error': 'Purchase not found'}, status=404)
+    
+    # If already completed or failed, return immediately
+    if purchase.payment_status == Purchase.PaymentStatus.COMPLETED:
+        return JsonResponse({
+            'status': 'completed',
+            'message': 'Payment successful!',
+            'redirect_url': '/my-books/',
+        })
+    elif purchase.payment_status == Purchase.PaymentStatus.FAILED:
+        return JsonResponse({
+            'status': 'failed',
+            'message': 'Payment failed.',
+        })
+    
+    # Check with Fapshi
+    if not purchase.payment_transaction_id:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'No transaction reference.',
+        })
+    
+    result = fapshi_utils.check_payment_status(purchase.payment_transaction_id)
+    
+    if result['success']:
+        status = result['status']
+        
+        if fapshi_utils.is_payment_successful(status):
+            # Process the payment
+            purchase.payment_status = Purchase.PaymentStatus.COMPLETED
+            
+            amount = purchase.amount_paid
+            if purchase.book.has_audiobook:
+                commission_rate = Decimal('0.30')
+            else:
+                commission_rate = Decimal('0.10')
+            
+            purchase.platform_commission = amount * commission_rate
+            purchase.author_earning = amount - purchase.platform_commission
+            purchase.save()
+            
+            # Update author earnings
+            author = purchase.book.author
+            author.earnings_balance += purchase.author_earning
+            author.save(update_fields=['earnings_balance'])
+            
+            # Create library entry
+            LibraryEntry.objects.get_or_create(
+                user=request.user,
+                book=purchase.book
+            )
+            
+            # Increment sales
+            purchase.book.total_sales += 1
+            purchase.book.save(update_fields=['total_sales'])
+            
+            return JsonResponse({
+                'status': 'completed',
+                'message': 'Payment successful!',
+                'redirect_url': '/my-books/',
+            })
+            
+        elif fapshi_utils.is_payment_pending(status):
+            return JsonResponse({
+                'status': 'pending',
+                'message': 'Payment is being processed...',
+            })
+        else:
+            purchase.payment_status = Purchase.PaymentStatus.FAILED
+            purchase.save(update_fields=['payment_status'])
+            return JsonResponse({
+                'status': 'failed',
+                'message': 'Payment failed or expired.',
+            })
+    else:
+        return JsonResponse({
+            'status': 'pending',
+            'message': 'Checking payment status...',
+        })
+
 
 

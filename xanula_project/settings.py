@@ -180,10 +180,6 @@ AUTHENTICATION_BACKENDS = [
 # Account settings (using new allauth settings format)
 # Custom User model uses email instead of username
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
@@ -420,6 +416,15 @@ ALLOWED_IMAGE_TYPES = [".jpg", ".jpeg", ".png", ".webp"]
 
 STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', default='')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+
+
+# =============================================================================
+# FAPSHI PAYMENT CONFIGURATION (Mobile Money)
+# =============================================================================
+
+FAPSHI_API_USER = config('FAPSHI_API_USER', default='')
+FAPSHI_API_KEY = config('FAPSHI_API_KEY', default='')
+FAPSHI_BASE_URL = config('FAPSHI_BASE_URL', default='https://live.fapshi.com')
 
 
 # =============================================================================

@@ -26,11 +26,16 @@ urlpatterns = [
     path('my-books/<int:book_id>/edit/', views.edit_book, name='edit_book'),
     path('my-books/payout/', views.request_payout, name='request_payout'),
     
-    # Purchase & Payment
+    # Purchase & Payment - Stripe
     path('books/<slug:slug>/purchase/', views.initiate_purchase, name='initiate_purchase'),
     path('purchase/stripe/<int:book_id>/', views.create_stripe_checkout, name='create_stripe_checkout'),
     path('purchase/success/<int:purchase_id>/', views.purchase_success, name='purchase_success'),
     path('account/purchases/', views.purchase_history, name='purchase_history'),
+    
+    # Purchase & Payment - Fapshi (Mobile Money)
+    path('purchase/fapshi/<int:book_id>/', views.create_fapshi_checkout, name='create_fapshi_checkout'),
+    path('purchase/fapshi/return/<int:purchase_id>/', views.fapshi_return, name='fapshi_return'),
+    path('api/check-purchase-status/<int:purchase_id>/', views.check_purchase_status_api, name='check_purchase_status_api'),
 ]
 
 

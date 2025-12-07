@@ -69,11 +69,12 @@
                 <span class="text-xs bg-white/20 px-2 py-0.5 rounded">Mastercard</span>
                 <span class="text-xs bg-white/20 px-2 py-0.5 rounded">AMEX</span>
             </div>
+            <p class="text-xs opacity-70 mt-2">International cards accepted</p>
         </a>
         
-        <!-- Mobile Money (Coming Soon) -->
-        <button disabled
-            class="block w-full p-4 bg-gray-700 opacity-50 cursor-not-allowed rounded-xl text-white text-center font-semibold">
+        <!-- Fapshi / Mobile Money -->
+        <a href="{% url 'core:create_fapshi_checkout' book_id=book.id %}"
+            class="block w-full p-4 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 rounded-xl text-white text-center font-semibold transition-all transform hover:scale-[1.02] shadow-lg">
             <div class="flex items-center justify-center gap-3">
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>
@@ -83,9 +84,9 @@
             <div class="flex items-center justify-center gap-2 mt-2 opacity-80">
                 <span class="text-xs bg-white/20 px-2 py-0.5 rounded">MTN MoMo</span>
                 <span class="text-xs bg-white/20 px-2 py-0.5 rounded">Orange Money</span>
-                <span class="text-xs bg-yellow-500/80 text-black px-2 py-0.5 rounded font-medium">Coming Soon</span>
             </div>
-        </button>
+            <p class="text-xs opacity-70 mt-2">Recommended for Cameroon & Central Africa</p>
+        </a>
     </div>
 
     <!-- What You'll Get -->
@@ -120,7 +121,7 @@
 
     <!-- Security Note -->
     <p class="text-center text-sm text-gray-500 mt-6">
-        🔒 Secure payment powered by Stripe
+        🔒 Secure payments powered by Stripe &amp; Fapshi
     </p>
 </div>
 {% endblock %}
