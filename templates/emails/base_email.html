@@ -4,62 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Xanula{% endblock %}</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
     <style>
-        /* Reset styles */
+        /* Reset */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; }
+        body { font-family: 'Georgia', 'Times New Roman', serif; -webkit-font-smoothing: antialiased; }
         table { border-collapse: collapse; }
-        img { border: 0; outline: none; text-decoration: none; }
+        img { border: 0; outline: none; }
+        a { color: #8B2635; text-decoration: none; }
         
-        /* Container styles */
-        .email-wrapper { background-color: #0a0a0a; padding: 40px 20px; }
-        .email-container { max-width: 600px; margin: 0 auto; background: #1a1a1a; border-radius: 16px; overflow: hidden; }
+        /* Email Wrapper */
+        .email-wrapper { background-color: #FAF7F2; padding: 40px 20px; }
+        .email-container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
         
         /* Header */
-        .header { background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); padding: 30px 40px; text-align: center; }
-        .logo { font-size: 28px; font-weight: bold; color: #ffffff; text-decoration: none; }
+        .header { background: linear-gradient(135deg, #8B2635 0%, #2D4739 100%); padding: 32px 40px; text-align: center; }
+        .logo { font-family: 'Georgia', serif; font-size: 28px; font-weight: bold; color: #ffffff; text-decoration: none; letter-spacing: 1px; }
+        .tagline { color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 6px; }
         
         /* Content */
-        .content { padding: 40px; color: #e0e0e0; line-height: 1.7; }
-        .content h1, .content h2 { color: #ffffff; margin: 0 0 20px 0; }
-        .content p { margin: 0 0 16px 0; }
+        .content { padding: 40px; color: #333333; line-height: 1.8; }
+        .content h1 { font-family: 'Georgia', serif; color: #1a1a1a; margin: 0 0 16px 0; font-size: 24px; font-weight: normal; }
+        .content h2 { font-family: 'Georgia', serif; color: #1a1a1a; margin: 24px 0 12px 0; font-size: 20px; font-weight: normal; }
+        .content p { margin: 0 0 16px 0; font-size: 15px; color: #555555; }
         
         /* Button */
-        .btn { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
-        .btn:hover { opacity: 0.9; }
+        .btn { display: inline-block; padding: 14px 32px; background: #8B2635; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; }
+        .btn:hover { background: #722030; }
+        .btn-secondary { background: #2D4739; }
+        .btn-secondary:hover { background: #243A2E; }
         
-        /* Book card */
-        .book-card { background: #262626; border-radius: 12px; padding: 20px; margin: 20px 0; }
-        .book-cover { width: 80px; height: 120px; border-radius: 8px; object-fit: cover; }
-        .book-title { color: #ffffff; font-weight: 600; font-size: 18px; margin: 0 0 4px 0; }
-        .book-author { color: #a0a0a0; font-size: 14px; margin: 0; }
+        /* Book Card */
+        .book-card { background: #FAF7F2; border-radius: 12px; padding: 20px; margin: 24px 0; border: 1px solid #E8E4DC; }
+        .book-cover { width: 80px; height: 120px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .book-title { font-family: 'Georgia', serif; color: #1a1a1a; font-size: 18px; margin: 0 0 4px 0; }
+        .book-author { color: #888888; font-size: 14px; margin: 0; }
+        .book-price { color: #8B2635; font-weight: bold; font-size: 16px; margin-top: 8px; }
+        
+        /* Info Box */
+        .info-box { background: #FAF7F2; border-left: 4px solid #8B2635; padding: 16px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .info-box.success { border-left-color: #2D4739; }
+        .info-box.warning { border-left-color: #D4A574; }
         
         /* Footer */
-        .footer { padding: 30px 40px; text-align: center; border-top: 1px solid #333; }
-        .footer p { color: #666; font-size: 12px; margin: 0 0 8px 0; }
-        .footer a { color: #8b5cf6; text-decoration: none; }
-        .social-links { margin: 20px 0; }
-        .social-links a { display: inline-block; margin: 0 8px; color: #888; }
+        .footer { padding: 32px 40px; text-align: center; background: #FAF7F2; border-top: 1px solid #E8E4DC; }
+        .footer p { color: #888888; font-size: 12px; margin: 0 0 8px 0; }
+        .footer a { color: #8B2635; }
+        .social-links { margin: 16px 0; }
+        .social-links a { display: inline-block; margin: 0 8px; color: #888888; }
         
         /* Utilities */
         .text-center { text-align: center; }
-        .text-muted { color: #888; }
-        .text-success { color: #22c55e; }
-        .text-warning { color: #eab308; }
-        .text-danger { color: #ef4444; }
+        .text-muted { color: #888888; }
+        .text-success { color: #2D4739; }
+        .text-accent { color: #8B2635; }
         .mt-4 { margin-top: 24px; }
         .mb-4 { margin-bottom: 24px; }
         
-        /* Progress bar */
-        .progress-bar { background: #333; border-radius: 100px; height: 8px; overflow: hidden; margin: 10px 0; }
-        .progress-fill { background: linear-gradient(90deg, #8b5cf6, #ec4899); height: 100%; border-radius: 100px; }
-        
         /* Badge */
-        .badge { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; }
-        .badge-success { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-        .badge-warning { background: rgba(234, 179, 8, 0.2); color: #eab308; }
-        .badge-danger { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-        .badge-info { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+        .badge { display: inline-block; padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: rgba(45, 71, 57, 0.1); color: #2D4739; }
+        .badge-pending { background: rgba(212, 165, 116, 0.2); color: #B8864C; }
+        .badge-error { background: rgba(139, 38, 53, 0.1); color: #8B2635; }
+        
+        /* Divider */
+        .divider { height: 1px; background: #E8E4DC; margin: 24px 0; }
+        
+        /* Summary Row */
+        .summary-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #E8E4DC; }
+        .summary-row:last-child { border-bottom: none; font-weight: bold; }
+        .summary-label { color: #666666; font-size: 14px; }
+        .summary-value { color: #1a1a1a; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -68,7 +91,8 @@
             <!-- Header -->
             <tr>
                 <td class="header">
-                    <a href="{{ site_url }}" class="logo">📚 Xanula</a>
+                    <a href="{{ site_url|default:'https://xanula.com' }}" class="logo">📚 Xanula</a>
+                    <p class="tagline">African Literature Marketplace</p>
                 </td>
             </tr>
             
@@ -87,11 +111,12 @@
                         <a href="#">Instagram</a> • 
                         <a href="#">Facebook</a>
                     </div>
-                    <p>© {{ current_year }} Xanula. All rights reserved.</p>
+                    <p>© {{ current_year|default:"2024" }} Xanula. All rights reserved.</p>
                     <p>Your gateway to African literature.</p>
                     <p class="mt-4">
-                        <a href="{{ site_url }}">Visit Xanula</a> • 
-                        <a href="{{ site_url }}/library">My Library</a>
+                        <a href="{{ site_url|default:'https://xanula.com' }}">Visit Xanula</a> • 
+                        <a href="{{ site_url|default:'https://xanula.com' }}/library/">My Library</a> •
+                        <a href="{{ site_url|default:'https://xanula.com' }}/terms/">Terms</a>
                     </p>
                 </td>
             </tr>

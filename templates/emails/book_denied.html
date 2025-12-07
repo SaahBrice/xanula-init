@@ -1,54 +1,65 @@
 {% extends "emails/base_email.html" %}
-{% block title %}Your Book Submission - Xanula{% endblock %}
+
+{% block title %}Book Review Required - Xanula{% endblock %}
 
 {% block content %}
-<h1>Book Submission Update</h1>
+<!-- Icon -->
+<div style="text-align: center; margin-bottom: 24px;">
+    <div style="width: 64px; height: 64px; background: rgba(139, 38, 53, 0.1); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+        <span style="font-size: 32px;">📝</span>
+    </div>
+</div>
 
-<p>Hello {{ book.author.get_display_name }},</p>
+<h1 style="text-align: center;">Book Needs Revision</h1>
+<p style="text-align: center; color: #666666;">Your book submission requires some changes before approval.</p>
 
-<p>Thank you for submitting <strong>"{{ book.title }}"</strong> to Xanula. After careful review, we regret to inform you that your book was <span class="text-danger">not approved</span> at this time.</p>
-
+<!-- Book Card -->
 <div class="book-card">
-    <table cellpadding="0" cellspacing="0">
+    <table cellpadding="0" cellspacing="0" width="100%">
         <tr>
-            <td style="width: 100px; vertical-align: top;">
+            <td style="vertical-align: top; padding-right: 20px; width: 80px;">
                 {% if book.cover_image %}
-                <img src="{{ site_url }}{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
                 {% else %}
-                <div style="width: 80px; height: 120px; background: #333; border-radius: 8px;"></div>
+                <div style="width: 80px; height: 120px; background: linear-gradient(135deg, #8B2635, #2D4739); border-radius: 8px;"></div>
                 {% endif %}
             </td>
-            <td style="padding-left: 20px; vertical-align: top;">
-                <p class="book-title">{{ book.title }}</p>
+            <td style="vertical-align: top;">
+                <h3 class="book-title">{{ book.title }}</h3>
                 <p class="book-author">by {{ book.author.get_display_name }}</p>
-                <p style="margin-top: 12px;">
-                    <span class="badge badge-danger">✗ Not Approved</span>
-                </p>
+                <div style="margin-top: 8px;">
+                    <span class="badge badge-pending">Needs Revision</span>
+                </div>
             </td>
         </tr>
     </table>
 </div>
 
-<h2 style="font-size: 18px; color: #ef4444;">Reason for Denial</h2>
-
-<div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 20px 0;">
-    <p style="margin: 0; color: #fca5a5;">{{ book.denial_reason }}</p>
+{% if rejection_reason %}
+<div class="info-box warning">
+    <strong>Feedback from our team:</strong>
+    <p style="margin: 8px 0 0 0; color: #555555;">{{ rejection_reason }}</p>
 </div>
+{% endif %}
 
-<h2 style="font-size: 18px;">What You Can Do</h2>
-
-<ul style="color: #e0e0e0;">
-    <li>Review the feedback and make necessary changes</li>
-    <li>Ensure your manuscript meets our content guidelines</li>
-    <li>Update your book details and resubmit</li>
-    <li>Contact support if you have questions</li>
+<h2>Common Issues to Check</h2>
+<ul style="color: #555555; padding-left: 20px;">
+    <li>Cover image quality (minimum 600x900px recommended)</li>
+    <li>Book description clarity and length</li>
+    <li>File format and readability</li>
+    <li>Content guidelines compliance</li>
 </ul>
 
-<div class="text-center">
-    <a href="{{ site_url }}/my-books/" class="btn">Edit & Resubmit</a>
+<!-- CTA -->
+<div style="text-align: center; margin-top: 32px;">
+    <a href="{{ site_url|default:'https://xanula.com' }}/my-books/{{ book.id }}/edit/" class="btn">
+        Edit Your Book
+    </a>
 </div>
 
-<p class="text-muted" style="font-size: 14px;">
-    We appreciate your effort and encourage you to try again. Our goal is to showcase quality African literature, and we believe in your work.
+<div class="divider"></div>
+
+<p style="font-size: 13px; color: #888888; text-align: center;">
+    Need help? Contact us at <a href="mailto:reepls.project@gmail.com">reepls.project@gmail.com</a>
 </p>
 {% endblock %}

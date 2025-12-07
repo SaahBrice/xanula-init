@@ -1,51 +1,64 @@
 {% extends "emails/base_email.html" %}
-{% block title %}Your Book Has Been Approved - Xanula{% endblock %}
+
+{% block title %}Book Approved - Xanula{% endblock %}
 
 {% block content %}
-<h1>🎉 Great News!</h1>
+<!-- Success Icon -->
+<div style="text-align: center; margin-bottom: 24px;">
+    <div style="width: 64px; height: 64px; background: rgba(45, 71, 57, 0.1); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+        <span style="font-size: 32px;">🎉</span>
+    </div>
+</div>
 
-<p>Hello {{ book.author.get_display_name }},</p>
+<h1 style="text-align: center;">Congratulations!</h1>
+<p style="text-align: center; color: #666666;">Your book has been approved and is now live on Xanula.</p>
 
-<p>We're excited to let you know that your book <strong>"{{ book.title }}"</strong> has been <span class="text-success">approved</span> and is now live on Xanula!</p>
-
+<!-- Book Card -->
 <div class="book-card">
-    <table cellpadding="0" cellspacing="0">
+    <table cellpadding="0" cellspacing="0" width="100%">
         <tr>
-            <td style="width: 100px; vertical-align: top;">
+            <td style="vertical-align: top; padding-right: 20px; width: 80px;">
                 {% if book.cover_image %}
-                <img src="{{ site_url }}{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
                 {% else %}
-                <div style="width: 80px; height: 120px; background: linear-gradient(135deg, #8b5cf6, #ec4899); border-radius: 8px;"></div>
+                <div style="width: 80px; height: 120px; background: linear-gradient(135deg, #8B2635, #2D4739); border-radius: 8px;"></div>
                 {% endif %}
             </td>
-            <td style="padding-left: 20px; vertical-align: top;">
-                <p class="book-title">{{ book.title }}</p>
+            <td style="vertical-align: top;">
+                <h3 class="book-title">{{ book.title }}</h3>
                 <p class="book-author">by {{ book.author.get_display_name }}</p>
-                <p style="margin-top: 12px;">
-                    <span class="badge badge-success">✓ Approved</span>
-                </p>
-                <p class="text-muted" style="font-size: 14px; margin-top: 8px;">
-                    {{ book.get_category_display }} • {{ book.get_language_display }}
-                </p>
+                <p class="book-price">{{ book.formatted_price }}</p>
+                <div style="margin-top: 8px;">
+                    <span class="badge badge-success">✓ Live</span>
+                </div>
             </td>
         </tr>
     </table>
 </div>
 
-<h2 style="font-size: 18px;">What's Next?</h2>
-
-<ul style="color: #e0e0e0;">
-    <li>Your book is now visible to all Xanula users</li>
-    <li>Readers can purchase and start reading/listening immediately</li>
-    <li>You'll receive earnings notifications for each sale</li>
-    <li>Track your sales in the Author Dashboard</li>
-</ul>
-
-<div class="text-center">
-    <a href="{{ site_url }}/books/{{ book.slug }}/" class="btn">View Your Book</a>
+<div class="info-box success">
+    <strong>What happens next?</strong>
+    <ul style="margin: 8px 0 0 0; padding-left: 20px; color: #555555;">
+        <li>Your book is now discoverable by readers</li>
+        <li>Audiobook generation has begun automatically</li>
+        <li>You'll earn 70% of each sale</li>
+        <li>Track your sales in the Author Dashboard</li>
+    </ul>
 </div>
 
-<p class="text-muted" style="font-size: 14px;">
-    Thank you for publishing with Xanula. We're proud to share African literature with the world!
+<!-- CTA Buttons -->
+<div style="text-align: center; margin-top: 32px;">
+    <a href="{{ site_url|default:'https://xanula.com' }}/books/{{ book.slug }}/" class="btn" style="margin-right: 12px;">
+        View Your Book
+    </a>
+    <a href="{{ site_url|default:'https://xanula.com' }}/my-books/" class="btn btn-secondary">
+        Author Dashboard
+    </a>
+</div>
+
+<div class="divider"></div>
+
+<p style="font-size: 13px; color: #888888; text-align: center;">
+    Share your book on social media to reach more readers!
 </p>
 {% endblock %}

@@ -1,55 +1,73 @@
 {% extends "emails/base_email.html" %}
-{% block title %}Continue Reading {{ book.title }} - Xanula{% endblock %}
+
+{% block title %}Continue Reading - Xanula{% endblock %}
 
 {% block content %}
-<h1>📖 Continue Your Journey</h1>
+<h1>Continue Your Reading Journey</h1>
 
-<p>Hello {{ user.get_display_name }},</p>
+<p>Hello {{ user.get_display_name|default:user.email }},</p>
 
-<p>You've been making great progress with <strong>"{{ book.title }}"</strong>! Don't let the story wait – pick up where you left off.</p>
+<p>You have books waiting for you in your Xanula library! Don't let your reading momentum fade.</p>
 
+{% if books_in_progress %}
+<h2>📖 Continue Reading</h2>
+
+{% for entry in books_in_progress %}
 <div class="book-card">
     <table cellpadding="0" cellspacing="0" width="100%">
         <tr>
-            <td style="width: 100px; vertical-align: top;">
-                {% if book.cover_image %}
-                <img src="{{ site_url }}{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+            <td style="vertical-align: top; padding-right: 20px; width: 60px;">
+                {% if entry.book.cover_image %}
+                <img src="{{ entry.book.cover_image.url }}" alt="{{ entry.book.title }}" style="width: 60px; height: 90px; border-radius: 6px; object-fit: cover;">
                 {% else %}
-                <div style="width: 80px; height: 120px; background: linear-gradient(135deg, #8b5cf6, #ec4899); border-radius: 8px;"></div>
+                <div style="width: 60px; height: 90px; background: linear-gradient(135deg, #8B2635, #2D4739); border-radius: 6px;"></div>
                 {% endif %}
             </td>
-            <td style="padding-left: 20px; vertical-align: top;">
-                <p class="book-title">{{ book.title }}</p>
-                <p class="book-author">by {{ book.author.get_display_name }}</p>
-                
-                <div style="margin-top: 16px;">
-                    <p class="text-muted" style="font-size: 13px; margin: 0 0 4px 0;">Your Progress</p>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: {{ progress_percent }}%;"></div>
+            <td style="vertical-align: top;">
+                <h3 class="book-title" style="font-size: 16px;">{{ entry.book.title }}</h3>
+                <p class="book-author" style="font-size: 12px;">by {{ entry.book.author.get_display_name }}</p>
+                <!-- Progress -->
+                <div style="margin-top: 8px;">
+                    <div style="background: #E8E4DC; border-radius: 100px; height: 6px; overflow: hidden;">
+                        <div style="background: #8B2635; height: 100%; width: {{ entry.reading_progress }}%; border-radius: 100px;"></div>
                     </div>
-                    <p style="color: #888; font-size: 13px; margin: 4px 0 0 0;">{{ progress_percent }}% complete</p>
+                    <span style="font-size: 11px; color: #888888;">{{ entry.reading_progress }}% complete</span>
                 </div>
             </td>
         </tr>
     </table>
 </div>
+{% endfor %}
+{% endif %}
 
-<div class="text-center">
-    {% if entry.listening_progress > 0 %}
-    <a href="{{ site_url }}/listen/{{ book.slug }}/" class="btn">🎧 Continue Listening</a>
-    {% else %}
-    <a href="{{ site_url }}/read/{{ book.slug }}/" class="btn">📚 Continue Reading</a>
-    {% endif %}
+{% if new_books %}
+<h2>✨ New in Your Library</h2>
+<p>You have {{ new_books|length }} book{{ new_books|length|pluralize }} you haven't started yet:</p>
+
+<ul style="color: #555555; padding-left: 20px;">
+{% for book in new_books %}
+    <li><strong>{{ book.title }}</strong> by {{ book.author.get_display_name }}</li>
+{% endfor %}
+</ul>
+{% endif %}
+
+<div class="info-box success">
+    <strong>💡 Reading Tip:</strong>
+    <p style="margin: 8px 0 0 0; color: #555555;">
+        Even 15 minutes a day can help you finish a book in a week. Set a small daily goal!
+    </p>
 </div>
 
-<p class="text-muted text-center" style="font-size: 14px; margin-top: 24px;">
-    "A reader lives a thousand lives before he dies." – George R.R. Martin
-</p>
+<!-- CTA -->
+<div style="text-align: center; margin-top: 32px;">
+    <a href="{{ site_url|default:'https://xanula.com' }}/library/" class="btn">
+        Open My Library
+    </a>
+</div>
 
-<hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
+<div class="divider"></div>
 
-<p class="text-muted text-center" style="font-size: 12px;">
-    You're receiving this email because you have books in progress on Xanula.<br>
-    These daily reminders help you stay on track with your reading goals.
+<p style="font-size: 12px; color: #888888; text-align: center;">
+    Don't want these reminders? <a href="{{ site_url|default:'https://xanula.com' }}/settings/notifications/">Update your preferences</a>
 </p>
 {% endblock %}

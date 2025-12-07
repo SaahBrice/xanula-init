@@ -1,117 +1,95 @@
 {% extends "emails/base_email.html" %}
-{% block title %}Payout Update - Xanula{% endblock %}
+
+{% block title %}Payout Status Update - Xanula{% endblock %}
 
 {% block content %}
-<h1>💰 Payout Update</h1>
+<h1 style="text-align: center;">Payout Status Update</h1>
 
-<p>Hello {{ payout.author.get_display_name }},</p>
+{% if payout.status == 'completed' %}
+<!-- Success -->
+<div style="text-align: center; margin-bottom: 24px;">
+    <div style="width: 64px; height: 64px; background: rgba(45, 71, 57, 0.1); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+        <span style="font-size: 32px;">💰</span>
+    </div>
+</div>
+<p style="text-align: center; color: #2D4739; font-size: 18px; font-weight: bold;">Payment Sent Successfully!</p>
 
-{% if status == 'processing' %}
-<p>Great news! Your payout request is now being <span class="text-warning">processed</span>.</p>
-
-<div class="book-card">
-    <table cellpadding="0" cellspacing="0" width="100%">
+<div class="info-box success">
+    <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-            <td>
-                <p class="text-muted" style="font-size: 13px; margin: 0 0 4px 0;">Payout Amount</p>
-                <p style="font-size: 28px; font-weight: bold; color: #ffffff; margin: 0;">{{ payout.amount|floatformat:0 }} XAF</p>
+            <td style="padding: 8px 0;">
+                <span style="color: #666666;">Amount</span>
             </td>
             <td style="text-align: right;">
-                <span class="badge badge-warning">⏳ Processing</span>
+                <span style="color: #2D4739; font-size: 20px; font-weight: bold;">{{ payout.amount|floatformat:0 }} XAF</span>
             </td>
         </tr>
-    </table>
-    
-    <hr style="border: none; border-top: 1px solid #333; margin: 16px 0;">
-    
-    <table cellpadding="0" cellspacing="0" width="100%">
         <tr>
-            <td class="text-muted" style="font-size: 14px;">Payment Method</td>
-            <td style="text-align: right; color: #fff;">{{ payout.payment_method }}</td>
-        </tr>
-        <tr>
-            <td class="text-muted" style="font-size: 14px; padding-top: 8px;">Account</td>
-            <td style="text-align: right; color: #fff; padding-top: 8px;">{{ payout.payment_details }}</td>
-        </tr>
-        <tr>
-            <td class="text-muted" style="font-size: 14px; padding-top: 8px;">Requested</td>
-            <td style="text-align: right; color: #fff; padding-top: 8px;">{{ payout.requested_at|date:"M d, Y" }}</td>
-        </tr>
-    </table>
-</div>
-
-<p>We're working on transferring your funds. This typically takes 1-3 business days. We'll notify you once the transfer is complete.</p>
-
-{% elif status == 'completed' %}
-<p>Your payout has been <span class="text-success">successfully completed</span>! 🎉</p>
-
-<div class="book-card">
-    <table cellpadding="0" cellspacing="0" width="100%">
-        <tr>
-            <td>
-                <p class="text-muted" style="font-size: 13px; margin: 0 0 4px 0;">Amount Transferred</p>
-                <p style="font-size: 28px; font-weight: bold; color: #22c55e; margin: 0;">{{ payout.amount|floatformat:0 }} XAF</p>
+            <td style="padding: 8px 0;">
+                <span style="color: #666666;">Payment Method</span>
             </td>
             <td style="text-align: right;">
-                <span class="badge badge-success">✓ Completed</span>
+                <span style="color: #1a1a1a;">{{ payout.get_payment_method_display }}</span>
             </td>
         </tr>
-    </table>
-    
-    <hr style="border: none; border-top: 1px solid #333; margin: 16px 0;">
-    
-    <table cellpadding="0" cellspacing="0" width="100%">
         <tr>
-            <td class="text-muted" style="font-size: 14px;">Payment Method</td>
-            <td style="text-align: right; color: #fff;">{{ payout.payment_method }}</td>
-        </tr>
-        <tr>
-            <td class="text-muted" style="font-size: 14px; padding-top: 8px;">Account</td>
-            <td style="text-align: right; color: #fff; padding-top: 8px;">{{ payout.payment_details }}</td>
-        </tr>
-        <tr>
-            <td class="text-muted" style="font-size: 14px; padding-top: 8px;">Completed</td>
-            <td style="text-align: right; color: #fff; padding-top: 8px;">{{ payout.processed_at|date:"M d, Y" }}</td>
-        </tr>
-    </table>
-</div>
-
-<p>The funds should appear in your account shortly. Thank you for publishing with Xanula!</p>
-
-<div class="text-center">
-    <a href="{{ site_url }}/my-books/" class="btn">View Dashboard</a>
-</div>
-
-{% elif status == 'failed' %}
-<p>Unfortunately, we encountered an issue processing your payout.</p>
-
-<div class="book-card" style="border-left: 4px solid #ef4444;">
-    <table cellpadding="0" cellspacing="0" width="100%">
-        <tr>
-            <td>
-                <p class="text-muted" style="font-size: 13px; margin: 0 0 4px 0;">Payout Amount</p>
-                <p style="font-size: 28px; font-weight: bold; color: #ef4444; margin: 0;">{{ payout.amount|floatformat:0 }} XAF</p>
+            <td style="padding: 8px 0;">
+                <span style="color: #666666;">Reference</span>
             </td>
             <td style="text-align: right;">
-                <span class="badge badge-danger">✗ Failed</span>
+                <span style="color: #1a1a1a; font-family: monospace; font-size: 12px;">{{ payout.transaction_reference|default:"N/A" }}</span>
             </td>
         </tr>
     </table>
-    
-    <hr style="border: none; border-top: 1px solid #333; margin: 16px 0;">
-    
-    <p class="text-muted" style="font-size: 14px; margin: 0;">Reason:</p>
-    <p style="color: #fca5a5; margin: 4px 0 0 0;">{{ payout.failure_reason }}</p>
 </div>
 
-<p>Please verify your payment details and try again. If the issue persists, contact our support team.</p>
+{% elif payout.status == 'processing' %}
+<!-- Processing -->
+<div style="text-align: center; margin-bottom: 24px;">
+    <div style="width: 64px; height: 64px; background: rgba(212, 165, 116, 0.2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+        <span style="font-size: 32px;">⏳</span>
+    </div>
+</div>
+<p style="text-align: center; color: #B8864C; font-size: 18px; font-weight: bold;">Payout is Being Processed</p>
 
-<div class="text-center">
-    <a href="{{ site_url }}/my-books/payout/" class="btn">Update Payment Details</a>
+<div class="info-box warning">
+    <p style="margin: 0; color: #555555;">
+        We're processing your payout of <strong>{{ payout.amount|floatformat:0 }} XAF</strong>. 
+        This typically takes 1-3 business days.
+    </p>
+</div>
+
+{% else %}
+<!-- Failed/Rejected -->
+<div style="text-align: center; margin-bottom: 24px;">
+    <div style="width: 64px; height: 64px; background: rgba(139, 38, 53, 0.1); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+        <span style="font-size: 32px;">⚠️</span>
+    </div>
+</div>
+<p style="text-align: center; color: #8B2635; font-size: 18px; font-weight: bold;">Payout Issue</p>
+
+<div class="info-box">
+    <p style="margin: 0; color: #555555;">
+        There was an issue with your payout request. Please verify your payment details and try again.
+    </p>
+    {% if payout.notes %}
+    <p style="margin: 12px 0 0 0; color: #555555;">
+        <strong>Details:</strong> {{ payout.notes }}
+    </p>
+    {% endif %}
 </div>
 {% endif %}
 
-<p class="text-muted" style="font-size: 14px; margin-top: 24px;">
-    Questions? Reply to this email or contact support@xanula.com
+<!-- CTA -->
+<div style="text-align: center; margin-top: 32px;">
+    <a href="{{ site_url|default:'https://xanula.com' }}/my-books/payout/" class="btn">
+        View Payout History
+    </a>
+</div>
+
+<div class="divider"></div>
+
+<p style="font-size: 13px; color: #888888; text-align: center;">
+    Questions? Contact us at <a href="mailto:reepls.project@gmail.com">reepls.project@gmail.com</a>
 </p>
 {% endblock %}
