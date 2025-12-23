@@ -235,8 +235,8 @@ INTERNAL_IPS = [
 
 PWA_APP_NAME = "Xanula"
 PWA_APP_DESCRIPTION = "Your gateway to African literature - discover, read, and listen to books"
-PWA_APP_THEME_COLOR = "#1a1a2e"
-PWA_APP_BACKGROUND_COLOR = "#1a1a2e"
+PWA_APP_THEME_COLOR = "#8B2635"
+PWA_APP_BACKGROUND_COLOR = "#8B2635"
 PWA_APP_DISPLAY = "standalone"
 PWA_APP_SCOPE = "/"
 PWA_APP_ORIENTATION = "any"
@@ -247,11 +247,13 @@ PWA_APP_ICONS = [
         "src": "/static/images/icons/icon-192x192.png",
         "sizes": "192x192",
         "type": "image/png",
+        "purpose": "any maskable",
     },
     {
         "src": "/static/images/icons/icon-512x512.png",
         "sizes": "512x512",
         "type": "image/png",
+        "purpose": "any maskable",
     },
 ]
 PWA_APP_ICONS_APPLE = [
@@ -430,19 +432,7 @@ FAPSHI_BASE_URL = config('FAPSHI_BASE_URL', default='https://live.fapshi.com')
 
 
 # =============================================================================
-# EMAIL CONFIGURATION
+# EMAIL CONFIGURATION (Additional)
 # =============================================================================
 
-EMAIL_BACKEND = config(
-    'EMAIL_BACKEND',
-    default='django.core.mail.backends.console.EmailBackend'
-)
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@xanula.com')
-
-# SMTP settings for production (uncomment and configure in .env)
-# EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-# EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-# EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-# EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-# EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-

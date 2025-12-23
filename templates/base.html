@@ -12,6 +12,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Xanula">
     <link rel="apple-touch-icon" href="{% static 'images/icons/icon-192x192.png' %}">
+    <link rel="apple-touch-icon" sizes="192x192" href="{% static 'images/icons/icon-192x192.png' %}">
+    <link rel="apple-touch-icon" sizes="512x512" href="{% static 'images/icons/icon-512x512.png' %}">
+    
+    <!-- Android/PWA Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'images/icons/icon-192x192.png' %}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{% static 'images/icons/icon-512x512.png' %}">
     
     <title>{% block title %}Xanula{% endblock %}</title>
     
@@ -363,7 +369,7 @@
                 window.addEventListener('appinstalled', () => {
                     this.isInstalled = true;
                     this.showInstall = false;
-                    showToast('Xanula installed!', 'success');
+                    // Toast shown only once via installApp()
                 });
                 
                 if (window.matchMedia('(display-mode: standalone)').matches) {
@@ -414,7 +420,10 @@
                 if (!this.deferredPrompt) return;
                 this.deferredPrompt.prompt();
                 const { outcome } = await this.deferredPrompt.userChoice;
-                if (outcome === 'accepted') this.isInstalled = true;
+                if (outcome === 'accepted') {
+                    this.isInstalled = true;
+                    showToast('Xanula installed!', 'success');
+                }
                 this.showInstall = false;
                 this.deferredPrompt = null;
             },
