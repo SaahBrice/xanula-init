@@ -1,6 +1,7 @@
 {% extends "emails/base_email.html" %}
+{% load i18n %}
 
-{% block title %}Book Review Required - Xanula{% endblock %}
+{% block title %}{% trans "Book Review Required" %} - Xanula{% endblock %}
 
 {% block content %}
 <!-- Icon -->
@@ -10,8 +11,8 @@
     </div>
 </div>
 
-<h1 style="text-align: center;">Book Needs Revision</h1>
-<p style="text-align: center; color: #666666;">Your book submission requires some changes before approval.</p>
+<h1 style="text-align: center;">{% trans "Book Needs Revision" %}</h1>
+<p style="text-align: center; color: #666666;">{% trans "Your book submission requires some changes before approval." %}</p>
 
 <!-- Book Card -->
 <div class="book-card">
@@ -26,9 +27,9 @@
             </td>
             <td style="vertical-align: top;">
                 <h3 class="book-title">{{ book.title }}</h3>
-                <p class="book-author">by {{ book.author.get_display_name }}</p>
+                <p class="book-author">{% trans "by" %} {{ book.author.get_display_name }}</p>
                 <div style="margin-top: 8px;">
-                    <span class="badge badge-pending">Needs Revision</span>
+                    <span class="badge badge-pending">{% trans "Needs Revision" %}</span>
                 </div>
             </td>
         </tr>
@@ -37,29 +38,29 @@
 
 {% if rejection_reason %}
 <div class="info-box warning">
-    <strong>Feedback from our team:</strong>
+    <strong>{% trans "Feedback from our team:" %}</strong>
     <p style="margin: 8px 0 0 0; color: #555555;">{{ rejection_reason }}</p>
 </div>
 {% endif %}
 
-<h2>Common Issues to Check</h2>
+<h2>{% trans "Common Issues to Check" %}</h2>
 <ul style="color: #555555; padding-left: 20px;">
-    <li>Cover image quality (minimum 600x900px recommended)</li>
-    <li>Book description clarity and length</li>
-    <li>File format and readability</li>
-    <li>Content guidelines compliance</li>
+    <li>{% trans "Cover image quality (minimum 600x900px recommended)" %}</li>
+    <li>{% trans "Book description clarity and length" %}</li>
+    <li>{% trans "File format and readability" %}</li>
+    <li>{% trans "Content guidelines compliance" %}</li>
 </ul>
 
 <!-- CTA -->
 <div style="text-align: center; margin-top: 32px;">
     <a href="{{ site_url|default:'https://xanula.com' }}/my-books/{{ book.id }}/edit/" class="btn">
-        Edit Your Book
+        {% trans "Edit Your Book" %}
     </a>
 </div>
 
 <div class="divider"></div>
 
 <p style="font-size: 13px; color: #888888; text-align: center;">
-    Need help? Contact us at <a href="mailto:reepls.project@gmail.com">reepls.project@gmail.com</a>
+    {% trans "Need help? Contact us at" %} <a href="mailto:reepls.project@gmail.com">reepls.project@gmail.com</a>
 </p>
 {% endblock %}

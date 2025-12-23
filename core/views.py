@@ -1824,10 +1824,10 @@ def book_preview(request, slug):
 @login_required
 def author_analytics(request):
     """
-    Author analytics dashboard with sales charts and earnings data.
+    Author analytics dashboard with sales charts, earnings data, and reading engagement stats.
     """
     from .models import Purchase
-    from django.db.models import Sum
+    from django.db.models import Sum, Count, Q
     from django.db.models.functions import TruncDate, TruncMonth
     from datetime import datetime, timedelta
     
@@ -1840,10 +1840,38 @@ def author_analytics(request):
         messages.info(request, 'You haven\'t published any books yet.')
         return redirect('core:my_books')
     
-    # Total stats
+    # Get book IDs for efficient queries
+    book_ids = list(author_books.values_list('id', flat=True))
+    
+    # ===== SALES STATS =====
     total_sales = author_books.aggregate(total=Sum('total_sales'))['total'] or 0
     total_earnings = user.earnings_balance
     total_reviews = Review.objects.filter(book__author=user).count()
+    
+    # ===== READING ENGAGEMENT STATS =====
+    # Total unique readers (users with author's books in library)
+    total_readers = LibraryEntry.objects.filter(book_id__in=book_ids).values('user').distinct().count()
+    
+    # Active readers (accessed in last 7 days)
+    seven_days_ago = datetime.now() - timedelta(days=7)
+    active_readers = LibraryEntry.objects.filter(
+        book_id__in=book_ids,
+        last_accessed__gte=seven_days_ago
+    ).values('user').distinct().count()
+    
+    # Completion rate (% of library entries that are completed)
+    total_entries = LibraryEntry.objects.filter(book_id__in=book_ids).count()
+    completed_entries = LibraryEntry.objects.filter(
+        book_id__in=book_ids,
+        completion_status=LibraryEntry.CompletionStatus.COMPLETED
+    ).count()
+    completion_rate = round((completed_entries / total_entries * 100) if total_entries > 0 else 0, 1)
+    
+    # In-progress readers
+    in_progress_count = LibraryEntry.objects.filter(
+        book_id__in=book_ids,
+        completion_status=LibraryEntry.CompletionStatus.IN_PROGRESS
+    ).count()
     
     # Get purchases for the last 30 days
     thirty_days_ago = datetime.now() - timedelta(days=30)
@@ -1853,9 +1881,15 @@ def author_analytics(request):
         purchase_date__gte=thirty_days_ago
     ).select_related('book', 'buyer')
     
-    # Book performance
+    # Book performance (sales + reading)
     book_performance = []
     for book in author_books:
+        # Reading stats for this book
+        book_entries = LibraryEntry.objects.filter(book=book)
+        readers = book_entries.count()
+        completed = book_entries.filter(completion_status=LibraryEntry.CompletionStatus.COMPLETED).count()
+        in_progress = book_entries.filter(completion_status=LibraryEntry.CompletionStatus.IN_PROGRESS).count()
+        
         book_performance.append({
             'id': book.id,
             'title': book.title,
@@ -1865,19 +1899,30 @@ def author_analytics(request):
             'earnings': Purchase.objects.filter(
                 book=book,
                 payment_status=Purchase.PaymentStatus.COMPLETED
-            ).aggregate(total=Sum('author_earning'))['total'] or 0
+            ).aggregate(total=Sum('author_earning'))['total'] or 0,
+            # Reading stats
+            'readers': readers,
+            'completed': completed,
+            'in_progress': in_progress,
+            'completion_rate': round((completed / readers * 100) if readers > 0 else 0, 1),
         })
     
-    # Sort by sales
-    book_performance.sort(key=lambda x: x['sales'], reverse=True)
+    # Sort by readers (most read first)
+    book_performance.sort(key=lambda x: x['readers'], reverse=True)
     
     context = {
+        # Sales stats
         'total_sales': total_sales,
         'total_earnings': total_earnings,
         'total_reviews': total_reviews,
         'book_count': author_books.count(),
         'recent_purchases': recent_purchases[:10],
         'book_performance': book_performance,
+        # Reading engagement stats
+        'total_readers': total_readers,
+        'active_readers': active_readers,
+        'completion_rate': completion_rate,
+        'in_progress_count': in_progress_count,
     }
     return render(request, 'core/author_analytics.html', context)
 
@@ -1886,7 +1931,7 @@ def author_analytics(request):
 def analytics_data_api(request):
     """
     API endpoint for analytics chart data.
-    Returns daily sales data for the last 30 days.
+    Returns daily sales and reading activity for the last 30 days.
     """
     from .models import Purchase
     from django.db.models import Count, Sum
@@ -1896,6 +1941,9 @@ def analytics_data_api(request):
     
     user = request.user
     thirty_days_ago = datetime.now() - timedelta(days=30)
+    
+    # Get author's book IDs
+    book_ids = list(Book.objects.filter(author=user).values_list('id', flat=True))
     
     # Daily sales
     daily_sales = Purchase.objects.filter(
@@ -1909,15 +1957,27 @@ def analytics_data_api(request):
         earnings=Sum('author_earning')
     ).order_by('date')
     
+    # Daily reading activity (unique users who accessed books)
+    daily_readers = LibraryEntry.objects.filter(
+        book_id__in=book_ids,
+        last_accessed__gte=thirty_days_ago
+    ).annotate(
+        date=TruncDate('last_accessed')
+    ).values('date').annotate(
+        readers=Count('user', distinct=True)
+    ).order_by('date')
+    
     # Format for Chart.js
     labels = []
     sales_data = []
     earnings_data = []
+    readers_data = []
     
     # Fill in all dates (including zeros)
     current = thirty_days_ago.date()
     end = datetime.now().date()
     sales_by_date = {s['date']: s for s in daily_sales}
+    readers_by_date = {r['date']: r for r in daily_readers}
     
     while current <= end:
         labels.append(current.strftime('%b %d'))
@@ -1927,12 +1987,19 @@ def analytics_data_api(request):
         else:
             sales_data.append(0)
             earnings_data.append(0)
+        
+        if current in readers_by_date:
+            readers_data.append(readers_by_date[current]['readers'])
+        else:
+            readers_data.append(0)
+        
         current += timedelta(days=1)
     
     return JsonResponse({
         'labels': labels,
         'sales': sales_data,
         'earnings': earnings_data,
+        'readers': readers_data,
     })
 
 

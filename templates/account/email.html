@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Email Addresses" %} - Xanula{% endblock %}
+
+{% block content %}
+<div class="container py-6 max-w-lg">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+            {% trans "Email Addresses" %}
+        </h1>
+        <p class="mt-2 text-gray-600 dark:text-gray-400">
+            {% trans "Manage your email addresses" %}
+        </p>
+    </div>
+    
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="{% if message.tags == 'error' %}bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400{% else %}bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-600 dark:text-green-400{% endif %} border px-4 py-3 rounded-xl text-sm">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Current Emails Card -->
+    <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm mb-6">
+        <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-burgundy-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+            {% trans "Your Email Addresses" %}
+        </h2>
+        
+        {% if emailaddresses %}
+        <form action="{% url 'account_email' %}" method="post" class="space-y-3">
+            {% csrf_token %}
+            {% for emailaddress in emailaddresses %}
+            <div class="flex items-center justify-between p-4 bg-cream dark:bg-dark-50 rounded-xl">
+                <div class="flex items-center gap-3">
+                    <input type="radio" name="email" value="{{ emailaddress.email }}" id="email_{{ forloop.counter }}"
+                        {% if emailaddress.primary %}checked{% endif %}
+                        class="w-4 h-4 text-burgundy-500 border-gray-300 focus:ring-burgundy-500">
+                    <label for="email_{{ forloop.counter }}" class="flex flex-col">
+                        <span class="text-gray-900 dark:text-white font-medium">{{ emailaddress.email }}</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                            {% if emailaddress.verified %}
+                            <span class="text-green-600 dark:text-green-400">✓ {% trans "Verified" %}</span>
+                            {% else %}
+                            <span class="text-amber-600 dark:text-amber-400">{% trans "Unverified" %}</span>
+                            {% endif %}
+                            {% if emailaddress.primary %} · {% trans "Primary" %}{% endif %}
+                        </span>
+                    </label>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <div class="flex flex-wrap gap-2 pt-3">
+                <button type="submit" name="action_primary" class="btn btn-secondary btn-sm">
+                    {% trans "Make Primary" %}
+                </button>
+                <button type="submit" name="action_send" class="btn btn-secondary btn-sm">
+                    {% trans "Re-send Verification" %}
+                </button>
+                <button type="submit" name="action_remove" class="btn btn-sm bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30">
+                    {% trans "Remove" %}
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <p class="text-gray-500 dark:text-gray-400 text-center py-4">{% trans "No email addresses found." %}</p>
+        {% endif %}
+    </div>
+    
+    <!-- Add Email Card -->
+    <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
+        <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            {% trans "Add Email Address" %}
+        </h2>
+        
+        <form action="{% url 'account_email' %}" method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_email" class="label">{% trans "Email" %}</label>
+                <input type="email" name="email" id="id_email" required
+                    class="input" placeholder="{% trans 'you@example.com' %}">
+            </div>
+            <button type="submit" name="action_add" class="btn btn-primary">
+                {% trans "Add Email" %}
+            </button>
+        </form>
+    </div>
+    
+    <!-- Back Link -->
+    <div class="mt-6 text-center">
+        <a href="{% url 'core:user_settings' %}" class="text-sm text-burgundy-500 hover:text-burgundy-600 font-medium">
+            ← {% trans "Back to Settings" %}
+        </a>
+    </div>
+</div>
+{% endblock %}

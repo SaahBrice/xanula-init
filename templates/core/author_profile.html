@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}{{ author.get_display_name }} - Author Profile - Xanula{% endblock %}
+{% block title %}{{ author.get_display_name }} - {% trans "Author Profile" %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="container py-6">
@@ -22,7 +22,7 @@
             <!-- Author Info -->
             <div class="text-center sm:text-left flex-1">
                 <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">{{ author.get_display_name }}</h1>
-                <p class="text-gray-500 dark:text-gray-400 mb-4">{{ book_count }} book{% if book_count != 1 %}s{% endif %} published</p>
+                <p class="text-gray-500 dark:text-gray-400 mb-4">{% blocktrans count counter=book_count %}{{ counter }} book published{% plural %}{{ counter }} books published{% endblocktrans %}</p>
 
                 {% if author.bio %}
                 <p class="text-gray-700 dark:text-gray-300 max-w-2xl">{{ author.bio }}</p>
@@ -33,7 +33,7 @@
 
     <!-- Author's Books -->
     <div>
-        <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-6">Published Books</h2>
+        <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-6">{% trans "Published Books" %}</h2>
 
         {% if books %}
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
@@ -71,7 +71,7 @@
         </div>
         {% else %}
         <div class="text-center py-16 bg-cream dark:bg-dark-50 rounded-2xl">
-            <p class="text-gray-600 dark:text-gray-400">This author hasn't published any books yet.</p>
+            <p class="text-gray-600 dark:text-gray-400">{% trans "This author hasn't published any books yet." %}</p>
         </div>
         {% endif %}
     </div>

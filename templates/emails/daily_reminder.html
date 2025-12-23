@@ -1,16 +1,17 @@
 {% extends "emails/base_email.html" %}
+{% load i18n %}
 
-{% block title %}Continue Reading - Xanula{% endblock %}
+{% block title %}{% trans "Continue Reading" %} - Xanula{% endblock %}
 
 {% block content %}
-<h1>Continue Your Reading Journey</h1>
+<h1>{% trans "Continue Your Reading Journey" %}</h1>
 
-<p>Hello {{ user.get_display_name|default:user.email }},</p>
+<p>{% blocktrans with name=user.get_display_name|default:user.email %}Hello {{ name }},{% endblocktrans %}</p>
 
-<p>You have books waiting for you in your Xanula library! Don't let your reading momentum fade.</p>
+<p>{% trans "You have books waiting for you in your Xanula library! Don't let your reading momentum fade." %}</p>
 
 {% if books_in_progress %}
-<h2>📖 Continue Reading</h2>
+<h2>📖 {% trans "Continue Reading" %}</h2>
 
 {% for entry in books_in_progress %}
 <div class="book-card">
@@ -25,13 +26,13 @@
             </td>
             <td style="vertical-align: top;">
                 <h3 class="book-title" style="font-size: 16px;">{{ entry.book.title }}</h3>
-                <p class="book-author" style="font-size: 12px;">by {{ entry.book.author.get_display_name }}</p>
+                <p class="book-author" style="font-size: 12px;">{% trans "by" %} {{ entry.book.author.get_display_name }}</p>
                 <!-- Progress -->
                 <div style="margin-top: 8px;">
                     <div style="background: #E8E4DC; border-radius: 100px; height: 6px; overflow: hidden;">
                         <div style="background: #8B2635; height: 100%; width: {{ entry.reading_progress }}%; border-radius: 100px;"></div>
                     </div>
-                    <span style="font-size: 11px; color: #888888;">{{ entry.reading_progress }}% complete</span>
+                    <span style="font-size: 11px; color: #888888;">{% blocktrans with progress=entry.reading_progress %}{{ progress }}% complete{% endblocktrans %}</span>
                 </div>
             </td>
         </tr>
@@ -41,33 +42,33 @@
 {% endif %}
 
 {% if new_books %}
-<h2>✨ New in Your Library</h2>
-<p>You have {{ new_books|length }} book{{ new_books|length|pluralize }} you haven't started yet:</p>
+<h2>✨ {% trans "New in Your Library" %}</h2>
+<p>{% blocktrans count counter=new_books|length %}You have {{ counter }} book you haven't started yet:{% plural %}You have {{ counter }} books you haven't started yet:{% endblocktrans %}</p>
 
 <ul style="color: #555555; padding-left: 20px;">
 {% for book in new_books %}
-    <li><strong>{{ book.title }}</strong> by {{ book.author.get_display_name }}</li>
+    <li><strong>{{ book.title }}</strong> {% trans "by" %} {{ book.author.get_display_name }}</li>
 {% endfor %}
 </ul>
 {% endif %}
 
 <div class="info-box success">
-    <strong>💡 Reading Tip:</strong>
+    <strong>💡 {% trans "Reading Tip:" %}</strong>
     <p style="margin: 8px 0 0 0; color: #555555;">
-        Even 15 minutes a day can help you finish a book in a week. Set a small daily goal!
+        {% trans "Even 15 minutes a day can help you finish a book in a week. Set a small daily goal!" %}
     </p>
 </div>
 
 <!-- CTA -->
 <div style="text-align: center; margin-top: 32px;">
     <a href="{{ site_url|default:'https://xanula.com' }}/library/" class="btn">
-        Open My Library
+        {% trans "Open My Library" %}
     </a>
 </div>
 
 <div class="divider"></div>
 
 <p style="font-size: 12px; color: #888888; text-align: center;">
-    Don't want these reminders? <a href="{{ site_url|default:'https://xanula.com' }}/settings/notifications/">Update your preferences</a>
+    {% trans "Don't want these reminders?" %} <a href="{{ site_url|default:'https://xanula.com' }}/settings/notifications/">{% trans "Update your preferences" %}</a>
 </p>
 {% endblock %}

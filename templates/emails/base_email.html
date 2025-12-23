@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -92,7 +93,7 @@
             <tr>
                 <td class="header">
                     <a href="{{ site_url|default:'https://xanula.com' }}" class="logo">📚 Xanula</a>
-                    <p class="tagline">African Literature Marketplace</p>
+                    <p class="tagline">{% trans "African Literature Marketplace" %}</p>
                 </td>
             </tr>
             
@@ -111,12 +112,12 @@
                         <a href="#">Instagram</a> • 
                         <a href="#">Facebook</a>
                     </div>
-                    <p>© {{ current_year|default:"2024" }} Xanula. All rights reserved.</p>
-                    <p>Your gateway to African literature.</p>
+                    <p>© {{ current_year|default:"2024" }} Xanula. {% trans "All rights reserved." %}</p>
+                    <p>{% trans "Your gateway to African literature." %}</p>
                     <p class="mt-4">
-                        <a href="{{ site_url|default:'https://xanula.com' }}">Visit Xanula</a> • 
-                        <a href="{{ site_url|default:'https://xanula.com' }}/library/">My Library</a> •
-                        <a href="{{ site_url|default:'https://xanula.com' }}/terms/">Terms</a>
+                        <a href="{{ site_url|default:'https://xanula.com' }}">{% trans "Visit Xanula" %}</a> • 
+                        <a href="{{ site_url|default:'https://xanula.com' }}/library/">{% trans "My Library" %}</a> •
+                        <a href="{{ site_url|default:'https://xanula.com' }}/terms/">{% trans "Terms" %}</a>
                     </p>
                 </td>
             </tr>

@@ -23,6 +23,9 @@ urlpatterns = [
     # Admin
     path("admin/", admin.site.urls),
     
+    # Internationalization (language switching)
+    path("i18n/", include("django.conf.urls.i18n")),
+    
     # Authentication (django-allauth)
     path("accounts/", include("allauth.urls")),
     

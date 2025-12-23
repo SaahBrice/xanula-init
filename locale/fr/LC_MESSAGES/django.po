@@ -1,0 +1,1159 @@
+# Xanula French Translations
+# Copyright (C) 2024 REEPLS
+# This file is distributed under the same license as the Xanula package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Xanula 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-12-23 20:00+0100\n"
+"PO-Revision-Date: 2024-12-23 20:00+0100\n"
+"Last-Translator: Xanula Team\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: Navigation
+msgid "Browse"
+msgstr "Parcourir"
+
+msgid "Library"
+msgstr "Bibliothèque"
+
+msgid "My Books"
+msgstr "Mes Livres"
+
+msgid "Publish"
+msgstr "Publier"
+
+msgid "Settings"
+msgstr "Paramètres"
+
+msgid "Analytics"
+msgstr "Statistiques"
+
+msgid "Purchases"
+msgstr "Achats"
+
+msgid "Sign Out"
+msgstr "Déconnexion"
+
+msgid "Login"
+msgstr "Connexion"
+
+msgid "Sign Up"
+msgstr "S'inscrire"
+
+msgid "Home"
+msgstr "Accueil"
+
+msgid "Profile"
+msgstr "Profil"
+
+msgid "Toggle theme"
+msgstr "Changer le thème"
+
+#: PWA
+msgid "Install Xanula"
+msgstr "Installer Xanula"
+
+msgid "Read offline &amp; get quick access"
+msgstr "Lisez hors ligne et accédez rapidement"
+
+msgid "Install"
+msgstr "Installer"
+
+msgid "Not now"
+msgstr "Pas maintenant"
+
+msgid "Update Available"
+msgstr "Mise à jour disponible"
+
+msgid "A new version is ready"
+msgstr "Une nouvelle version est prête"
+
+msgid "Update"
+msgstr "Mettre à jour"
+
+#: Common
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Save"
+msgstr "Sauvegarder"
+
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "Edit"
+msgstr "Modifier"
+
+msgid "Back"
+msgstr "Retour"
+
+msgid "Next"
+msgstr "Suivant"
+
+msgid "Previous"
+msgstr "Précédent"
+
+msgid "Search"
+msgstr "Rechercher"
+
+msgid "Loading..."
+msgstr "Chargement..."
+
+msgid "Error"
+msgstr "Erreur"
+
+msgid "Success"
+msgstr "Succès"
+
+#: Settings Page
+msgid "Preferences"
+msgstr "Préférences"
+
+msgid "Language"
+msgstr "Langue"
+
+msgid "Choose your preferred language"
+msgstr "Choisissez votre langue préférée"
+
+msgid "Theme"
+msgstr "Thème"
+
+msgid "Toggle light or dark mode"
+msgstr "Basculer entre mode clair et sombre"
+
+msgid "Profile Information"
+msgstr "Informations du profil"
+
+msgid "Change Photo"
+msgstr "Changer la photo"
+
+msgid "JPG, PNG. Max 2MB."
+msgstr "JPG, PNG. Max 2 Mo."
+
+msgid "First Name"
+msgstr "Prénom"
+
+msgid "Last Name"
+msgstr "Nom"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Email cannot be changed."
+msgstr "L'email ne peut pas être modifié."
+
+msgid "Bio"
+msgstr "Bio"
+
+msgid "Tell us about yourself..."
+msgstr "Parlez-nous de vous..."
+
+msgid "Max 500 characters"
+msgstr "Maximum 500 caractères"
+
+msgid "Save Changes"
+msgstr "Enregistrer"
+
+msgid "Notifications"
+msgstr "Notifications"
+
+msgid "Email Notifications"
+msgstr "Notifications par email"
+
+msgid "Receive emails about purchases and updates"
+msgstr "Recevoir des emails concernant les achats et mises à jour"
+
+msgid "Daily Reading Reminders"
+msgstr "Rappels de lecture quotidiens"
+
+msgid "Get reminded to continue books you're reading"
+msgstr "Recevez des rappels pour continuer les livres que vous lisez"
+
+msgid "Saving..."
+msgstr "Enregistrement..."
+
+msgid "Preferences saved!"
+msgstr "Préférences enregistrées !"
+
+msgid "Account"
+msgstr "Compte"
+
+msgid "Change Password"
+msgstr "Changer le mot de passe"
+
+msgid "Purchase History"
+msgstr "Historique des achats"
+
+#: Password Change
+msgid "Update your account password"
+msgstr "Mettre à jour le mot de passe de votre compte"
+
+msgid "Current Password"
+msgstr "Mot de passe actuel"
+
+msgid "Enter current password"
+msgstr "Entrer le mot de passe actuel"
+
+msgid "New Password"
+msgstr "Nouveau mot de passe"
+
+msgid "Enter new password"
+msgstr "Entrer le nouveau mot de passe"
+
+msgid "Confirm New Password"
+msgstr "Confirmer le nouveau mot de passe"
+
+msgid "Must be at least 8 characters"
+msgstr "Doit contenir au moins 8 caractères"
+
+msgid "Forgot your password?"
+msgstr "Mot de passe oublié ?"
+
+#: Email Management
+msgid "Email Addresses"
+msgstr "Adresses e-mail"
+
+msgid "Manage your email addresses"
+msgstr "Gérer vos adresses e-mail"
+
+msgid "Your Email Addresses"
+msgstr "Vos adresses e-mail"
+
+msgid "Verified"
+msgstr "Vérifié"
+
+msgid "Unverified"
+msgstr "Non vérifié"
+
+msgid "Primary"
+msgstr "Principal"
+
+msgid "Make Primary"
+msgstr "Définir comme principal"
+
+msgid "Re-send Verification"
+msgstr "Renvoyer la vérification"
+
+msgid "Remove"
+msgstr "Supprimer"
+
+msgid "No email addresses found."
+msgstr "Aucune adresse e-mail trouvée."
+
+msgid "Add Email Address"
+msgstr "Ajouter une adresse e-mail"
+
+msgid "Add Email"
+msgstr "Ajouter l'e-mail"
+
+msgid "Back to Settings"
+msgstr "Retour aux paramètres"
+
+#: Social Connections
+msgid "Connected Accounts"
+msgstr "Comptes connectés"
+
+msgid "Manage your social account connections"
+msgstr "Gérer vos connexions de comptes sociaux"
+
+msgid "Your Connected Accounts"
+msgstr "Vos comptes connectés"
+
+msgid "No social accounts connected."
+msgstr "Aucun compte social connecté."
+
+msgid "Remove Selected"
+msgstr "Supprimer la sélection"
+
+msgid "Add a Connection"
+msgstr "Ajouter une connexion"
+
+msgid "Connect a social account to sign in faster."
+msgstr "Connectez un compte social pour vous connecter plus rapidement."
+
+msgid "No social providers available."
+msgstr "Aucun fournisseur social disponible."
+
+msgid "Connect"
+msgstr "Connecter"
+
+#: Password Set
+msgid "Set Password"
+msgstr "Définir le mot de passe"
+
+msgid "Create a password for your account"
+msgstr "Créer un mot de passe pour votre compte"
+
+msgid "You signed up using a social account. Set a password to also be able to sign in with your email."
+msgstr "Vous vous êtes inscrit avec un compte social. Définissez un mot de passe pour aussi pouvoir vous connecter avec votre e-mail."
+
+msgid "Create a password"
+msgstr "Créer un mot de passe"
+
+msgid "Confirm your password"
+msgstr "Confirmer votre mot de passe"
+
+msgid "Password"
+msgstr "Mot de passe"
+
+msgid "Confirm Password"
+msgstr "Confirmer le mot de passe"
+
+#: Login/Signup
+msgid "Sign In"
+msgstr "Connexion"
+
+msgid "Welcome back"
+msgstr "Bon retour"
+
+msgid "Sign in to access your library"
+msgstr "Connectez-vous pour accéder à votre bibliothèque"
+
+msgid "Continue with Google"
+msgstr "Continuer avec Google"
+
+msgid "Or sign in with email"
+msgstr "Ou connectez-vous par email"
+
+msgid "Email address"
+msgstr "Adresse email"
+
+msgid "you@example.com"
+msgstr "vous@exemple.com"
+
+msgid "Forgot password?"
+msgstr "Mot de passe oublié ?"
+
+msgid "Enter your password"
+msgstr "Entrez votre mot de passe"
+
+msgid "Remember me for 2 weeks"
+msgstr "Se souvenir de moi pendant 2 semaines"
+
+msgid "Don't have an account?"
+msgstr "Vous n'avez pas de compte ?"
+
+msgid "Sign up"
+msgstr "S'inscrire"
+
+msgid "Create your account"
+msgstr "Créez votre compte"
+
+msgid "Join the African literature community"
+msgstr "Rejoignez la communauté de la littérature africaine"
+
+msgid "Or sign up with email"
+msgstr "Ou inscrivez-vous par email"
+
+msgid "Create a strong password"
+msgstr "Créez un mot de passe fort"
+
+msgid "Create Account"
+msgstr "Créer un compte"
+
+msgid "Already have an account?"
+msgstr "Vous avez déjà un compte ?"
+
+msgid "Sign in"
+msgstr "Se connecter"
+
+#: Password Reset
+msgid "Reset Password"
+msgstr "Réinitialiser le mot de passe"
+
+msgid "Enter your email and we'll send you a reset link."
+msgstr "Entrez votre email et nous vous enverrons un lien de réinitialisation."
+
+msgid "Send Reset Link"
+msgstr "Envoyer le lien"
+
+msgid "Reset Email Sent"
+msgstr "Email envoyé"
+
+msgid "Check your inbox"
+msgstr "Vérifiez votre boîte de réception"
+
+msgid "Back to Sign In"
+msgstr "Retour à la connexion"
+
+msgid "Set new password"
+msgstr "Définir un nouveau mot de passe"
+
+msgid "Please enter your new password below."
+msgstr "Veuillez entrer votre nouveau mot de passe ci-dessous."
+
+msgid "Invalid or Expired Link"
+msgstr "Lien invalide ou expiré"
+
+msgid "This password reset link is no longer valid. Please request a new one."
+msgstr "Ce lien de réinitialisation n'est plus valide. Veuillez en demander un nouveau."
+
+msgid "Request New Link"
+msgstr "Demander un nouveau lien"
+
+msgid "Password Reset Complete"
+msgstr "Réinitialisation terminée"
+
+msgid "Sign In Now"
+msgstr "Se connecter maintenant"
+
+#: Library
+msgid "My Library"
+msgstr "Ma Bibliothèque"
+
+msgid "Recently Accessed"
+msgstr "Récemment consulté"
+
+msgid "Recently Added"
+msgstr "Récemment ajouté"
+
+msgid "Title A-Z"
+msgstr "Titre A-Z"
+
+msgid "All"
+msgstr "Tout"
+
+msgid "Ebooks"
+msgstr "Ebooks"
+
+msgid "Audiobooks"
+msgstr "Livres audio"
+
+msgid "In Progress"
+msgstr "En cours"
+
+msgid "Completed"
+msgstr "Terminé"
+
+msgid "Reading"
+msgstr "En lecture"
+
+msgid "Offline"
+msgstr "Hors ligne"
+
+msgid "Downloading..."
+msgstr "Téléchargement..."
+
+msgid "Progress"
+msgstr "Progression"
+
+msgid "listened"
+msgstr "écouté"
+
+msgid "Continue Reading"
+msgstr "Continuer la lecture"
+
+msgid "Start Reading"
+msgstr "Commencer la lecture"
+
+msgid "Continue Listening"
+msgstr "Continuer l'écoute"
+
+msgid "Listen"
+msgstr "Écouter"
+
+msgid "Saved"
+msgstr "Sauvegardé"
+
+msgid "Print"
+msgstr "Imprimer"
+
+msgid "Your Library is Empty"
+msgstr "Votre bibliothèque est vide"
+
+msgid "Browse Books"
+msgstr "Parcourir les livres"
+
+#: Book Details
+msgid "Books"
+msgstr "Livres"
+
+msgid "by"
+msgstr "par"
+
+msgid "In Your Library"
+msgstr "Dans votre bibliothèque"
+
+msgid "Get Free Book"
+msgstr "Obtenir le livre gratuit"
+
+msgid "Buy Now"
+msgstr "Acheter maintenant"
+
+msgid "Sign in to Purchase"
+msgstr "Connectez-vous pour acheter"
+
+msgid "Preview"
+msgstr "Aperçu"
+
+msgid "Add to Wishlist"
+msgstr "Ajouter à la liste de souhaits"
+
+msgid "About This Book"
+msgstr "À propos de ce livre"
+
+msgid "Show Less"
+msgstr "Voir moins"
+
+msgid "Read More"
+msgstr "Lire la suite"
+
+msgid "Readers"
+msgstr "Lecteurs"
+
+msgid "Published"
+msgstr "Publié"
+
+msgid "Share This Book"
+msgstr "Partager ce livre"
+
+msgid "Copied!"
+msgstr "Copié !"
+
+msgid "Copy Link"
+msgstr "Copier le lien"
+
+msgid "Share"
+msgstr "Partager"
+
+msgid "Reviews"
+msgstr "Avis"
+
+msgid "Rating Breakdown"
+msgstr "Répartition des notes"
+
+msgid "Write a Review"
+msgstr "Écrire un avis"
+
+msgid "Your Rating"
+msgstr "Votre note"
+
+msgid "Poor"
+msgstr "Mauvais"
+
+msgid "Fair"
+msgstr "Passable"
+
+msgid "Good"
+msgstr "Bon"
+
+msgid "Very Good"
+msgstr "Très bon"
+
+msgid "Excellent"
+msgstr "Excellent"
+
+msgid "Please select a rating"
+msgstr "Veuillez sélectionner une note"
+
+msgid "Your Review (optional)"
+msgstr "Votre avis (optionnel)"
+
+msgid "Share your thoughts about this book..."
+msgstr "Partagez vos impressions sur ce livre..."
+
+msgid "Submit Review"
+msgstr "Soumettre l'avis"
+
+msgid "Submitting..."
+msgstr "Envoi en cours..."
+
+msgid "No reviews yet"
+msgstr "Pas encore d'avis"
+
+msgid "Be the first to share your thoughts!"
+msgstr "Soyez le premier à partager vos impressions !"
+
+#: Book List/Browse
+msgid "Discover stories from African authors"
+msgstr "Découvrez des histoires d'auteurs africains"
+
+msgid "Filters"
+msgstr "Filtres"
+
+msgid "Category"
+msgstr "Catégorie"
+
+msgid "All Categories"
+msgstr "Toutes les catégories"
+
+msgid "English"
+msgstr "Anglais"
+
+msgid "French"
+msgstr "Français"
+
+msgid "Format"
+msgstr "Format"
+
+msgid "Price"
+msgstr "Prix"
+
+msgid "Any Price"
+msgstr "Tous les prix"
+
+msgid "Free"
+msgstr "Gratuit"
+
+msgid "Sort By"
+msgstr "Trier par"
+
+msgid "Newest"
+msgstr "Plus récent"
+
+msgid "Most Popular"
+msgstr "Plus populaire"
+
+msgid "Highest Rated"
+msgstr "Mieux noté"
+
+msgid "Apply Filters"
+msgstr "Appliquer les filtres"
+
+msgid "Clear"
+msgstr "Effacer"
+
+msgid "No Books Found"
+msgstr "Aucun livre trouvé"
+
+msgid "View All Books"
+msgstr "Voir tous les livres"
+
+#: Author
+msgid "Author"
+msgstr "Auteur"
+
+msgid "Become an Author"
+msgstr "Devenir auteur"
+
+msgid "Start Publishing"
+msgstr "Commencer à publier"
+
+msgid "Publish Your Book"
+msgstr "Publiez votre livre"
+
+#: Homepage
+msgid "Discover African Literature"
+msgstr "Découvrez la littérature africaine"
+
+msgid "Explore stories, voices, and perspectives from across Africa."
+msgstr "Explorez des histoires, des voix et des perspectives de toute l'Afrique."
+
+msgid "Featured Books"
+msgstr "Livres en vedette"
+
+msgid "View All"
+msgstr "Voir tout"
+
+msgid "Popular Categories"
+msgstr "Catégories populaires"
+
+msgid "Top Rated"
+msgstr "Mieux notés"
+
+#: Search
+msgid "Search Results"
+msgstr "Résultats de recherche"
+
+msgid "results for"
+msgstr "résultats pour"
+
+msgid "No results found for"
+msgstr "Aucun résultat pour"
+
+msgid "Try searching with different keywords"
+msgstr "Essayez de rechercher avec d'autres mots-clés"
+
+#: Wishlist
+msgid "My Wishlist"
+msgstr "Ma liste de souhaits"
+
+msgid "Your wishlist is empty"
+msgstr "Votre liste de souhaits est vide"
+
+msgid "Start adding books you'd like to read!"
+msgstr "Commencez à ajouter des livres que vous aimeriez lire !"
+
+msgid "In Wishlist"
+msgstr "Dans la liste de souhaits"
+
+#: Purchase
+msgid "Complete Purchase"
+msgstr "Finaliser l'achat"
+
+msgid "Order Summary"
+msgstr "Récapitulatif de commande"
+
+msgid "Subtotal"
+msgstr "Sous-total"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Payment Method"
+msgstr "Moyen de paiement"
+
+msgid "Card Payment"
+msgstr "Paiement par carte"
+
+msgid "Visa, Mastercard"
+msgstr "Visa, Mastercard"
+
+msgid "Mobile Money"
+msgstr "Mobile Money"
+
+msgid "MTN MoMo, Orange"
+msgstr "MTN MoMo, Orange"
+
+msgid "Proceed to Payment"
+msgstr "Procéder au paiement"
+
+msgid "Purchase Successful!"
+msgstr "Achat réussi !"
+
+msgid "Your book has been added to your library"
+msgstr "Votre livre a été ajouté à votre bibliothèque"
+
+msgid "Go to Library"
+msgstr "Aller à la bibliothèque"
+
+#: Publish Book
+msgid "Share your story with the world"
+msgstr "Partagez votre histoire avec le monde"
+
+msgid "Book Details"
+msgstr "Détails du livre"
+
+msgid "Title"
+msgstr "Titre"
+
+msgid "Enter your book title"
+msgstr "Entrez le titre de votre livre"
+
+msgid "Short Description"
+msgstr "Description courte"
+
+msgid "Brief description for listings (max 200 characters)"
+msgstr "Brève description pour les listes (max 200 caractères)"
+
+msgid "Full Description"
+msgstr "Description complète"
+
+msgid "Detailed description of your book..."
+msgstr "Description détaillée de votre livre..."
+
+msgid "Category"
+msgstr "Catégorie"
+
+msgid "Select a category"
+msgstr "Sélectionnez une catégorie"
+
+msgid "Pricing"
+msgstr "Tarification"
+
+msgid "Price (XAF)"
+msgstr "Prix (XAF)"
+
+msgid "Set to 0 for free books"
+msgstr "Mettre à 0 pour les livres gratuits"
+
+msgid "Cover Image"
+msgstr "Image de couverture"
+
+msgid "Click to upload cover"
+msgstr "Cliquez pour télécharger la couverture"
+
+msgid "Manuscript File"
+msgstr "Fichier manuscrit"
+
+msgid "Click to upload manuscript"
+msgstr "Cliquez pour télécharger le manuscrit"
+
+msgid "Submit for Review"
+msgstr "Soumettre pour examen"
+
+msgid "Publishing..."
+msgstr "Publication..."
+
+#: My Books (Author)
+msgid "Your published and pending books"
+msgstr "Vos livres publiés et en attente"
+
+msgid "Publish New Book"
+msgstr "Publier un nouveau livre"
+
+msgid "No books yet"
+msgstr "Pas encore de livres"
+
+msgid "Publish your first book to get started!"
+msgstr "Publiez votre premier livre pour commencer !"
+
+msgid "In Review"
+msgstr "En examen"
+
+msgid "Approved"
+msgstr "Approuvé"
+
+msgid "Denied"
+msgstr "Refusé"
+
+msgid "Live"
+msgstr "En ligne"
+
+msgid "sales"
+msgstr "ventes"
+
+msgid "earned"
+msgstr "gagné"
+
+msgid "View Analytics"
+msgstr "Voir les statistiques"
+
+msgid "Edit Book"
+msgstr "Modifier le livre"
+
+#: Author Profile
+msgid "Published Books"
+msgstr "Livres publiés"
+
+msgid "Follow"
+msgstr "Suivre"
+
+msgid "Followers"
+msgstr "Abonnés"
+
+msgid "Total Sales"
+msgstr "Ventes totales"
+
+msgid "About"
+msgstr "À propos"
+
+msgid "No public books yet"
+msgstr "Pas encore de livres publics"
+
+#: Analytics Dashboard
+msgid "Analytics Dashboard"
+msgstr "Tableau de bord analytique"
+
+msgid "Track your book sales and earnings"
+msgstr "Suivez vos ventes de livres et vos revenus"
+
+msgid "Track your book sales and reader engagement"
+msgstr "Suivez vos ventes de livres et l'engagement des lecteurs"
+
+msgid "Back to My Books"
+msgstr "Retour à Mes Livres"
+
+msgid "Total Earnings"
+msgstr "Revenus totaux"
+
+msgid "Total Reviews"
+msgstr "Avis totaux"
+
+msgid "Total Readers"
+msgstr "Lecteurs totaux"
+
+msgid "Active Readers"
+msgstr "Lecteurs actifs"
+
+msgid "Reading Now"
+msgstr "En lecture"
+
+msgid "Completion Rate"
+msgstr "Taux de complétion"
+
+msgid "Sales (Last 30 Days)"
+msgstr "Ventes (30 derniers jours)"
+
+msgid "Earnings (Last 30 Days)"
+msgstr "Revenus (30 derniers jours)"
+
+msgid "Reader Activity (Last 30 Days)"
+msgstr "Activité des lecteurs (30 derniers jours)"
+
+msgid "Book Performance"
+msgstr "Performance des livres"
+
+msgid "Book"
+msgstr "Livre"
+
+msgid "Sales"
+msgstr "Ventes"
+
+msgid "Rating"
+msgstr "Note"
+
+msgid "Earnings"
+msgstr "Revenus"
+
+msgid "Finished"
+msgstr "Terminé"
+
+msgid "Recent Purchases"
+msgstr "Achats récents"
+
+msgid "bought"
+msgstr "a acheté"
+
+msgid "ago"
+msgstr "il y a"
+
+msgid "No books published yet"
+msgstr "Aucun livre publié pour le moment"
+
+msgid "No recent purchases"
+msgstr "Aucun achat récent"
+
+#: Request Payout
+msgid "Request Payout"
+msgstr "Demander un retrait"
+
+msgid "Withdraw your earnings to your account."
+msgstr "Retirez vos gains sur votre compte."
+
+msgid "Available Balance"
+msgstr "Solde disponible"
+
+msgid "Pending Payouts"
+msgstr "Retraits en attente"
+
+msgid "Payout Details"
+msgstr "Détails du retrait"
+
+msgid "Payout Method"
+msgstr "Méthode de retrait"
+
+msgid "Bank Transfer"
+msgstr "Virement bancaire"
+
+msgid "Local bank account"
+msgstr "Compte bancaire local"
+
+msgid "Account Details"
+msgstr "Détails du compte"
+
+msgid "Processing Information"
+msgstr "Informations sur le traitement"
+
+msgid "Payouts are processed within 3-5 business days"
+msgstr "Les retraits sont traités dans un délai de 3 à 5 jours ouvrables"
+
+msgid "You will receive a confirmation email once processed"
+msgstr "Vous recevrez un email de confirmation une fois le traitement effectué"
+
+msgid "Make sure your account details are correct"
+msgstr "Assurez-vous que vos coordonnées bancaires sont correctes"
+
+#: Processing Payment
+msgid "Processing Payment"
+msgstr "Traitement du paiement"
+
+msgid "Waiting for mobile money confirmation..."
+msgstr "En attente de confirmation Mobile Money..."
+
+msgid "This usually takes 1-2 minutes"
+msgstr "Cela prend généralement 1-2 minutes"
+
+msgid "Keep Waiting"
+msgstr "Continuer à attendre"
+
+msgid "Try Again Later"
+msgstr "Réessayer plus tard"
+
+msgid "Payment failed."
+msgstr "Paiement échoué."
+
+msgid "While you wait:"
+msgstr "En attendant :"
+
+msgid "Check your phone for a confirmation prompt"
+msgstr "Vérifiez votre téléphone pour une invite de confirmation"
+
+msgid "Approve the payment on your mobile money app"
+msgstr "Approuvez le paiement sur votre application Mobile Money"
+
+msgid "This page will update automatically"
+msgstr "Cette page se mettra à jour automatiquement"
+
+#: Legal Pages
+msgid "Legal Notice"
+msgstr "Mentions légales"
+
+msgid "Privacy Policy"
+msgstr "Politique de confidentialité"
+
+msgid "Terms and Conditions"
+msgstr "Conditions générales d'utilisation"
+
+msgid "Back to Home"
+msgstr "Retour à l'accueil"
+
+msgid "Terms & Conditions"
+msgstr "Conditions générales"
+
+#: Request Hard Copy
+msgid "Request Hard Copy"
+msgstr "Demander une copie papier"
+
+msgid "Request a printed version of your book."
+msgstr "Demandez une version imprimée de votre livre."
+
+msgid "Shipping Information"
+msgstr "Informations de livraison"
+
+msgid "Full Name"
+msgstr "Nom complet"
+
+msgid "Your full name"
+msgstr "Votre nom complet"
+
+msgid "Phone Number"
+msgstr "Numéro de téléphone"
+
+msgid "Shipping Address"
+msgstr "Adresse de livraison"
+
+msgid "Additional Notes"
+msgstr "Notes supplémentaires"
+
+msgid "Optional"
+msgstr "Optionnel"
+
+msgid "Important Notice"
+msgstr "Avis important"
+
+msgid "Submit Request"
+msgstr "Soumettre la demande"
+
+#: Book Preview
+msgid "Free Preview"
+msgstr "Aperçu gratuit"
+
+msgid "Loading preview..."
+msgstr "Chargement de l'aperçu..."
+
+msgid "Back to book details"
+msgstr "Retour aux détails du livre"
+
+msgid "End of Free Preview"
+msgstr "Fin de l'aperçu gratuit"
+
+msgid "Buy Full Book"
+msgstr "Acheter le livre complet"
+
+msgid "Back to Details"
+msgstr "Retour aux détails"
+
+#: Edit Book
+msgid "Edit & Resubmit"
+msgstr "Modifier et resoumettre"
+
+msgid "Make changes to your book and resubmit for review."
+msgstr "Apportez des modifications à votre livre et resoumettez-le pour examen."
+
+msgid "Reason for Denial"
+msgstr "Motif du refus"
+
+msgid "Resubmit for Review"
+msgstr "Resoumettre pour examen"
+
+msgid "Uploading..."
+msgstr "Téléchargement..."
+
+#: Purchase History
+msgid "View all your book purchases"
+msgstr "Voir tous vos achats de livres"
+
+msgid "Refunded"
+msgstr "Remboursé"
+
+msgid "View in Library"
+msgstr "Voir dans la bibliothèque"
+
+msgid "No purchases yet"
+msgstr "Aucun achat pour le moment"
+
+#: Social Login
+msgid "Sign in with Google"
+msgstr "Se connecter avec Google"
+
+msgid "Connect your Google account to continue"
+msgstr "Connectez votre compte Google pour continuer"
+
+msgid "Sign in with Email"
+msgstr "Se connecter avec un email"
+
+msgid "Create an Account"
+msgstr "Créer un compte"
+
+msgid "or"
+msgstr "ou"
+
+#: Misc
+msgid "All rights reserved."
+msgstr "Tous droits réservés."
+
+msgid "African Literature Marketplace"
+msgstr "Place de marché de la littérature africaine"
+
+msgid "Your gateway to African literature."
+msgstr "Votre porte d'entrée vers la littérature africaine."
+
+msgid "Visit Xanula"
+msgstr "Visiter Xanula"
+
+msgid "Terms"
+msgstr "Conditions"
+
+msgid "Try Again"
+msgstr "Réessayer"
+
+msgid "Close"
+msgstr "Fermer"
+
+msgid "Amount"
+msgstr "Montant"
+
+msgid "Reference"
+msgstr "Référence"
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "City"
+msgstr "Ville"
+
+msgid "Phone"
+msgstr "Téléphone"
+
+
+#: Plural forms for library
+msgid "%(counter)s book in your collection"
+msgid_plural "%(counter)s books in your collection"
+msgstr[0] "%(counter)s livre dans votre collection"
+msgstr[1] "%(counter)s livres dans votre collection"
+
+msgid "Last read %(time)s ago"
+msgstr "Lu il y a %(time)s"
+
+
+#: Price filters
+msgid "Under 1,000 XAF"
+msgstr "Moins de 1 000 XAF"
+
+msgid "1,000 - 5,000 XAF"
+msgstr "1 000 - 5 000 XAF"
+
+msgid "Above 5,000 XAF"
+msgstr "Plus de 5 000 XAF"
+

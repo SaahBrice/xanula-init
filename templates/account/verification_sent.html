@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Verify Your Email - Xanula{% endblock %}
+{% block title %}{% trans "Verify Your Email" %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="min-h-screen flex items-center justify-center py-12 px-4">
@@ -12,37 +13,36 @@
 
         <!-- Header -->
         <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            Verify your email
+            {% trans "Verify your email" %}
         </h1>
         <p class="text-gray-600 dark:text-gray-400 mb-8">
-            We've sent a verification link to your email address.
-            Please check your inbox and click the link to activate your account.
+            {% trans "We've sent a verification link to your email address. Please check your inbox and click the link to activate your account." %}
         </p>
 
         <!-- Next Steps Box -->
         <div class="bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-left mb-4">
-            <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-2">Next steps:</h3>
+            <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-2">{% trans "Next steps:" %}</h3>
             <ol class="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-decimal list-inside">
-                <li>Check your email inbox</li>
-                <li>Open the email from Xanula</li>
-                <li>Click the verification link</li>
-                <li>Start exploring books!</li>
+                <li>{% trans "Check your email inbox" %}</li>
+                <li>{% trans "Open the email from Xanula" %}</li>
+                <li>{% trans "Click the verification link" %}</li>
+                <li>{% trans "Start exploring books!" %}</li>
             </ol>
         </div>
 
         <!-- Didn't Receive Box -->
         <div class="bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-left mb-6">
-            <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-2">Didn't receive the email?</h3>
+            <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-2">{% trans "Didn't receive the email?" %}</h3>
             <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                <li>• Check your spam or junk folder</li>
-                <li>• Make sure you entered the correct email</li>
-                <li>• Wait a few minutes and check again</li>
+                <li>• {% trans "Check your spam or junk folder" %}</li>
+                <li>• {% trans "Make sure you entered the correct email" %}</li>
+                <li>• {% trans "Wait a few minutes and check again" %}</li>
             </ul>
         </div>
 
         <!-- Back to login -->
         <a href="{% url 'account_login' %}" class="text-burgundy-500 hover:text-burgundy-600 font-medium">
-            Back to Sign In
+            {% trans "Back to Sign In" %}
         </a>
     </div>
 </div>

@@ -1,11 +1,12 @@
 {% extends "emails/base_email.html" %}
+{% load i18n %}
 
-{% block title %}Hard Copy Request - Xanula{% endblock %}
+{% block title %}{% trans "Hard Copy Request" %} - Xanula{% endblock %}
 
 {% block content %}
-<h1>New Hard Copy Request</h1>
+<h1>{% trans "New Hard Copy Request" %}</h1>
 
-<p>A reader has requested a printed copy of a book.</p>
+<p>{% trans "A reader has requested a printed copy of a book." %}</p>
 
 <!-- Request Details -->
 <div class="book-card">
@@ -20,21 +21,21 @@
             </td>
             <td style="vertical-align: top;">
                 <h3 class="book-title">{{ request.book.title }}</h3>
-                <p class="book-author">by {{ request.book.author.get_display_name }}</p>
+                <p class="book-author">{% trans "by" %} {{ request.book.author.get_display_name }}</p>
                 <div style="margin-top: 8px;">
-                    <span class="badge badge-pending">📦 Hard Copy Request</span>
+                    <span class="badge badge-pending">📦 {% trans "Hard Copy Request" %}</span>
                 </div>
             </td>
         </tr>
     </table>
 </div>
 
-<h2>Customer Information</h2>
+<h2>{% trans "Customer Information" %}</h2>
 
 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
     <tr>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC; width: 140px;">
-            <span style="color: #666666; font-size: 14px;">Name</span>
+            <span style="color: #666666; font-size: 14px;">{% trans "Name" %}</span>
         </td>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
             <span style="color: #1a1a1a; font-size: 14px; font-weight: 600;">{{ request.full_name }}</span>
@@ -42,7 +43,7 @@
     </tr>
     <tr>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #666666; font-size: 14px;">Email</span>
+            <span style="color: #666666; font-size: 14px;">{% trans "Email" %}</span>
         </td>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
             <a href="mailto:{{ request.email }}" style="color: #8B2635;">{{ request.email }}</a>
@@ -50,7 +51,7 @@
     </tr>
     <tr>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #666666; font-size: 14px;">Phone</span>
+            <span style="color: #666666; font-size: 14px;">{% trans "Phone" %}</span>
         </td>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
             <span style="color: #1a1a1a; font-size: 14px;">{{ request.phone_number }}</span>
@@ -58,7 +59,7 @@
     </tr>
     <tr>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC; vertical-align: top;">
-            <span style="color: #666666; font-size: 14px;">Address</span>
+            <span style="color: #666666; font-size: 14px;">{% trans "Address" %}</span>
         </td>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
             <span style="color: #1a1a1a; font-size: 14px;">{{ request.delivery_address }}</span>
@@ -66,7 +67,7 @@
     </tr>
     <tr>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #666666; font-size: 14px;">City</span>
+            <span style="color: #666666; font-size: 14px;">{% trans "City" %}</span>
         </td>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
             <span style="color: #1a1a1a; font-size: 14px;">{{ request.city }}</span>
@@ -74,7 +75,7 @@
     </tr>
     <tr>
         <td style="padding: 12px 0;">
-            <span style="color: #666666; font-size: 14px;">Copies</span>
+            <span style="color: #666666; font-size: 14px;">{% trans "Copies" %}</span>
         </td>
         <td style="padding: 12px 0;">
             <span style="color: #8B2635; font-size: 18px; font-weight: bold;">{{ request.quantity }}</span>
@@ -84,7 +85,7 @@
 
 {% if request.notes %}
 <div class="info-box">
-    <strong>Additional Notes:</strong>
+    <strong>{% trans "Additional Notes:" %}</strong>
     <p style="margin: 8px 0 0 0; color: #555555;">{{ request.notes }}</p>
 </div>
 {% endif %}
@@ -92,7 +93,7 @@
 <!-- CTA -->
 <div style="text-align: center; margin-top: 32px;">
     <a href="{{ site_url|default:'https://xanula.com' }}/admin/core/hardcopyrequest/" class="btn">
-        View in Admin
+        {% trans "View in Admin" %}
     </a>
 </div>
 {% endblock %}

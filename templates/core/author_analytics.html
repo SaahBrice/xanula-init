@@ -1,24 +1,25 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Analytics Dashboard - Xanula{% endblock %}
+{% block title %}{% trans "Analytics Dashboard" %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="container py-6">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div>
-            <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Analytics Dashboard</h1>
-            <p class="text-gray-600 dark:text-gray-400 mt-1">Track your book sales and earnings</p>
+            <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{% trans "Analytics Dashboard" %}</h1>
+            <p class="text-gray-600 dark:text-gray-400 mt-1">{% trans "Track your book sales and reader engagement" %}</p>
         </div>
         <a href="{% url 'core:my_books' %}" class="btn btn-secondary inline-flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>
-            Back to My Books
+            {% trans "Back to My Books" %}
         </a>
     </div>
     
-    <!-- Stats Cards -->
+    <!-- Sales Stats Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-5">
             <div class="flex items-center gap-3 mb-2">
@@ -27,7 +28,7 @@
                 </div>
             </div>
             <p class="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white">{{ total_earnings|floatformat:0 }}<span class="text-base text-gray-400"> XAF</span></p>
-            <p class="text-gray-500 text-sm">Total Earnings</p>
+            <p class="text-gray-500 text-sm">{% trans "Total Earnings" %}</p>
         </div>
         
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-5">
@@ -37,7 +38,7 @@
                 </div>
             </div>
             <p class="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white">{{ total_sales }}</p>
-            <p class="text-gray-500 text-sm">Total Sales</p>
+            <p class="text-gray-500 text-sm">{% trans "Total Sales" %}</p>
         </div>
         
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-5">
@@ -47,7 +48,7 @@
                 </div>
             </div>
             <p class="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white">{{ total_reviews }}</p>
-            <p class="text-gray-500 text-sm">Total Reviews</p>
+            <p class="text-gray-500 text-sm">{% trans "Total Reviews" %}</p>
         </div>
         
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-5">
@@ -57,41 +58,105 @@
                 </div>
             </div>
             <p class="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white">{{ book_count }}</p>
-            <p class="text-gray-500 text-sm">Published Books</p>
+            <p class="text-gray-500 text-sm">{% trans "Published Books" %}</p>
+        </div>
+    </div>
+    
+    <!-- Reading Engagement Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-2xl p-5">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-purple-200 dark:bg-purple-800/50 flex items-center justify-center">
+                    <span class="text-xl">👥</span>
+                </div>
+            </div>
+            <p class="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white">{{ total_readers }}</p>
+            <p class="text-purple-600 dark:text-purple-400 text-sm font-medium">{% trans "Total Readers" %}</p>
+        </div>
+        
+        <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-5">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-emerald-200 dark:bg-emerald-800/50 flex items-center justify-center">
+                    <span class="text-xl">📖</span>
+                </div>
+            </div>
+            <p class="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white">{{ active_readers }}</p>
+            <p class="text-emerald-600 dark:text-emerald-400 text-sm font-medium">{% trans "Active Readers" %} <span class="text-xs opacity-75">(7d)</span></p>
+        </div>
+        
+        <div class="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-5">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-amber-200 dark:bg-amber-800/50 flex items-center justify-center">
+                    <span class="text-xl">📊</span>
+                </div>
+            </div>
+            <p class="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white">{{ in_progress_count }}</p>
+            <p class="text-amber-600 dark:text-amber-400 text-sm font-medium">{% trans "Reading Now" %}</p>
+        </div>
+        
+        <div class="bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-900/30 border border-teal-200 dark:border-teal-800 rounded-2xl p-5">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-teal-200 dark:bg-teal-800/50 flex items-center justify-center">
+                    <span class="text-xl">✅</span>
+                </div>
+            </div>
+            <p class="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white">{{ completion_rate }}%</p>
+            <p class="text-teal-600 dark:text-teal-400 text-sm font-medium">{% trans "Completion Rate" %}</p>
         </div>
     </div>
     
     <!-- Charts -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
-            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">Sales (Last 30 Days)</h2>
+            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "Sales (Last 30 Days)" %}</h2>
             <div class="h-64"><canvas id="salesChart"></canvas></div>
         </div>
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
-            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">Earnings (Last 30 Days)</h2>
+            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "Earnings (Last 30 Days)" %}</h2>
             <div class="h-64"><canvas id="earningsChart"></canvas></div>
+        </div>
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "Reader Activity (Last 30 Days)" %}</h2>
+            <div class="h-64"><canvas id="readersChart"></canvas></div>
         </div>
     </div>
     
-    <!-- Book Performance Table -->
+    <!-- Book Performance Table with Reading Stats -->
     <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-6">
-        <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">Book Performance</h2>
+        <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "Book Performance" %}</h2>
         
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead>
                     <tr class="border-b border-gray-200 dark:border-gray-700">
-                        <th class="text-left py-3 px-4 text-gray-500 font-medium text-sm">Book</th>
-                        <th class="text-center py-3 px-4 text-gray-500 font-medium text-sm">Sales</th>
-                        <th class="text-center py-3 px-4 text-gray-500 font-medium text-sm">Rating</th>
-                        <th class="text-center py-3 px-4 text-gray-500 font-medium text-sm">Reviews</th>
-                        <th class="text-right py-3 px-4 text-gray-500 font-medium text-sm">Earnings</th>
+                        <th class="text-left py-3 px-4 text-gray-500 font-medium text-sm">{% trans "Book" %}</th>
+                        <th class="text-center py-3 px-4 text-gray-500 font-medium text-sm">{% trans "Readers" %}</th>
+                        <th class="text-center py-3 px-4 text-gray-500 font-medium text-sm">{% trans "Reading" %}</th>
+                        <th class="text-center py-3 px-4 text-gray-500 font-medium text-sm">{% trans "Finished" %}</th>
+                        <th class="text-center py-3 px-4 text-gray-500 font-medium text-sm">{% trans "Sales" %}</th>
+                        <th class="text-center py-3 px-4 text-gray-500 font-medium text-sm">{% trans "Rating" %}</th>
+                        <th class="text-right py-3 px-4 text-gray-500 font-medium text-sm">{% trans "Earnings" %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for book in book_performance %}
                     <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-cream dark:hover:bg-dark-50 transition-colors">
                         <td class="py-4 px-4"><span class="font-medium text-gray-900 dark:text-white">{{ book.title }}</span></td>
+                        <td class="text-center py-4 px-4">
+                            <span class="inline-flex items-center gap-1 text-purple-600 dark:text-purple-400 font-medium">
+                                <span class="text-sm">👥</span> {{ book.readers }}
+                            </span>
+                        </td>
+                        <td class="text-center py-4 px-4">
+                            <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                                {{ book.in_progress }}
+                            </span>
+                        </td>
+                        <td class="text-center py-4 px-4">
+                            <span class="inline-flex items-center gap-1 text-teal-600 dark:text-teal-400">
+                                {{ book.completed }} <span class="text-xs text-gray-400">({{ book.completion_rate }}%)</span>
+                            </span>
+                        </td>
                         <td class="text-center py-4 px-4 text-gray-600 dark:text-gray-300">{{ book.sales }}</td>
                         <td class="text-center py-4 px-4">
                             <span class="flex items-center justify-center gap-1 text-gold-500">
@@ -99,11 +164,10 @@
                                 {{ book.rating|floatformat:1 }}
                             </span>
                         </td>
-                        <td class="text-center py-4 px-4 text-gray-600 dark:text-gray-300">{{ book.reviews }}</td>
                         <td class="text-right py-4 px-4 text-forest-500 font-medium">{{ book.earnings|floatformat:0 }} XAF</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" class="py-8 text-center text-gray-500">No books published yet</td></tr>
+                    <tr><td colspan="7" class="py-8 text-center text-gray-500">{% trans "No books published yet" %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -112,7 +176,7 @@
     
     <!-- Recent Purchases -->
     <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
-        <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Purchases</h2>
+        <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "Recent Purchases" %}</h2>
         
         {% if recent_purchases %}
         <div class="space-y-3">
@@ -123,8 +187,8 @@
                         <span class="text-burgundy-500 font-display font-semibold">{{ purchase.buyer.get_display_name|first|upper }}</span>
                     </div>
                     <div>
-                        <p class="text-gray-900 dark:text-white">{{ purchase.buyer.get_display_name }} bought <span class="text-burgundy-500">{{ purchase.book.title }}</span></p>
-                        <p class="text-gray-500 text-sm">{{ purchase.purchase_date|timesince }} ago</p>
+                        <p class="text-gray-900 dark:text-white">{{ purchase.buyer.get_display_name }} {% trans "bought" %} <span class="text-burgundy-500">{{ purchase.book.title }}</span></p>
+                        <p class="text-gray-500 text-sm">{{ purchase.purchase_date|timesince }} {% trans "ago" %}</p>
                     </div>
                 </div>
                 <span class="text-forest-500 font-medium">+{{ purchase.author_earning|floatformat:0 }} XAF</span>
@@ -132,7 +196,7 @@
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-gray-500 text-center py-8">No recent purchases</p>
+        <p class="text-gray-500 text-center py-8">{% trans "No recent purchases" %}</p>
         {% endif %}
     </div>
 </div>
@@ -149,13 +213,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     new Chart(document.getElementById('salesChart'), {
         type: 'line',
-        data: { labels: data.labels, datasets: [{ label: 'Sales', data: data.sales, borderColor: '#8B2635', backgroundColor: 'rgba(139, 38, 53, 0.1)', fill: true, tension: 0.4 }] },
+        data: { labels: data.labels, datasets: [{ label: '{% trans "Sales" %}', data: data.sales, borderColor: '#8B2635', backgroundColor: 'rgba(139, 38, 53, 0.1)', fill: true, tension: 0.4 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
     });
     
     new Chart(document.getElementById('earningsChart'), {
         type: 'bar',
-        data: { labels: data.labels, datasets: [{ label: 'Earnings (XAF)', data: data.earnings, backgroundColor: 'rgba(45, 71, 57, 0.5)', borderColor: '#2D4739', borderWidth: 1 }] },
+        data: { labels: data.labels, datasets: [{ label: '{% trans "Earnings (XAF)" %}', data: data.earnings, backgroundColor: 'rgba(45, 71, 57, 0.5)', borderColor: '#2D4739', borderWidth: 1 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
+    });
+    
+    new Chart(document.getElementById('readersChart'), {
+        type: 'line',
+        data: { labels: data.labels, datasets: [{ label: '{% trans "Active Readers" %}', data: data.readers, borderColor: '#7C3AED', backgroundColor: 'rgba(124, 58, 237, 0.1)', fill: true, tension: 0.4 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
     });
 });

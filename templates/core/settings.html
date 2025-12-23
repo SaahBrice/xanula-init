@@ -1,19 +1,69 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Settings - Xanula{% endblock %}
+{% block title %}{% trans "Settings" %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="container py-6 max-w-3xl">
-    <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-8">Settings</h1>
+    <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-8">{% trans "Settings" %}</h1>
     
     <div class="space-y-6">
+        <!-- Preferences Section (Language & Theme) -->
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6" x-data="preferencesSettings()">
+            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                <svg class="w-5 h-5 text-burgundy-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                {% trans "Preferences" %}
+            </h2>
+            
+            <div class="space-y-4">
+                <!-- Language Selection -->
+                <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                    <div>
+                        <p class="font-medium text-gray-900 dark:text-white">{% trans "Language" %}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Choose your preferred language" %}</p>
+                    </div>
+                    <form id="language-form" action="{% url 'set_language' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <select name="language" 
+                            onchange="document.getElementById('language-form').submit()"
+                            class="px-3 py-2 bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-burgundy-500 focus:border-transparent">
+                            {% get_current_language as LANGUAGE_CODE %}
+                            {% get_available_languages as LANGUAGES %}
+                            {% for lang_code, lang_name in LANGUAGES %}
+                            <option value="{{ lang_code }}" {% if lang_code == LANGUAGE_CODE %}selected{% endif %}>{{ lang_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+                
+                <!-- Theme Toggle -->
+                <div class="flex items-center justify-between py-3">
+                    <div>
+                        <p class="font-medium text-gray-900 dark:text-white">{% trans "Theme" %}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Toggle light or dark mode" %}</p>
+                    </div>
+                    <button @click="toggleTheme()" 
+                        :class="isDark ? 'bg-burgundy-500' : 'bg-gray-300 dark:bg-gray-600'"
+                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors">
+                        <span :class="isDark ? 'translate-x-6' : 'translate-x-1'"
+                            class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow flex items-center justify-center">
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Profile Settings -->
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
             <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <svg class="w-5 h-5 text-burgundy-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
-                Profile Information
+                {% trans "Profile Information" %}
             </h2>
             
             <form method="post" enctype="multipart/form-data" class="space-y-6">
@@ -30,40 +80,40 @@
                     </div>
                     <div>
                         <label class="btn btn-secondary cursor-pointer">
-                            Change Photo
+                            {% trans "Change Photo" %}
                             <input type="file" name="profile_picture" accept="image/*" class="hidden">
                         </label>
-                        <p class="text-gray-500 text-sm mt-2">JPG, PNG. Max 2MB.</p>
+                        <p class="text-gray-500 text-sm mt-2">{% trans "JPG, PNG. Max 2MB." %}</p>
                     </div>
                 </div>
                 
                 <!-- Name Fields -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-group">
-                        <label class="label">First Name</label>
+                        <label class="label">{% trans "First Name" %}</label>
                         <input type="text" name="first_name" value="{{ user.first_name }}" class="input">
                     </div>
                     <div class="form-group">
-                        <label class="label">Last Name</label>
+                        <label class="label">{% trans "Last Name" %}</label>
                         <input type="text" name="last_name" value="{{ user.last_name }}" class="input">
                     </div>
                 </div>
                 
                 <!-- Email (read-only) -->
                 <div class="form-group">
-                    <label class="label">Email</label>
+                    <label class="label">{% trans "Email" %}</label>
                     <input type="email" value="{{ user.email }}" disabled class="input bg-cream dark:bg-dark-50 cursor-not-allowed">
-                    <p class="text-gray-500 text-sm mt-1">Email cannot be changed.</p>
+                    <p class="text-gray-500 text-sm mt-1">{% trans "Email cannot be changed." %}</p>
                 </div>
                 
                 <!-- Bio -->
                 <div class="form-group">
-                    <label class="label">Bio</label>
-                    <textarea name="bio" rows="3" maxlength="500" placeholder="Tell us about yourself..." class="input resize-none">{{ user.bio }}</textarea>
-                    <p class="text-gray-500 text-sm mt-1">Max 500 characters</p>
+                    <label class="label">{% trans "Bio" %}</label>
+                    <textarea name="bio" rows="3" maxlength="500" placeholder="{% trans 'Tell us about yourself...' %}" class="input resize-none">{{ user.bio }}</textarea>
+                    <p class="text-gray-500 text-sm mt-1">{% trans "Max 500 characters" %}</p>
                 </div>
                 
-                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="submit" class="btn btn-primary">{% trans "Save Changes" %}</button>
             </form>
         </div>
         
@@ -73,15 +123,15 @@
                 <svg class="w-5 h-5 text-burgundy-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
-                Notifications
+                {% trans "Notifications" %}
             </h2>
             
             <div class="space-y-4">
                 <!-- Email Notifications -->
                 <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
                     <div>
-                        <p class="font-medium text-gray-900 dark:text-white">Email Notifications</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Receive emails about purchases and updates</p>
+                        <p class="font-medium text-gray-900 dark:text-white">{% trans "Email Notifications" %}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Receive emails about purchases and updates" %}</p>
                     </div>
                     <button @click="toggleSetting('email_notifications')" 
                         :class="emailNotifications ? 'bg-burgundy-500' : 'bg-gray-300 dark:bg-gray-600'"
@@ -94,8 +144,8 @@
                 <!-- Reading Reminders -->
                 <div class="flex items-center justify-between py-3">
                     <div>
-                        <p class="font-medium text-gray-900 dark:text-white">Daily Reading Reminders</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Get reminded to continue books you're reading</p>
+                        <p class="font-medium text-gray-900 dark:text-white">{% trans "Daily Reading Reminders" %}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Get reminded to continue books you're reading" %}</p>
                     </div>
                     <button @click="toggleSetting('reading_reminders')"
                         :class="readingReminders ? 'bg-burgundy-500' : 'bg-gray-300 dark:bg-gray-600'"
@@ -106,22 +156,48 @@
                 </div>
             </div>
             
-            <p x-show="saving" class="text-gray-500 text-sm mt-4">Saving...</p>
-            <p x-show="saved" x-transition class="text-forest-500 text-sm mt-4">✓ Preferences saved!</p>
+            <p x-show="saving" class="text-gray-500 text-sm mt-4">{% trans "Saving..." %}</p>
+            <p x-show="saved" x-transition class="text-forest-500 text-sm mt-4">✓ {% trans "Preferences saved!" %}</p>
         </div>
         
         <!-- Account Actions -->
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
-            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6">Account</h2>
+            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6">{% trans "Account" %}</h2>
             
             <div class="space-y-2">
+                <a href="{% url 'core:my_books' %}" 
+                    class="flex items-center justify-between p-4 bg-cream dark:bg-dark-50 rounded-xl hover:bg-gray-100 dark:hover:bg-dark-100 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        <span class="text-gray-900 dark:text-white">{% trans "My Books" %}</span>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                
+                <a href="{% url 'core:author_analytics' %}" 
+                    class="flex items-center justify-between p-4 bg-cream dark:bg-dark-50 rounded-xl hover:bg-gray-100 dark:hover:bg-dark-100 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+                        </svg>
+                        <span class="text-gray-900 dark:text-white">{% trans "Analytics" %}</span>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                
                 <a href="{% url 'account_change_password' %}" 
                     class="flex items-center justify-between p-4 bg-cream dark:bg-dark-50 rounded-xl hover:bg-gray-100 dark:hover:bg-dark-100 transition-colors">
                     <div class="flex items-center gap-3">
                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
                         </svg>
-                        <span class="text-gray-900 dark:text-white">Change Password</span>
+                        <span class="text-gray-900 dark:text-white">{% trans "Change Password" %}</span>
                     </div>
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -134,7 +210,7 @@
                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
-                        <span class="text-gray-900 dark:text-white">Purchase History</span>
+                        <span class="text-gray-900 dark:text-white">{% trans "Purchase History" %}</span>
                     </div>
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -147,7 +223,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
-                        <span>Sign Out</span>
+                        <span>{% trans "Sign Out" %}</span>
                     </div>
                 </a>
             </div>
@@ -156,6 +232,19 @@
 </div>
 
 <script>
+function preferencesSettings() {
+    return {
+        isDark: document.documentElement.getAttribute('data-theme') === 'dark',
+        
+        toggleTheme() {
+            this.isDark = !this.isDark;
+            document.documentElement.setAttribute('data-theme', this.isDark ? 'dark' : 'light');
+            localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
+            document.querySelector('meta[name="theme-color"]').content = this.isDark ? '#1A1915' : '#FAF7F2';
+        }
+    }
+}
+
 function notificationSettings() {
     return {
         emailNotifications: {{ user.email_notifications|yesno:"true,false" }},

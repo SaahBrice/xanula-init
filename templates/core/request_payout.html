@@ -1,22 +1,22 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Request Payout - Xanula{% endblock %}
+{% block title %}{% trans "Request Payout" %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="container py-6 max-w-xl mx-auto">
     <!-- Header -->
     <div class="mb-6">
-        <a href="{% url 'core:my_books' %}" class="text-gray-500 hover:text-burgundy-500 text-sm mb-2 inline-block">← Back to My Books</a>
-        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">Request Payout</h1>
-        <p class="text-gray-600 dark:text-gray-400">Withdraw your earnings to your account.</p>
+        <a href="{% url 'core:my_books' %}" class="text-gray-500 hover:text-burgundy-500 text-sm mb-2 inline-block">← {% trans "Back to My Books" %}</a>
+        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">{% trans "Request Payout" %}</h1>
+        <p class="text-gray-600 dark:text-gray-400">{% trans "Withdraw your earnings to your account." %}</p>
     </div>
 
     <!-- Balance Card -->
     <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-6">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-sm text-gray-500">Available Balance</p>
+                <p class="text-sm text-gray-500">{% trans "Available Balance" %}</p>
                 <p class="text-3xl font-display font-bold text-gray-900 dark:text-white">{{ earnings_balance|floatformat:0 }} <span class="text-lg text-gray-400">XAF</span></p>
             </div>
             <div class="w-14 h-14 bg-forest-100 dark:bg-forest-900/30 rounded-full flex items-center justify-center">
@@ -29,7 +29,7 @@
     {% if pending_payouts %}
     <div class="bg-gold-50 dark:bg-gold-900/20 border border-gold-200 dark:border-gold-800 rounded-2xl p-4 mb-6">
         <h3 class="font-semibold text-gold-700 dark:text-gold-400 mb-3 flex items-center gap-2">
-            <span>⏳</span> Pending Payouts
+            <span>⏳</span> {% trans "Pending Payouts" %}
         </h3>
         <div class="space-y-2">
             {% for payout in pending_payouts %}
@@ -52,30 +52,30 @@
         {% csrf_token %}
         
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
-            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6">Payout Details</h2>
+            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6">{% trans "Payout Details" %}</h2>
             
             <!-- Amount -->
             <div class="form-group">
-                <label for="id_amount_requested" class="label">Amount (XAF)</label>
+                <label for="id_amount_requested" class="label">{% trans "Amount (XAF)" %}</label>
                 <div class="relative">
                     <input type="number" name="amount_requested" id="id_amount_requested" value="{{ form.amount_requested.value|default:'' }}"
-                        class="input pr-16" placeholder="Enter amount" min="5000" max="{{ earnings_balance }}" step="100">
+                        class="input pr-16" placeholder="{% trans 'Enter amount' %}" min="5000" max="{{ earnings_balance }}" step="100">
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">XAF</span>
                 </div>
                 {% if form.amount_requested.errors %}<p class="mt-1 text-sm text-red-500">{{ form.amount_requested.errors.0 }}</p>{% endif %}
-                <p class="text-xs text-gray-500 mt-1">Min: 5,000 XAF • Max: {{ earnings_balance|floatformat:0 }} XAF</p>
+                <p class="text-xs text-gray-500 mt-1">{% trans "Min: 5,000 XAF" %} • {% trans "Max:" %} {{ earnings_balance|floatformat:0 }} XAF</p>
             </div>
             
             <!-- Method -->
             <div class="form-group">
-                <label class="label mb-3">Payout Method</label>
+                <label class="label mb-3">{% trans "Payout Method" %}</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label class="relative flex items-center p-4 bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-700 rounded-xl cursor-pointer hover:border-burgundy-500 transition-colors has-[:checked]:border-burgundy-500 has-[:checked]:bg-burgundy-50 dark:has-[:checked]:bg-burgundy-900/20">
                         <input type="radio" name="payout_method" value="mobile_money"
                             {% if form.payout_method.value == 'mobile_money' or not form.payout_method.value %}checked{% endif %}
                             class="w-5 h-5 text-burgundy-500 border-gray-300 focus:ring-burgundy-500">
                         <div class="ml-3">
-                            <span class="font-medium text-gray-900 dark:text-white">Mobile Money</span>
+                            <span class="font-medium text-gray-900 dark:text-white">{% trans "Mobile Money" %}</span>
                             <p class="text-xs text-gray-500">MTN MoMo, Orange Money</p>
                         </div>
                     </label>
@@ -84,8 +84,8 @@
                             {% if form.payout_method.value == 'bank_transfer' %}checked{% endif %}
                             class="w-5 h-5 text-burgundy-500 border-gray-300 focus:ring-burgundy-500">
                         <div class="ml-3">
-                            <span class="font-medium text-gray-900 dark:text-white">Bank Transfer</span>
-                            <p class="text-xs text-gray-500">Local bank account</p>
+                            <span class="font-medium text-gray-900 dark:text-white">{% trans "Bank Transfer" %}</span>
+                            <p class="text-xs text-gray-500">{% trans "Local bank account" %}</p>
                         </div>
                     </label>
                 </div>
@@ -93,9 +93,9 @@
             
             <!-- Account Details -->
             <div class="form-group">
-                <label for="id_account_details" class="label">Account Details</label>
+                <label for="id_account_details" class="label">{% trans "Account Details" %}</label>
                 <textarea name="account_details" id="id_account_details" class="input resize-none"
-                    placeholder="For Mobile Money: Enter phone number (e.g., 237 6XX XXX XXX)&#10;For Bank: Enter bank name, account number, and account holder name"
+                    placeholder="{% trans 'For Mobile Money: Enter phone number (e.g., 237 6XX XXX XXX)' %}&#10;{% trans 'For Bank: Enter bank name, account number, and account holder name' %}"
                     rows="3">{{ form.account_details.value|default_if_none:"" }}</textarea>
                 {% if form.account_details.errors %}<p class="mt-1 text-sm text-red-500">{{ form.account_details.errors.0 }}</p>{% endif %}
             </div>
@@ -104,19 +104,19 @@
         <!-- Info -->
         <div class="bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-700 rounded-2xl p-4">
             <h3 class="font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                <span class="text-burgundy-500">ℹ️</span> Processing Information
+                <span class="text-burgundy-500">ℹ️</span> {% trans "Processing Information" %}
             </h3>
             <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                <li>• Payouts are processed within 3-5 business days</li>
-                <li>• You will receive a confirmation email once processed</li>
-                <li>• Make sure your account details are correct</li>
+                <li>• {% trans "Payouts are processed within 3-5 business days" %}</li>
+                <li>• {% trans "You will receive a confirmation email once processed" %}</li>
+                <li>• {% trans "Make sure your account details are correct" %}</li>
             </ul>
         </div>
         
         <!-- Submit -->
         <div class="flex flex-col sm:flex-row gap-3 justify-end">
-            <a href="{% url 'core:my_books' %}" class="btn btn-secondary text-center">Cancel</a>
-            <button type="submit" class="btn bg-forest-500 hover:bg-forest-600 text-white">Request Payout</button>
+            <a href="{% url 'core:my_books' %}" class="btn btn-secondary text-center">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn bg-forest-500 hover:bg-forest-600 text-white">{% trans "Request Payout" %}</button>
         </div>
     </form>
 </div>

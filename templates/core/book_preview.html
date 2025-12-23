@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Preview: {{ book.title }} - Xanula{% endblock %}
+{% block title %}{% trans "Preview" %}: {{ book.title }} - Xanula{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-cream dark:bg-dark-200" x-data="bookPreview()" x-init="init()">
@@ -18,13 +18,13 @@
                     </a>
                     <div>
                         <h1 class="font-display font-semibold text-gray-900 dark:text-white">{{ book.title }}</h1>
-                        <p class="text-sm text-gray-500">Free Preview</p>
+                        <p class="text-sm text-gray-500">{% trans "Free Preview" %}</p>
                     </div>
                 </div>
                 
                 {% if not user_owns_book %}
                 <a href="{% url 'core:book_detail' slug=book.slug %}#purchase" class="btn btn-primary btn-sm">
-                    Buy {{ book.formatted_price }}
+                    {% trans "Buy" %} {{ book.formatted_price }}
                 </a>
                 {% endif %}
             </div>
@@ -38,7 +38,7 @@
         <!-- Loading -->
         <div x-show="loading" class="text-center py-20">
             <div class="w-12 h-12 border-4 border-burgundy-200 border-t-burgundy-500 rounded-full animate-spin mx-auto mb-4"></div>
-            <p class="text-gray-500">Loading preview...</p>
+            <p class="text-gray-500">{% trans "Loading preview..." %}</p>
         </div>
         
         <!-- Error -->
@@ -46,7 +46,7 @@
             <div class="text-4xl mb-4">⚠️</div>
             <p class="text-gray-600 dark:text-gray-400 mb-4" x-text="error"></p>
             <a href="{% url 'core:book_detail' slug=book.slug %}" class="text-burgundy-500 hover:text-burgundy-600 font-medium">
-                ← Back to book details
+                ← {% trans "Back to book details" %}
             </a>
         </div>
         
@@ -62,18 +62,18 @@
             <div class="mt-8 bg-white dark:bg-dark-100 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 text-center">
                 <div class="text-4xl mb-4">📚</div>
                 <h3 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    End of Free Preview
+                    {% trans "End of Free Preview" %}
                 </h3>
                 <p class="text-gray-600 dark:text-gray-400 mb-6">
-                    You've read a sample of this book. Purchase to continue reading.
+                    {% trans "You've read a sample of this book. Purchase to continue reading." %}
                 </p>
                 
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
                     <a href="{% url 'core:book_detail' slug=book.slug %}#purchase" class="btn btn-primary">
-                        Buy Full Book - {{ book.formatted_price }}
+                        {% trans "Buy Full Book" %} - {{ book.formatted_price }}
                     </a>
                     <a href="{% url 'core:book_detail' slug=book.slug %}" class="btn btn-secondary">
-                        Back to Details
+                        {% trans "Back to Details" %}
                     </a>
                 </div>
             </div>
@@ -83,9 +83,9 @@
         <!-- No Preview -->
         <div class="text-center py-16 bg-white dark:bg-dark-100 rounded-2xl">
             <div class="text-4xl mb-4">📖</div>
-            <p class="text-gray-600 dark:text-gray-400 mb-4">Preview not available for this book.</p>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">{% trans "Preview not available for this book." %}</p>
             <a href="{% url 'core:book_detail' slug=book.slug %}" class="text-burgundy-500 hover:text-burgundy-600 font-medium">
-                ← Back to book details
+                ← {% trans "Back to book details" %}
             </a>
         </div>
         {% endif %}
@@ -115,7 +115,7 @@ function bookPreview() {
             const fileUrl = '{{ book.ebook_file.url|default:"" }}';
             
             if (!fileUrl) {
-                this.error = 'No ebook file available';
+                this.error = '{% trans "No ebook file available" %}';
                 this.loading = false;
                 return;
             }
@@ -128,7 +128,7 @@ function bookPreview() {
             } else if (extension === 'epub') {
                 await this.loadEpub(absoluteUrl);
             } else {
-                this.error = 'Preview not available for this file type';
+                this.error = '{% trans "Preview not available for this file type" %}';
                 this.loading = false;
             }
         },
@@ -170,7 +170,7 @@ function bookPreview() {
                 }
             } catch (e) {
                 console.error('PDF load error:', e);
-                this.error = 'Could not load PDF preview';
+                this.error = '{% trans "Could not load PDF preview" %}';
                 this.loading = false;
             }
         },
@@ -195,8 +195,8 @@ function bookPreview() {
                 const nav = document.createElement('div');
                 nav.className = 'flex justify-center gap-4 mt-6';
                 nav.innerHTML = `
-                    <button onclick="window._rendition.prev()" class="btn btn-secondary">← Previous</button>
-                    <button onclick="window._rendition.next()" class="btn btn-secondary">Next →</button>
+                    <button onclick="window._rendition.prev()" class="btn btn-secondary">← {% trans "Previous" %}</button>
+                    <button onclick="window._rendition.next()" class="btn btn-secondary">{% trans "Next" %} →</button>
                 `;
                 viewer.parentNode.insertBefore(nav, viewer.nextSibling);
                 
@@ -214,7 +214,7 @@ function bookPreview() {
                 
             } catch (e) {
                 console.error('EPUB load error:', e);
-                this.error = 'Could not load EPUB preview';
+                this.error = '{% trans "Could not load EPUB preview" %}';
                 this.loading = false;
             }
         }

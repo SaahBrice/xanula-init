@@ -1,6 +1,7 @@
 {% extends "emails/base_email.html" %}
+{% load i18n %}
 
-{% block title %}Purchase Receipt - Xanula{% endblock %}
+{% block title %}{% trans "Purchase Receipt" %} - Xanula{% endblock %}
 
 {% block content %}
 <!-- Success Icon -->
@@ -10,8 +11,8 @@
     </div>
 </div>
 
-<h1 style="text-align: center;">Thank you for your purchase!</h1>
-<p style="text-align: center; color: #666666;">Your book is now available in your library.</p>
+<h1 style="text-align: center;">{% trans "Thank you for your purchase!" %}</h1>
+<p style="text-align: center; color: #666666;">{% trans "Your book is now available in your library." %}</p>
 
 <!-- Book Card -->
 <div class="book-card">
@@ -26,11 +27,11 @@
             </td>
             <td style="vertical-align: top;">
                 <h3 class="book-title">{{ book.title }}</h3>
-                <p class="book-author">by {{ book.author.get_display_name }}</p>
+                <p class="book-author">{% trans "by" %} {{ book.author.get_display_name }}</p>
                 <div style="margin-top: 12px;">
-                    <span class="badge badge-success">📖 Ebook</span>
+                    <span class="badge badge-success">📖 {% trans "Ebook" %}</span>
                     {% if book.has_audiobook %}
-                    <span class="badge badge-success" style="margin-left: 6px;">🎧 Audiobook</span>
+                    <span class="badge badge-success" style="margin-left: 6px;">🎧 {% trans "Audiobook" %}</span>
                     {% endif %}
                 </div>
             </td>
@@ -39,12 +40,12 @@
 </div>
 
 <!-- Purchase Details -->
-<h2>Purchase Details</h2>
+<h2>{% trans "Purchase Details" %}</h2>
 
 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
     <tr>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #666666; font-size: 14px;">Purchase Date</span>
+            <span style="color: #666666; font-size: 14px;">{% trans "Purchase Date" %}</span>
         </td>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC; text-align: right;">
             <span style="color: #1a1a1a; font-size: 14px;">{{ purchase.purchase_date|date:"F j, Y" }}</span>
@@ -52,7 +53,7 @@
     </tr>
     <tr>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #666666; font-size: 14px;">Payment Method</span>
+            <span style="color: #666666; font-size: 14px;">{% trans "Payment Method" %}</span>
         </td>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC; text-align: right;">
             <span style="color: #1a1a1a; font-size: 14px;">{{ purchase.get_payment_method_display }}</span>
@@ -60,7 +61,7 @@
     </tr>
     <tr>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #666666; font-size: 14px;">Transaction ID</span>
+            <span style="color: #666666; font-size: 14px;">{% trans "Transaction ID" %}</span>
         </td>
         <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC; text-align: right;">
             <span style="color: #1a1a1a; font-size: 12px; font-family: monospace;">{{ purchase.payment_transaction_id|truncatechars:20 }}</span>
@@ -68,11 +69,11 @@
     </tr>
     <tr>
         <td style="padding: 16px 0;">
-            <span style="color: #1a1a1a; font-size: 16px; font-weight: bold;">Total Paid</span>
+            <span style="color: #1a1a1a; font-size: 16px; font-weight: bold;">{% trans "Total Paid" %}</span>
         </td>
         <td style="padding: 16px 0; text-align: right;">
             <span style="color: #2D4739; font-size: 24px; font-weight: bold;">
-                {% if purchase.amount_paid == 0 %}Free{% else %}{{ purchase.amount_paid|floatformat:0 }} XAF{% endif %}
+                {% if purchase.amount_paid == 0 %}{% trans "Free" %}{% else %}{{ purchase.amount_paid|floatformat:0 }} XAF{% endif %}
             </span>
         </td>
     </tr>
@@ -81,13 +82,13 @@
 <!-- CTA -->
 <div style="text-align: center; margin-top: 32px;">
     <a href="{{ site_url|default:'https://xanula.com' }}/library/" class="btn">
-        📚 Access Your Library
+        📚 {% trans "Access Your Library" %}
     </a>
 </div>
 
 <div class="divider"></div>
 
 <p style="font-size: 13px; color: #888888; text-align: center;">
-    Questions about your purchase? Contact us at <a href="mailto:reepls.project@gmail.com">reepls.project@gmail.com</a>
+    {% trans "Questions about your purchase? Contact us at" %} <a href="mailto:reepls.project@gmail.com">reepls.project@gmail.com</a>
 </p>
 {% endblock %}

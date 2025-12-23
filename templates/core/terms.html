@@ -1,113 +1,114 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Terms and Conditions - Xanula{% endblock %}
+{% block title %}{% trans "Terms and Conditions" %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="container py-10 md:py-16 max-w-3xl">
-    <h1 class="font-display text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">Terms and Conditions</h1>
-    <p class="text-gray-500 dark:text-gray-400 mb-8">Last updated: December 2025</p>
+    <h1 class="font-display text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">{% trans "Terms and Conditions" %}</h1>
+    <p class="text-gray-500 dark:text-gray-400 mb-8">{% trans "Last updated: December 2025" %}</p>
 
     <div class="prose prose-lg dark:prose-invert max-w-none space-y-8">
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">1. Acceptance of Terms</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "1. Acceptance of Terms" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                By accessing and using Xanula ("the Platform"), you accept and agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our services.
+                {% trans "By accessing and using Xanula (\"the Platform\"), you accept and agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our services." %}
             </p>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">2. Description of Service</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "2. Description of Service" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                Xanula is a digital marketplace for African literature that enables:
+                {% trans "Xanula is a digital marketplace for African literature that enables:" %}
             </p>
             <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 mt-2 space-y-1">
-                <li>Authors to publish and sell ebooks and audiobooks</li>
-                <li>Readers to purchase, read, and listen to books</li>
-                <li>Automated audiobook generation from text manuscripts</li>
-                <li>Secure payment processing and royalty distribution</li>
+                <li>{% trans "Authors to publish and sell ebooks and audiobooks" %}</li>
+                <li>{% trans "Readers to purchase, read, and listen to books" %}</li>
+                <li>{% trans "Automated audiobook generation from text manuscripts" %}</li>
+                <li>{% trans "Secure payment processing and royalty distribution" %}</li>
             </ul>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">3. User Accounts</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "3. User Accounts" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                To use certain features of the Platform, you must create an account. You are responsible for:
+                {% trans "To use certain features of the Platform, you must create an account. You are responsible for:" %}
             </p>
             <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 mt-2 space-y-1">
-                <li>Providing accurate and complete registration information</li>
-                <li>Maintaining the security of your account credentials</li>
-                <li>All activities that occur under your account</li>
-                <li>Notifying us immediately of any unauthorized use</li>
+                <li>{% trans "Providing accurate and complete registration information" %}</li>
+                <li>{% trans "Maintaining the security of your account credentials" %}</li>
+                <li>{% trans "All activities that occur under your account" %}</li>
+                <li>{% trans "Notifying us immediately of any unauthorized use" %}</li>
             </ul>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">4. Author Terms</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "4. Author Terms" %}</h2>
             <p class="text-gray-600 dark:text-gray-300 mb-3">
-                Authors who publish on Xanula agree to the following:
+                {% trans "Authors who publish on Xanula agree to the following:" %}
             </p>
             <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-1">
-                <li>You own or have the rights to publish the content you submit</li>
-                <li>Your content does not infringe on any third-party intellectual property rights</li>
-                <li>You grant Xanula a non-exclusive license to distribute, display, and convert your work to audiobook format</li>
-                <li>Authors receive 70% of net sales revenue</li>
-                <li>Minimum payout threshold is 5,000 XAF</li>
-                <li>We reserve the right to reject or remove content that violates our policies</li>
+                <li>{% trans "You own or have the rights to publish the content you submit" %}</li>
+                <li>{% trans "Your content does not infringe on any third-party intellectual property rights" %}</li>
+                <li>{% trans "You grant Xanula a non-exclusive license to distribute, display, and convert your work to audiobook format" %}</li>
+                <li>{% trans "Authors receive 70% of net sales revenue" %}</li>
+                <li>{% trans "Minimum payout threshold is 5,000 XAF" %}</li>
+                <li>{% trans "We reserve the right to reject or remove content that violates our policies" %}</li>
             </ul>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">5. Reader Terms</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "5. Reader Terms" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                Readers who purchase content on Xanula agree to the following:
+                {% trans "Readers who purchase content on Xanula agree to the following:" %}
             </p>
             <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 mt-2 space-y-1">
-                <li>Purchases grant a personal, non-transferable license to access the content</li>
-                <li>You may not redistribute, copy, or share purchased content</li>
-                <li>Downloaded content is for personal use only</li>
-                <li>Refunds are handled on a case-by-case basis</li>
+                <li>{% trans "Purchases grant a personal, non-transferable license to access the content" %}</li>
+                <li>{% trans "You may not redistribute, copy, or share purchased content" %}</li>
+                <li>{% trans "Downloaded content is for personal use only" %}</li>
+                <li>{% trans "Refunds are handled on a case-by-case basis" %}</li>
             </ul>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">6. Prohibited Content</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "6. Prohibited Content" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                The following content is prohibited on Xanula:
+                {% trans "The following content is prohibited on Xanula:" %}
             </p>
             <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 mt-2 space-y-1">
-                <li>Content that violates any applicable laws</li>
-                <li>Hate speech, harassment, or discriminatory content</li>
-                <li>Content that infringes on intellectual property rights</li>
-                <li>Explicit adult content without proper categorization</li>
-                <li>Malicious software or harmful content</li>
+                <li>{% trans "Content that violates any applicable laws" %}</li>
+                <li>{% trans "Hate speech, harassment, or discriminatory content" %}</li>
+                <li>{% trans "Content that infringes on intellectual property rights" %}</li>
+                <li>{% trans "Explicit adult content without proper categorization" %}</li>
+                <li>{% trans "Malicious software or harmful content" %}</li>
             </ul>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">7. Payment and Refunds</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "7. Payment and Refunds" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                All payments are processed securely through our payment partners (Stripe, Fapshi). Prices are displayed in the local currency. Refund requests must be submitted within 7 days of purchase and are subject to review.
+                {% trans "All payments are processed securely through our payment partners (Stripe, Fapshi). Prices are displayed in the local currency. Refund requests must be submitted within 7 days of purchase and are subject to review." %}
             </p>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">8. Limitation of Liability</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "8. Limitation of Liability" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                Xanula is provided "as is" without warranties of any kind. We are not liable for any indirect, incidental, or consequential damages arising from your use of the Platform.
+                {% trans "Xanula is provided \"as is\" without warranties of any kind. We are not liable for any indirect, incidental, or consequential damages arising from your use of the Platform." %}
             </p>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">9. Changes to Terms</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "9. Changes to Terms" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                We reserve the right to modify these terms at any time. Continued use of the Platform after changes constitutes acceptance of the new terms.
+                {% trans "We reserve the right to modify these terms at any time. Continued use of the Platform after changes constitutes acceptance of the new terms." %}
             </p>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">10. Contact</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "10. Contact" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                For questions about these Terms and Conditions, please contact us at <a href="mailto:support@xanula.com" class="text-burgundy-500 hover:underline">reepls.project@gmail.com  | Whatsapp: +44 7555 000 479</a>.
+                {% trans "For questions about these Terms and Conditions, please contact us at" %} <a href="mailto:support@xanula.com" class="text-burgundy-500 hover:underline">reepls.project@gmail.com | Whatsapp: +44 7555 000 479</a>.
             </p>
         </section>
     </div>
@@ -115,7 +116,7 @@
     <div class="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
         <a href="{% url 'core:homepage' %}" class="text-burgundy-500 hover:text-burgundy-600 font-medium flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            Back to Home
+            {% trans "Back to Home" %}
         </a>
     </div>
 </div>

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Verify Email - Xanula{% endblock %}
+{% block title %}{% trans "Verify Email" %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="min-h-screen flex items-center justify-center py-12 px-4">
@@ -11,10 +12,10 @@
                 <span class="text-3xl font-display font-bold text-burgundy-500">Xanula</span>
             </a>
             <h1 class="mt-6 font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                Verify your email
+                {% trans "Verify your email" %}
             </h1>
             <p class="mt-4 text-gray-600 dark:text-gray-400">
-                Please confirm that <strong class="text-gray-900 dark:text-white">{{ email }}</strong> is your email address.
+                {% blocktrans %}Please confirm that <strong class="text-gray-900 dark:text-white">{{ email }}</strong> is your email address.{% endblocktrans %}
             </p>
         </div>
 
@@ -23,13 +24,13 @@
             <form method="post" action="{% url 'account_confirm_email' key=confirmation.key %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-primary btn-lg btn-block">
-                    Confirm Email Address
+                    {% trans "Confirm Email Address" %}
                 </button>
             </form>
         </div>
 
         <p class="text-sm text-gray-500 mt-6">
-            By confirming, you'll have full access to Xanula.
+            {% trans "By confirming, you'll have full access to Xanula." %}
         </p>
     </div>
 </div>

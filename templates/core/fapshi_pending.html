@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Processing Payment - Xanula{% endblock %}
+{% block title %}{% trans "Processing Payment" %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="container py-12 max-w-lg mx-auto text-center" x-data="paymentPoller()">
@@ -12,8 +12,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>
         </div>
-        <h1 class="font-display text-3xl font-bold text-gray-900 dark:text-white mb-2">Processing Payment</h1>
-        <p class="text-gray-600 dark:text-gray-400" x-text="statusMessage">Waiting for mobile money confirmation...</p>
+        <h1 class="font-display text-3xl font-bold text-gray-900 dark:text-white mb-2">{% trans "Processing Payment" %}</h1>
+        <p class="text-gray-600 dark:text-gray-400" x-text="statusMessage">{% trans "Waiting for mobile money confirmation..." %}</p>
     </div>
 
     <!-- Book Info -->
@@ -39,38 +39,38 @@
     <div class="mb-8">
         <div class="flex items-center justify-center gap-2 text-sm text-gray-500 mb-4">
             <span class="animate-pulse">⏳</span>
-            <span>This usually takes 1-2 minutes</span>
+            <span>{% trans "This usually takes 1-2 minutes" %}</span>
         </div>
         
         <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div class="bg-gold-500 h-2 rounded-full transition-all duration-500" :style="'width: ' + progressPercent + '%'"></div>
         </div>
         
-        <p class="text-xs text-gray-500 mt-2">Checking every 3 seconds... (<span x-text="pollCount"></span> checks)</p>
+        <p class="text-xs text-gray-500 mt-2">{% trans "Checking every 3 seconds..." %} (<span x-text="pollCount"></span> {% trans "checks" %})</p>
     </div>
 
     <!-- Timeout -->
     <div x-show="timedOut" x-cloak class="bg-gold-50 dark:bg-gold-900/20 border border-gold-200 dark:border-gold-800 rounded-2xl p-6 mb-6">
-        <p class="text-gold-600 dark:text-gold-400 mb-4">Payment is taking longer than expected.</p>
+        <p class="text-gold-600 dark:text-gold-400 mb-4">{% trans "Payment is taking longer than expected." %}</p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
-            <button @click="resetPolling()" class="btn bg-gold-500 hover:bg-gold-600 text-white">Keep Waiting</button>
-            <a href="{% url 'core:book_detail' slug=book.slug %}" class="btn btn-secondary">Try Again Later</a>
+            <button @click="resetPolling()" class="btn bg-gold-500 hover:bg-gold-600 text-white">{% trans "Keep Waiting" %}</button>
+            <a href="{% url 'core:book_detail' slug=book.slug %}" class="btn btn-secondary">{% trans "Try Again Later" %}</a>
         </div>
     </div>
 
     <!-- Error -->
     <div x-show="hasFailed" x-cloak class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 mb-6">
-        <p class="text-red-600 dark:text-red-400 mb-4" x-text="errorMessage">Payment failed.</p>
-        <a href="{{ book.get_absolute_url }}" class="btn btn-primary">Try Again</a>
+        <p class="text-red-600 dark:text-red-400 mb-4" x-text="errorMessage">{% trans "Payment failed." %}</p>
+        <a href="{{ book.get_absolute_url }}" class="btn btn-primary">{% trans "Try Again" %}</a>
     </div>
 
     <!-- Tips -->
     <div class="text-left bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-700 rounded-2xl p-4" x-show="!timedOut && !hasFailed">
-        <p class="text-sm text-gray-700 dark:text-gray-300 mb-3"><strong>While you wait:</strong></p>
+        <p class="text-sm text-gray-700 dark:text-gray-300 mb-3"><strong>{% trans "While you wait:" %}</strong></p>
         <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
-            <li class="flex items-start gap-2"><span>📱</span> Check your phone for a confirmation prompt</li>
-            <li class="flex items-start gap-2"><span>✅</span> Approve the payment on your mobile money app</li>
-            <li class="flex items-start gap-2"><span>⏳</span> This page will update automatically</li>
+            <li class="flex items-start gap-2"><span>📱</span> {% trans "Check your phone for a confirmation prompt" %}</li>
+            <li class="flex items-start gap-2"><span>✅</span> {% trans "Approve the payment on your mobile money app" %}</li>
+            <li class="flex items-start gap-2"><span>⏳</span> {% trans "This page will update automatically" %}</li>
         </ul>
     </div>
 </div>
@@ -82,7 +82,7 @@ function paymentPoller() {
         pollCount: 0,
         maxPolls: 40,
         progressPercent: 0,
-        statusMessage: 'Waiting for mobile money confirmation...',
+        statusMessage: '{% trans "Waiting for mobile money confirmation..." %}',
         timedOut: false,
         hasFailed: false,
         errorMessage: '',
@@ -104,18 +104,18 @@ function paymentPoller() {
                 
                 if (data.status === 'completed') {
                     this.stopPolling();
-                    this.statusMessage = 'Payment successful! Redirecting...';
+                    this.statusMessage = '{% trans "Payment successful! Redirecting..." %}';
                     setTimeout(() => { window.location.href = data.redirect_url || '/library/'; }, 1500);
                 } else if (data.status === 'failed') {
                     this.stopPolling();
                     this.hasFailed = true;
-                    this.errorMessage = data.message || 'Payment failed.';
+                    this.errorMessage = data.message || '{% trans "Payment failed." %}';
                 } else {
-                    this.statusMessage = data.message || 'Processing...';
+                    this.statusMessage = data.message || '{% trans "Processing..." %}';
                 }
             } catch (error) {
                 console.error('Status check failed:', error);
-                this.statusMessage = 'Checking payment status...';
+                this.statusMessage = '{% trans "Checking payment status..." %}';
             }
         }
     }

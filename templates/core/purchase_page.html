@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Purchase {{ book.title }} - Xanula{% endblock %}
+{% block title %}{% trans "Purchase" %} {{ book.title }} - Xanula{% endblock %}
 
 {% block content %}
 <div class="container py-8 max-w-lg mx-auto">
     <!-- Header -->
     <div class="mb-8 text-center">
         <a href="{{ book.get_absolute_url }}" class="text-gray-500 hover:text-burgundy-500 text-sm mb-4 inline-block">
-            ← Back to Book Details
+            ← {% trans "Back to Book Details" %}
         </a>
-        <h1 class="font-display text-2xl font-bold text-gray-900 dark:text-white mb-2">Complete Your Purchase</h1>
+        <h1 class="font-display text-2xl font-bold text-gray-900 dark:text-white mb-2">{% trans "Complete Your Purchase" %}</h1>
     </div>
 
     <!-- Book Card -->
@@ -30,7 +30,7 @@
             <!-- Info -->
             <div class="flex-1">
                 <h2 class="font-display text-lg font-bold text-gray-900 dark:text-white mb-1">{{ book.title }}</h2>
-                <p class="text-gray-600 dark:text-gray-400 mb-4">by {{ book.author.get_full_name }}</p>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">{% trans "by" %} {{ book.author.get_full_name }}</p>
                 
                 <div class="text-2xl font-display font-bold text-burgundy-500 mb-4">
                     {{ book.formatted_price }}
@@ -38,9 +38,9 @@
                 
                 <!-- Format Badges -->
                 <div class="flex flex-wrap gap-2">
-                    <span class="px-3 py-1 bg-forest-50 dark:bg-forest-900/30 text-forest-600 dark:text-forest-400 text-sm rounded-full">📖 Ebook</span>
+                    <span class="px-3 py-1 bg-forest-50 dark:bg-forest-900/30 text-forest-600 dark:text-forest-400 text-sm rounded-full">📖 {% trans "Ebook" %}</span>
                     {% if book.has_audiobook %}
-                    <span class="px-3 py-1 bg-burgundy-50 dark:bg-burgundy-900/30 text-burgundy-600 dark:text-burgundy-400 text-sm rounded-full">🎧 Audiobook</span>
+                    <span class="px-3 py-1 bg-burgundy-50 dark:bg-burgundy-900/30 text-burgundy-600 dark:text-burgundy-400 text-sm rounded-full">🎧 {% trans "Audiobook" %}</span>
                     {% endif %}
                 </div>
             </div>
@@ -49,7 +49,7 @@
 
     <!-- Payment Methods -->
     <div class="space-y-4 mb-8">
-        <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white text-center">Choose Payment Method</h3>
+        <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white text-center">{% trans "Choose Payment Method" %}</h3>
         
         <!-- Card Payment -->
         <a href="{% url 'core:create_stripe_checkout' book_id=book.id %}"
@@ -58,14 +58,14 @@
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
                 </svg>
-                <span class="text-lg">Pay with Card</span>
+                <span class="text-lg">{% trans "Pay with Card" %}</span>
             </div>
             <div class="flex items-center justify-center gap-2 opacity-80">
                 <span class="text-xs bg-white/20 px-2 py-0.5 rounded">VISA</span>
                 <span class="text-xs bg-white/20 px-2 py-0.5 rounded">Mastercard</span>
                 <span class="text-xs bg-white/20 px-2 py-0.5 rounded">AMEX</span>
             </div>
-            <p class="text-xs opacity-70 mt-2">International cards accepted</p>
+            <p class="text-xs opacity-70 mt-2">{% trans "International cards accepted" %}</p>
         </a>
         
         <!-- Mobile Money -->
@@ -75,46 +75,46 @@
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>
                 </svg>
-                <span class="text-lg">Pay with Mobile Money</span>
+                <span class="text-lg">{% trans "Pay with Mobile Money" %}</span>
             </div>
             <div class="flex items-center justify-center gap-2 opacity-80">
                 <span class="text-xs bg-white/20 px-2 py-0.5 rounded">MTN MoMo</span>
                 <span class="text-xs bg-white/20 px-2 py-0.5 rounded">Orange Money</span>
             </div>
-            <p class="text-xs opacity-70 mt-2">Recommended for Cameroon & Central Africa</p>
+            <p class="text-xs opacity-70 mt-2">{% trans "Recommended for Cameroon & Central Africa" %}</p>
         </a>
     </div>
 
     <!-- What You'll Get -->
     <div class="bg-cream dark:bg-dark-50 rounded-2xl p-6">
         <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <span class="text-forest-500">✓</span> What You'll Get
+            <span class="text-forest-500">✓</span> {% trans "What You'll Get" %}
         </h3>
         <ul class="space-y-3 text-gray-700 dark:text-gray-300">
             <li class="flex items-center gap-3">
                 <span class="w-8 h-8 bg-forest-50 dark:bg-forest-900/30 rounded-full flex items-center justify-center text-sm">📚</span>
-                <span>Digital Ebook - Read on any device</span>
+                <span>{% trans "Digital Ebook - Read on any device" %}</span>
             </li>
             {% if book.has_audiobook %}
             <li class="flex items-center gap-3">
                 <span class="w-8 h-8 bg-burgundy-50 dark:bg-burgundy-900/30 rounded-full flex items-center justify-center text-sm">🎧</span>
-                <span>AI-Generated Audiobook</span>
+                <span>{% trans "AI-Generated Audiobook" %}</span>
             </li>
             {% endif %}
             <li class="flex items-center gap-3">
                 <span class="w-8 h-8 bg-gold-50 dark:bg-gold-900/30 rounded-full flex items-center justify-center text-sm">♾️</span>
-                <span>Lifetime Access - No subscriptions</span>
+                <span>{% trans "Lifetime Access - No subscriptions" %}</span>
             </li>
             <li class="flex items-center gap-3">
                 <span class="w-8 h-8 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-sm">📲</span>
-                <span>Offline Reading - Download for later</span>
+                <span>{% trans "Offline Reading - Download for later" %}</span>
             </li>
         </ul>
     </div>
 
     <!-- Security Note -->
     <p class="text-center text-sm text-gray-500 mt-6">
-        🔒 Secure payments powered by Stripe & Fapshi
+        🔒 {% trans "Secure payments powered by Stripe & Fapshi" %}
     </p>
 </div>
 {% endblock %}

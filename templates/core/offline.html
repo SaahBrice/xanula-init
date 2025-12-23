@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Offline - Xanula{% endblock %}
+{% block title %}{% trans "Offline" %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="min-h-[60vh] flex items-center justify-center px-4">
@@ -10,47 +11,47 @@
             <span class="text-5xl">📡</span>
         </div>
         
-        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">You're Offline</h1>
+        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">{% trans "You're Offline" %}</h1>
         
         <p class="text-gray-600 dark:text-gray-400 mb-8">
-            It looks like you've lost your internet connection. Don't worry – you can still:
+            {% trans "It looks like you've lost your internet connection. Don't worry – you can still:" %}
         </p>
         
         <!-- Available Features -->
         <div class="bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-8 text-left">
             <h2 class="font-display font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <span class="text-forest-500">✓</span>
-                Available Offline
+                {% trans "Available Offline" %}
             </h2>
             <ul class="space-y-3 text-gray-700 dark:text-gray-300">
                 <li class="flex items-center gap-2">
                     <span class="text-forest-500">✓</span>
-                    Read downloaded ebooks
+                    {% trans "Read downloaded ebooks" %}
                 </li>
                 <li class="flex items-center gap-2">
                     <span class="text-forest-500">✓</span>
-                    Listen to downloaded audiobooks
+                    {% trans "Listen to downloaded audiobooks" %}
                 </li>
                 <li class="flex items-center gap-2">
                     <span class="text-forest-500">✓</span>
-                    View your library
+                    {% trans "View your library" %}
                 </li>
                 <li class="flex items-center gap-2">
                     <span class="text-forest-500">✓</span>
-                    Track reading progress (syncs when online)
+                    {% trans "Track reading progress (syncs when online)" %}
                 </li>
             </ul>
         </div>
         
         <!-- Actions -->
         <div class="space-y-3">
-            <a href="/library/" class="btn btn-primary btn-lg btn-block">Go to Library</a>
-            <button onclick="window.location.reload()" class="btn btn-secondary btn-block">Try Again</button>
+            <a href="/library/" class="btn btn-primary btn-lg btn-block">{% trans "Go to Library" %}</a>
+            <button onclick="window.location.reload()" class="btn btn-secondary btn-block">{% trans "Try Again" %}</button>
         </div>
         
         <!-- Tip -->
         <p class="text-sm text-gray-500 mt-8">
-            💡 Tip: Download books from your library to read them offline anytime!
+            💡 {% trans "Tip: Download books from your library to read them offline anytime!" %}
         </p>
     </div>
 </div>

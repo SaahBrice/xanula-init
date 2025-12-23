@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Sign Out - Xanula{% endblock %}
+{% block title %}{% trans "Sign Out" %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="min-h-screen flex items-center justify-center py-12 px-4">
@@ -11,10 +12,10 @@
                 <span class="text-3xl font-display font-bold text-burgundy-500">Xanula</span>
             </a>
             <h1 class="mt-6 font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                Sign Out
+                {% trans "Sign Out" %}
             </h1>
             <p class="mt-4 text-gray-600 dark:text-gray-400">
-                Are you sure you want to sign out?
+                {% trans "Are you sure you want to sign out?" %}
             </p>
         </div>
 
@@ -23,14 +24,14 @@
             <form method="post" action="{% url 'account_logout' %}">
                 {% csrf_token %}
                 <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                    <a href="{% url 'core:homepage' %}" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Sign Out</button>
+                    <a href="{% url 'core:homepage' %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+                    <button type="submit" class="btn btn-primary">{% trans "Sign Out" %}</button>
                 </div>
             </form>
         </div>
 
         <p class="text-sm text-gray-500 mt-6">
-            You can sign back in anytime to access your library.
+            {% trans "You can sign back in anytime to access your library." %}
         </p>
     </div>
 </div>

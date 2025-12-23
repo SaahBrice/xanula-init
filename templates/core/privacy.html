@@ -1,96 +1,97 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Privacy Policy - Xanula{% endblock %}
+{% block title %}{% trans "Privacy Policy" %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="container py-10 md:py-16 max-w-3xl">
-    <h1 class="font-display text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">Privacy Policy</h1>
-    <p class="text-gray-500 dark:text-gray-400 mb-8">Last updated: December 2025</p>
+    <h1 class="font-display text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">{% trans "Privacy Policy" %}</h1>
+    <p class="text-gray-500 dark:text-gray-400 mb-8">{% trans "Last updated: December 2025" %}</p>
 
     <div class="prose prose-lg dark:prose-invert max-w-none space-y-8">
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">1. Information We Collect</h2>
-            <p class="text-gray-600 dark:text-gray-300 mb-3">We collect information you provide directly:</p>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "1. Information We Collect" %}</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-3">{% trans "We collect information you provide directly:" %}</p>
             <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-1">
-                <li><strong>Account Information:</strong> Name, email address, password</li>
-                <li><strong>Author Information:</strong> Biography, profile picture, payment details for royalties</li>
-                <li><strong>Purchase Information:</strong> Transaction history, payment method details</li>
-                <li><strong>Usage Data:</strong> Reading progress, listening progress, preferences</li>
+                <li><strong>{% trans "Account Information:" %}</strong> {% trans "Name, email address, password" %}</li>
+                <li><strong>{% trans "Author Information:" %}</strong> {% trans "Biography, profile picture, payment details for royalties" %}</li>
+                <li><strong>{% trans "Purchase Information:" %}</strong> {% trans "Transaction history, payment method details" %}</li>
+                <li><strong>{% trans "Usage Data:" %}</strong> {% trans "Reading progress, listening progress, preferences" %}</li>
             </ul>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">2. How We Use Your Information</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "2. How We Use Your Information" %}</h2>
             <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-1">
-                <li>To provide and improve our services</li>
-                <li>To process purchases and deliver content</li>
-                <li>To pay royalties to authors</li>
-                <li>To communicate with you about your account and orders</li>
-                <li>To personalize your experience and recommendations</li>
-                <li>To detect and prevent fraud</li>
+                <li>{% trans "To provide and improve our services" %}</li>
+                <li>{% trans "To process purchases and deliver content" %}</li>
+                <li>{% trans "To pay royalties to authors" %}</li>
+                <li>{% trans "To communicate with you about your account and orders" %}</li>
+                <li>{% trans "To personalize your experience and recommendations" %}</li>
+                <li>{% trans "To detect and prevent fraud" %}</li>
             </ul>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">3. Information Sharing</h2>
-            <p class="text-gray-600 dark:text-gray-300 mb-3">We do not sell your personal information. We may share information with:</p>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "3. Information Sharing" %}</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-3">{% trans "We do not sell your personal information. We may share information with:" %}</p>
             <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-1">
-                <li><strong>Payment Processors:</strong> Stripe and Fapshi for transaction processing</li>
-                <li><strong>Authors:</strong> Aggregate, anonymized sales data</li>
-                <li><strong>Legal Requirements:</strong> When required by law or to protect our rights</li>
+                <li><strong>{% trans "Payment Processors:" %}</strong> {% trans "Stripe and Fapshi for transaction processing" %}</li>
+                <li><strong>{% trans "Authors:" %}</strong> {% trans "Aggregate, anonymized sales data" %}</li>
+                <li><strong>{% trans "Legal Requirements:" %}</strong> {% trans "When required by law or to protect our rights" %}</li>
             </ul>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">4. Data Security</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "4. Data Security" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                We implement industry-standard security measures to protect your data, including encryption for data in transit and at rest. However, no system is completely secure, and we cannot guarantee absolute security.
+                {% trans "We implement industry-standard security measures to protect your data, including encryption for data in transit and at rest. However, no system is completely secure, and we cannot guarantee absolute security." %}
             </p>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">5. Cookies and Tracking</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "5. Cookies and Tracking" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                We use cookies and similar technologies to maintain your session, remember your preferences, and understand how you use our platform. You can control cookies through your browser settings.
+                {% trans "We use cookies and similar technologies to maintain your session, remember your preferences, and understand how you use our platform. You can control cookies through your browser settings." %}
             </p>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">6. Your Rights</h2>
-            <p class="text-gray-600 dark:text-gray-300 mb-3">You have the right to:</p>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "6. Your Rights" %}</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-3">{% trans "You have the right to:" %}</p>
             <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-1">
-                <li>Access and receive a copy of your personal data</li>
-                <li>Correct inaccurate personal data</li>
-                <li>Request deletion of your account and data</li>
-                <li>Opt out of marketing communications</li>
+                <li>{% trans "Access and receive a copy of your personal data" %}</li>
+                <li>{% trans "Correct inaccurate personal data" %}</li>
+                <li>{% trans "Request deletion of your account and data" %}</li>
+                <li>{% trans "Opt out of marketing communications" %}</li>
             </ul>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">7. Data Retention</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "7. Data Retention" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                We retain your data for as long as your account is active or as needed to provide services. We may retain certain information as required by law or for legitimate business purposes.
+                {% trans "We retain your data for as long as your account is active or as needed to provide services. We may retain certain information as required by law or for legitimate business purposes." %}
             </p>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">8. Children's Privacy</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "8. Children's Privacy" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                Xanula is not intended for users under 13 years of age. We do not knowingly collect personal information from children under 13.
+                {% trans "Xanula is not intended for users under 13 years of age. We do not knowingly collect personal information from children under 13." %}
             </p>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">9. Changes to This Policy</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "9. Changes to This Policy" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                We may update this Privacy Policy from time to time. We will notify you of significant changes by email or through the Platform.
+                {% trans "We may update this Privacy Policy from time to time. We will notify you of significant changes by email or through the Platform." %}
             </p>
         </section>
 
         <section>
-            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">10. Contact Us</h2>
+            <h2 class="font-display text-xl font-bold text-gray-900 dark:text-white mb-4">{% trans "10. Contact Us" %}</h2>
             <p class="text-gray-600 dark:text-gray-300">
-                For privacy-related questions, please contact us at <a href="mailto:privacy@xanula.com" class="text-burgundy-500 hover:underline">reepls.project@gmail.com  |  Whatsapp: +44 7555 000 479</a>.
+                {% trans "For privacy-related questions, please contact us at" %} <a href="mailto:privacy@xanula.com" class="text-burgundy-500 hover:underline">reepls.project@gmail.com | Whatsapp: +44 7555 000 479</a>.
             </p>
         </section>
     </div>
@@ -98,7 +99,7 @@
     <div class="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
         <a href="{% url 'core:homepage' %}" class="text-burgundy-500 hover:text-burgundy-600 font-medium flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            Back to Home
+            {% trans "Back to Home" %}
         </a>
     </div>
 </div>

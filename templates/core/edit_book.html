@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Edit Book - {{ book.title }} - Xanula{% endblock %}
+{% block title %}{% trans "Edit Book" %} - {{ book.title }} - Xanula{% endblock %}
 
 {% block content %}
 <div class="container py-6 max-w-3xl mx-auto"
@@ -16,8 +16,8 @@
          previewCover(event) {
              const file = event.target.files[0];
              if (file) {
-                 if (file.size > 5 * 1024 * 1024) { this.coverError = 'Cover must be less than 5MB'; event.target.value = ''; return; }
-                 if (!['image/jpeg', 'image/png'].includes(file.type)) { this.coverError = 'Only JPEG and PNG allowed'; event.target.value = ''; return; }
+                 if (file.size > 5 * 1024 * 1024) { this.coverError = '{% trans "Cover must be less than 5MB" %}'; event.target.value = ''; return; }
+                 if (!['image/jpeg', 'image/png'].includes(file.type)) { this.coverError = '{% trans "Only JPEG and PNG allowed" %}'; event.target.value = ''; return; }
                  this.coverError = '';
                  const reader = new FileReader();
                  reader.onload = (e) => this.coverPreview = e.target.result;
@@ -27,9 +27,9 @@
          checkManuscript(event) {
              const file = event.target.files[0];
              if (file) {
-                 if (file.size > 25 * 1024 * 1024) { this.manuscriptError = 'File must be less than 25MB'; event.target.value = ''; return; }
+                 if (file.size > 25 * 1024 * 1024) { this.manuscriptError = '{% trans "File must be less than 25MB" %}'; event.target.value = ''; return; }
                  const ext = file.name.split('.').pop().toLowerCase();
-                 if (!['pdf', 'docx', 'epub', 'txt'].includes(ext)) { this.manuscriptError = 'Only PDF, DOCX, EPUB, TXT allowed'; event.target.value = ''; return; }
+                 if (!['pdf', 'docx', 'epub', 'txt'].includes(ext)) { this.manuscriptError = '{% trans "Only PDF, DOCX, EPUB, TXT allowed" %}'; event.target.value = ''; return; }
                  this.manuscriptError = '';
                  this.manuscriptName = file.name;
              }
@@ -38,9 +38,9 @@
     
     <!-- Header -->
     <div class="mb-6">
-        <a href="{% url 'core:my_books' %}" class="text-gray-500 hover:text-burgundy-500 text-sm mb-2 inline-block">← Back to My Books</a>
-        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">Edit & Resubmit</h1>
-        <p class="text-gray-600 dark:text-gray-400">Make changes to your book and resubmit for review.</p>
+        <a href="{% url 'core:my_books' %}" class="text-gray-500 hover:text-burgundy-500 text-sm mb-2 inline-block">← {% trans "Back to My Books" %}</a>
+        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">{% trans "Edit & Resubmit" %}</h1>
+        <p class="text-gray-600 dark:text-gray-400">{% trans "Make changes to your book and resubmit for review." %}</p>
     </div>
 
     <!-- Denial Reason -->
@@ -49,7 +49,7 @@
         <div class="flex items-start gap-3">
             <span class="text-xl">⚠️</span>
             <div>
-                <h3 class="font-semibold text-red-600 dark:text-red-400 mb-1">Reason for Denial</h3>
+                <h3 class="font-semibold text-red-600 dark:text-red-400 mb-1">{% trans "Reason for Denial" %}</h3>
                 <p class="text-gray-700 dark:text-gray-300">{{ book.denial_reason }}</p>
             </div>
         </div>
@@ -64,30 +64,30 @@
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
             <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
                 <span class="w-8 h-8 bg-burgundy-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">1</span>
-                Book Details
+                {% trans "Book Details" %}
             </h2>
             
             <div class="form-group">
-                <label for="id_title" class="label">Book Title *</label>
-                <input type="text" name="title" id="id_title" value="{{ form.title.value|default_if_none:'' }}" class="input" placeholder="Enter your book title">
+                <label for="id_title" class="label">{% trans "Book Title" %} *</label>
+                <input type="text" name="title" id="id_title" value="{{ form.title.value|default_if_none:'' }}" class="input" placeholder="{% trans 'Enter your book title' %}">
                 {% if form.title.errors %}<p class="mt-1 text-sm text-red-500">{{ form.title.errors.0 }}</p>{% endif %}
             </div>
             
             <div class="form-group">
-                <label for="id_short_description" class="label">Short Description * <span class="text-gray-400 font-normal ml-2" x-text="charCount + '/200'"></span></label>
-                <textarea name="short_description" id="id_short_description" class="input resize-none" placeholder="Brief description (max 200 characters)" rows="3" maxlength="200" x-on:input="charCount = $el.value.length" x-init="charCount = $el.value.length">{{ form.short_description.value|default_if_none:"" }}</textarea>
+                <label for="id_short_description" class="label">{% trans "Short Description" %} * <span class="text-gray-400 font-normal ml-2" x-text="charCount + '/200'"></span></label>
+                <textarea name="short_description" id="id_short_description" class="input resize-none" placeholder="{% trans 'Brief description (max 200 characters)' %}" rows="3" maxlength="200" x-on:input="charCount = $el.value.length" x-init="charCount = $el.value.length">{{ form.short_description.value|default_if_none:"" }}</textarea>
                 {% if form.short_description.errors %}<p class="mt-1 text-sm text-red-500">{{ form.short_description.errors.0 }}</p>{% endif %}
             </div>
             
             <div class="form-group">
-                <label for="id_long_description" class="label">Full Description *</label>
-                <textarea name="long_description" id="id_long_description" class="input" placeholder="Detailed description" rows="6">{{ form.long_description.value|default_if_none:"" }}</textarea>
+                <label for="id_long_description" class="label">{% trans "Full Description" %} *</label>
+                <textarea name="long_description" id="id_long_description" class="input" placeholder="{% trans 'Detailed description' %}" rows="6">{{ form.long_description.value|default_if_none:"" }}</textarea>
                 {% if form.long_description.errors %}<p class="mt-1 text-sm text-red-500">{{ form.long_description.errors.0 }}</p>{% endif %}
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="form-group">
-                    <label for="id_category" class="label">Category *</label>
+                    <label for="id_category" class="label">{% trans "Category" %} *</label>
                     <select name="category" id="id_category" class="input">
                         {% for value, label in categories %}
                         <option value="{{ value }}" {% if form.category.value == value %}selected{% endif %}>{{ label }}</option>
@@ -95,15 +95,15 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="label">Language *</label>
+                    <label class="label">{% trans "Language" %} *</label>
                     <div class="flex gap-6 mt-2">
                         <label class="flex items-center">
                             <input type="radio" name="language" value="en" {% if form.language.value == 'en' or not form.language.value %}checked{% endif %} class="w-5 h-5 text-burgundy-500">
-                            <span class="ml-2 text-gray-700 dark:text-gray-300">English</span>
+                            <span class="ml-2 text-gray-700 dark:text-gray-300">{% trans "English" %}</span>
                         </label>
                         <label class="flex items-center">
                             <input type="radio" name="language" value="fr" {% if form.language.value == 'fr' %}checked{% endif %} class="w-5 h-5 text-burgundy-500">
-                            <span class="ml-2 text-gray-700 dark:text-gray-300">French</span>
+                            <span class="ml-2 text-gray-700 dark:text-gray-300">{% trans "French" %}</span>
                         </label>
                     </div>
                 </div>
@@ -114,29 +114,29 @@
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
             <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
                 <span class="w-8 h-8 bg-burgundy-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">2</span>
-                Files <span class="text-sm font-normal text-gray-400 ml-2">(Optional - leave empty to keep current)</span>
+                {% trans "Files" %} <span class="text-sm font-normal text-gray-400 ml-2">({% trans "Optional - leave empty to keep current" %})</span>
             </h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="label mb-2">Cover Image</label>
+                    <label class="label mb-2">{% trans "Cover Image" %}</label>
                     <div @click="$refs.coverInput.click()" class="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-burgundy-500 rounded-xl p-6 text-center cursor-pointer transition-colors aspect-[2/3] flex items-center justify-center overflow-hidden bg-cream dark:bg-dark-50">
-                        <template x-if="coverPreview"><img :src="coverPreview" class="w-full h-full object-cover rounded-lg" alt="Cover"></template>
-                        <template x-if="!coverPreview"><div><span class="text-4xl block mb-2">🖼️</span><p class="text-gray-500 text-sm">Click to change cover</p></div></template>
+                        <template x-if="coverPreview"><img :src="coverPreview" class="w-full h-full object-cover rounded-lg" alt="{% trans 'Cover' %}"></template>
+                        <template x-if="!coverPreview"><div><span class="text-4xl block mb-2">🖼️</span><p class="text-gray-500 text-sm">{% trans "Click to change cover" %}</p></div></template>
                     </div>
                     <input type="file" name="cover_image" x-ref="coverInput" @change="previewCover($event)" class="hidden" accept="image/jpeg,image/png">
                     <p x-show="coverError" x-text="coverError" class="mt-2 text-sm text-red-500"></p>
-                    <p class="mt-1 text-xs text-gray-500">Current: {{ book.cover_image.name|default:"None" }}</p>
+                    <p class="mt-1 text-xs text-gray-500">{% trans "Current:" %} {{ book.cover_image.name|default:_("None") }}</p>
                 </div>
                 
                 <div>
-                    <label class="label mb-2">Manuscript File</label>
+                    <label class="label mb-2">{% trans "Manuscript File" %}</label>
                     <div @click="$refs.manuscriptInput.click()" class="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-burgundy-500 rounded-xl p-6 text-center cursor-pointer transition-colors min-h-[200px] flex items-center justify-center bg-cream dark:bg-dark-50">
-                        <div><span class="text-4xl block mb-2">📄</span><p class="text-gray-500 text-sm" x-text="manuscriptName || 'Click to change manuscript'"></p></div>
+                        <div><span class="text-4xl block mb-2">📄</span><p class="text-gray-500 text-sm" x-text="manuscriptName || '{% trans "Click to change manuscript" %}'"></p></div>
                     </div>
                     <input type="file" name="manuscript_file" x-ref="manuscriptInput" @change="checkManuscript($event)" class="hidden" accept=".pdf,.docx,.epub,.txt">
                     <p x-show="manuscriptError" x-text="manuscriptError" class="mt-2 text-sm text-red-500"></p>
-                    <p class="mt-1 text-xs text-gray-500">Current: {{ book.manuscript_file.name|default:"None" }}</p>
+                    <p class="mt-1 text-xs text-gray-500">{% trans "Current:" %} {{ book.manuscript_file.name|default:_("None") }}</p>
                 </div>
             </div>
         </div>
@@ -145,29 +145,29 @@
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
             <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
                 <span class="w-8 h-8 bg-burgundy-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">3</span>
-                Pricing
+                {% trans "Pricing" %}
             </h2>
             <div class="max-w-md">
-                <label for="id_price" class="label">Price (XAF)</label>
+                <label for="id_price" class="label">{% trans "Price (XAF)" %}</label>
                 <div class="relative">
                     <input type="number" name="price" id="id_price" value="{{ form.price.value|default:'0' }}" class="input pr-16" placeholder="0" min="0" max="50000" step="100" :disabled="makeFree">
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">XAF</span>
                 </div>
                 <label class="flex items-center gap-3 mt-4">
                     <input type="checkbox" name="make_free" x-model="makeFree" class="w-5 h-5 rounded border-gray-300 text-burgundy-500">
-                    <span class="text-gray-700 dark:text-gray-300">Make this book free</span>
+                    <span class="text-gray-700 dark:text-gray-300">{% trans "Make this book free" %}</span>
                 </label>
             </div>
         </div>
         
         <!-- Submit -->
         <div class="flex flex-col sm:flex-row gap-3 justify-end">
-            <a href="{% url 'core:my_books' %}" class="btn btn-secondary text-center">Cancel</a>
+            <a href="{% url 'core:my_books' %}" class="btn btn-secondary text-center">{% trans "Cancel" %}</a>
             <button type="submit" :disabled="submitting" class="btn btn-primary">
-                <span x-show="!submitting">Resubmit for Review</span>
+                <span x-show="!submitting">{% trans "Resubmit for Review" %}</span>
                 <span x-show="submitting" class="flex items-center gap-2">
                     <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                    Uploading...
+                    {% trans "Uploading..." %}
                 </span>
             </button>
         </div>

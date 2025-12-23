@@ -1,29 +1,29 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Purchase History - Xanula{% endblock %}
+{% block title %}{% trans "Purchase History" %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="container py-6 max-w-3xl mx-auto">
     <!-- Header -->
     <div class="mb-6">
-        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">Purchase History</h1>
-        <p class="text-gray-600 dark:text-gray-400">View all your book purchases</p>
+        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">{% trans "Purchase History" %}</h1>
+        <p class="text-gray-600 dark:text-gray-400">{% trans "View all your book purchases" %}</p>
     </div>
 
     <!-- Filter Tabs -->
     <div class="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
         <a href="?status=all" class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all {% if status_filter == 'all' %}bg-burgundy-500 text-white{% else %}bg-white dark:bg-dark-100 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700{% endif %}">
-            All ({{ status_counts.all }})
+            {% trans "All" %} ({{ status_counts.all }})
         </a>
         <a href="?status=completed" class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all {% if status_filter == 'completed' %}bg-forest-500 text-white{% else %}bg-white dark:bg-dark-100 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700{% endif %}">
-            Completed ({{ status_counts.completed }})
+            {% trans "Completed" %} ({{ status_counts.completed }})
         </a>
         <a href="?status=pending" class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all {% if status_filter == 'pending' %}bg-gold-500 text-white{% else %}bg-white dark:bg-dark-100 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700{% endif %}">
-            Pending ({{ status_counts.pending }})
+            {% trans "Pending" %} ({{ status_counts.pending }})
         </a>
         <a href="?status=failed" class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all {% if status_filter == 'failed' %}bg-red-500 text-white{% else %}bg-white dark:bg-dark-100 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700{% endif %}">
-            Failed ({{ status_counts.failed }})
+            {% trans "Failed" %} ({{ status_counts.failed }})
         </a>
     </div>
 
@@ -51,21 +51,21 @@
                             {{ purchase.book.title }}
                         </a>
                         {% if purchase.payment_status == 'completed' %}
-                        <span class="px-2 py-1 text-xs font-medium bg-forest-100 dark:bg-forest-900/30 text-forest-600 dark:text-forest-400 rounded-full whitespace-nowrap">✓ Completed</span>
+                        <span class="px-2 py-1 text-xs font-medium bg-forest-100 dark:bg-forest-900/30 text-forest-600 dark:text-forest-400 rounded-full whitespace-nowrap">✓ {% trans "Completed" %}</span>
                         {% elif purchase.payment_status == 'pending' %}
-                        <span class="px-2 py-1 text-xs font-medium bg-gold-100 dark:bg-gold-900/30 text-gold-600 dark:text-gold-400 rounded-full whitespace-nowrap">Pending</span>
+                        <span class="px-2 py-1 text-xs font-medium bg-gold-100 dark:bg-gold-900/30 text-gold-600 dark:text-gold-400 rounded-full whitespace-nowrap">{% trans "Pending" %}</span>
                         {% elif purchase.payment_status == 'failed' %}
-                        <span class="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full whitespace-nowrap">Failed</span>
+                        <span class="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full whitespace-nowrap">{% trans "Failed" %}</span>
                         {% elif purchase.payment_status == 'refunded' %}
-                        <span class="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-500 rounded-full whitespace-nowrap">Refunded</span>
+                        <span class="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-500 rounded-full whitespace-nowrap">{% trans "Refunded" %}</span>
                         {% endif %}
                     </div>
                     
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">by {{ purchase.book.author.get_full_name }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">{% trans "by" %} {{ purchase.book.author.get_full_name }}</p>
 
                     <div class="flex flex-wrap gap-3 text-sm">
                         <span class="font-medium {% if purchase.amount_paid == 0 %}text-forest-500{% else %}text-gray-900 dark:text-white{% endif %}">
-                            {% if purchase.amount_paid == 0 %}Free{% else %}{{ purchase.amount_paid|floatformat:0 }} XAF{% endif %}
+                            {% if purchase.amount_paid == 0 %}{% trans "Free" %}{% else %}{{ purchase.amount_paid|floatformat:0 }} XAF{% endif %}
                         </span>
                         <span class="text-gray-400">{{ purchase.get_payment_method_display }}</span>
                         <span class="text-gray-400">{{ purchase.purchase_date|date:"M d, Y" }}</span>
@@ -73,7 +73,7 @@
 
                     {% if purchase.payment_status == 'completed' %}
                     <div class="mt-3">
-                        <a href="{% url 'core:library' %}" class="text-sm text-burgundy-500 hover:text-burgundy-600 font-medium">View in Library →</a>
+                        <a href="{% url 'core:library' %}" class="text-sm text-burgundy-500 hover:text-burgundy-600 font-medium">{% trans "View in Library" %} →</a>
                     </div>
                     {% endif %}
                 </div>
@@ -86,11 +86,11 @@
     {% if page_obj.has_other_pages %}
     <div class="flex justify-center gap-2 mt-8">
         {% if page_obj.has_previous %}
-        <a href="?status={{ status_filter }}&page={{ page_obj.previous_page_number }}" class="btn btn-secondary btn-sm">Previous</a>
+        <a href="?status={{ status_filter }}&page={{ page_obj.previous_page_number }}" class="btn btn-secondary btn-sm">{% trans "Previous" %}</a>
         {% endif %}
-        <span class="px-4 py-2 text-sm text-gray-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        <span class="px-4 py-2 text-sm text-gray-500">{% blocktrans with current=page_obj.number total=page_obj.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>
         {% if page_obj.has_next %}
-        <a href="?status={{ status_filter }}&page={{ page_obj.next_page_number }}" class="btn btn-secondary btn-sm">Next</a>
+        <a href="?status={{ status_filter }}&page={{ page_obj.next_page_number }}" class="btn btn-secondary btn-sm">{% trans "Next" %}</a>
         {% endif %}
     </div>
     {% endif %}
@@ -101,9 +101,9 @@
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-dark-100 flex items-center justify-center">
             <span class="text-3xl">🛒</span>
         </div>
-        <h3 class="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">No purchases yet</h3>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">Start exploring our collection of books!</p>
-        <a href="{% url 'core:book_list' %}" class="btn btn-primary">Browse Books</a>
+        <h3 class="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">{% trans "No purchases yet" %}</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">{% trans "Start exploring our collection of books!" %}</p>
+        <a href="{% url 'core:book_list' %}" class="btn btn-primary">{% trans "Browse Books" %}</a>
     </div>
     {% endif %}
 </div>

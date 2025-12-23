@@ -1,6 +1,7 @@
 {% extends "emails/base_email.html" %}
+{% load i18n %}
 
-{% block title %}Book Approved - Xanula{% endblock %}
+{% block title %}{% trans "Book Approved" %} - Xanula{% endblock %}
 
 {% block content %}
 <!-- Success Icon -->
@@ -10,8 +11,8 @@
     </div>
 </div>
 
-<h1 style="text-align: center;">Congratulations!</h1>
-<p style="text-align: center; color: #666666;">Your book has been approved and is now live on Xanula.</p>
+<h1 style="text-align: center;">{% trans "Congratulations!" %}</h1>
+<p style="text-align: center; color: #666666;">{% trans "Your book has been approved and is now live on Xanula." %}</p>
 
 <!-- Book Card -->
 <div class="book-card">
@@ -26,10 +27,10 @@
             </td>
             <td style="vertical-align: top;">
                 <h3 class="book-title">{{ book.title }}</h3>
-                <p class="book-author">by {{ book.author.get_display_name }}</p>
+                <p class="book-author">{% trans "by" %} {{ book.author.get_display_name }}</p>
                 <p class="book-price">{{ book.formatted_price }}</p>
                 <div style="margin-top: 8px;">
-                    <span class="badge badge-success">✓ Live</span>
+                    <span class="badge badge-success">✓ {% trans "Live" %}</span>
                 </div>
             </td>
         </tr>
@@ -37,28 +38,28 @@
 </div>
 
 <div class="info-box success">
-    <strong>What happens next?</strong>
+    <strong>{% trans "What happens next?" %}</strong>
     <ul style="margin: 8px 0 0 0; padding-left: 20px; color: #555555;">
-        <li>Your book is now discoverable by readers</li>
-        <li>Audiobook generation has begun automatically</li>
-        <li>You'll earn 70% of each sale</li>
-        <li>Track your sales in the Author Dashboard</li>
+        <li>{% trans "Your book is now discoverable by readers" %}</li>
+        <li>{% trans "Audiobook generation has begun automatically" %}</li>
+        <li>{% trans "You'll earn 70% of each sale" %}</li>
+        <li>{% trans "Track your sales in the Author Dashboard" %}</li>
     </ul>
 </div>
 
 <!-- CTA Buttons -->
 <div style="text-align: center; margin-top: 32px;">
     <a href="{{ site_url|default:'https://xanula.com' }}/books/{{ book.slug }}/" class="btn" style="margin-right: 12px;">
-        View Your Book
+        {% trans "View Your Book" %}
     </a>
     <a href="{{ site_url|default:'https://xanula.com' }}/my-books/" class="btn btn-secondary">
-        Author Dashboard
+        {% trans "Author Dashboard" %}
     </a>
 </div>
 
 <div class="divider"></div>
 
 <p style="font-size: 13px; color: #888888; text-align: center;">
-    Share your book on social media to reach more readers!
+    {% trans "Share your book on social media to reach more readers!" %}
 </p>
 {% endblock %}

@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Search: "{{ query }}" - Xanula{% endblock %}
+{% block title %}{% trans "Search" %}: "{{ query }}" - Xanula{% endblock %}
 
 {% block content %}
 <div class="container py-6">
     <!-- Search Header -->
     <div class="mb-8">
         <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            {% if query %}Search results for "{{ query }}"{% else %}Search Books{% endif %}
+            {% if query %}{% blocktrans %}Search results for "{{ query }}"{% endblocktrans %}{% else %}{% trans "Search Books" %}{% endif %}
         </h1>
 
         <!-- Search Bar -->
@@ -17,14 +17,14 @@
                 <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <input type="text" name="q" value="{{ query }}" placeholder="Search books, authors, or genres..."
+                <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search books, authors, or genres...' %}"
                     class="input input-lg pl-12 pr-28">
-                <button type="submit" class="btn btn-primary absolute right-2 top-1/2 -translate-y-1/2">Search</button>
+                <button type="submit" class="btn btn-primary absolute right-2 top-1/2 -translate-y-1/2">{% trans "Search" %}</button>
             </div>
         </form>
 
         {% if query %}
-        <p class="text-gray-500 mt-4">Found {{ result_count }} result{% if result_count != 1 %}s{% endif %}</p>
+        <p class="text-gray-500 mt-4">{% blocktrans count counter=result_count %}Found {{ counter }} result{% plural %}Found {{ counter }} results{% endblocktrans %}</p>
         {% endif %}
     </div>
 
@@ -60,11 +60,11 @@
     <nav class="flex justify-center mt-8">
         <div class="flex items-center gap-2">
             {% if page_obj.has_previous %}
-            <a href="?q={{ query }}&page={{ page_obj.previous_page_number }}" class="btn btn-secondary btn-sm">Previous</a>
+            <a href="?q={{ query }}&page={{ page_obj.previous_page_number }}" class="btn btn-secondary btn-sm">{% trans "Previous" %}</a>
             {% endif %}
-            <span class="px-4 py-2 text-sm text-gray-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <span class="px-4 py-2 text-sm text-gray-500">{% blocktrans with current=page_obj.number total=page_obj.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>
             {% if page_obj.has_next %}
-            <a href="?q={{ query }}&page={{ page_obj.next_page_number }}" class="btn btn-secondary btn-sm">Next</a>
+            <a href="?q={{ query }}&page={{ page_obj.next_page_number }}" class="btn btn-secondary btn-sm">{% trans "Next" %}</a>
             {% endif %}
         </div>
     </nav>
@@ -75,17 +75,17 @@
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-dark-100 flex items-center justify-center">
             <span class="text-3xl">🔍</span>
         </div>
-        <h3 class="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">No results found</h3>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">We couldn't find any books matching "{{ query }}"</p>
-        <a href="{% url 'core:book_list' %}" class="btn btn-primary">Browse all books</a>
+        <h3 class="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">{% trans "No results found" %}</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">{% blocktrans %}We couldn't find any books matching "{{ query }}"{% endblocktrans %}</p>
+        <a href="{% url 'core:book_list' %}" class="btn btn-primary">{% trans "Browse all books" %}</a>
     </div>
     {% else %}
     <div class="text-center py-16 bg-cream dark:bg-dark-50 rounded-2xl">
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-dark-100 flex items-center justify-center">
             <span class="text-3xl">🔍</span>
         </div>
-        <h3 class="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">Start searching</h3>
-        <p class="text-gray-600 dark:text-gray-400">Enter a search term above to find books.</p>
+        <h3 class="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">{% trans "Start searching" %}</h3>
+        <p class="text-gray-600 dark:text-gray-400">{% trans "Enter a search term above to find books." %}</p>
     </div>
     {% endif %}
 </div>

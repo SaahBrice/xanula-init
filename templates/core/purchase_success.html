@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}{% if success %}Payment Successful{% else %}Payment Status{% endif %} - Xanula{% endblock %}
+{% block title %}{% if success %}{% trans "Payment Successful" %}{% else %}{% trans "Payment Status" %}{% endif %} - Xanula{% endblock %}
 
 {% block content %}
 <div class="container py-12 max-w-lg mx-auto text-center">
@@ -13,8 +13,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
         </div>
-        <h1 class="font-display text-3xl font-bold text-gray-900 dark:text-white mb-2">Payment Successful!</h1>
-        <p class="text-gray-600 dark:text-gray-400">Thank you for your purchase</p>
+        <h1 class="font-display text-3xl font-bold text-gray-900 dark:text-white mb-2">{% trans "Payment Successful!" %}</h1>
+        <p class="text-gray-600 dark:text-gray-400">{% trans "Thank you for your purchase" %}</p>
     </div>
 
     <!-- Purchase Details -->
@@ -31,27 +31,27 @@
             </div>
             <div class="text-left">
                 <h3 class="font-display font-semibold text-gray-900 dark:text-white">{{ book.title }}</h3>
-                <p class="text-sm text-gray-500">by {{ book.author.get_full_name }}</p>
+                <p class="text-sm text-gray-500">{% trans "by" %} {{ book.author.get_full_name }}</p>
             </div>
         </div>
 
         <div class="space-y-3 text-sm">
             <div class="flex justify-between">
-                <span class="text-gray-500">Amount Paid</span>
+                <span class="text-gray-500">{% trans "Amount Paid" %}</span>
                 <span class="font-medium text-gray-900 dark:text-white">
-                    {% if purchase.amount_paid == 0 %}Free{% else %}{{ purchase.amount_paid|floatformat:0 }} XAF{% endif %}
+                    {% if purchase.amount_paid == 0 %}{% trans "Free" %}{% else %}{{ purchase.amount_paid|floatformat:0 }} XAF{% endif %}
                 </span>
             </div>
             <div class="flex justify-between">
-                <span class="text-gray-500">Payment Method</span>
+                <span class="text-gray-500">{% trans "Payment Method" %}</span>
                 <span class="font-medium text-gray-900 dark:text-white">{{ purchase.get_payment_method_display }}</span>
             </div>
             <div class="flex justify-between">
-                <span class="text-gray-500">Transaction ID</span>
+                <span class="text-gray-500">{% trans "Transaction ID" %}</span>
                 <span class="font-mono text-xs text-gray-600 dark:text-gray-400">{{ purchase.payment_transaction_id|truncatechars:20 }}</span>
             </div>
             <div class="flex justify-between">
-                <span class="text-gray-500">Date</span>
+                <span class="text-gray-500">{% trans "Date" %}</span>
                 <span class="font-medium text-gray-900 dark:text-white">{{ purchase.purchase_date|date:"M d, Y" }}</span>
             </div>
         </div>
@@ -59,11 +59,11 @@
 
     <!-- Actions -->
     <div class="space-y-3">
-        <a href="{% url 'core:library' %}" class="btn btn-primary btn-lg btn-block">Go to My Library</a>
-        <a href="{% url 'core:book_list' %}" class="btn btn-secondary btn-block">Continue Shopping</a>
+        <a href="{% url 'core:library' %}" class="btn btn-primary btn-lg btn-block">{% trans "Go to My Library" %}</a>
+        <a href="{% url 'core:book_list' %}" class="btn btn-secondary btn-block">{% trans "Continue Shopping" %}</a>
     </div>
 
-    <p class="text-sm text-gray-500 mt-6">📧 A receipt has been sent to your email</p>
+    <p class="text-sm text-gray-500 mt-6">📧 {% trans "A receipt has been sent to your email" %}</p>
 
     {% else %}
     <!-- Error State -->
@@ -73,8 +73,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </div>
-        <h1 class="font-display text-3xl font-bold text-gray-900 dark:text-white mb-2">Payment Issue</h1>
-        <p class="text-gray-600 dark:text-gray-400">{{ error_message|default:"There was a problem with your payment." }}</p>
+        <h1 class="font-display text-3xl font-bold text-gray-900 dark:text-white mb-2">{% trans "Payment Issue" %}</h1>
+        <p class="text-gray-600 dark:text-gray-400">{{ error_message|default:_("There was a problem with your payment.") }}</p>
     </div>
 
     <!-- Book Info -->
@@ -96,12 +96,12 @@
 
     <!-- Actions -->
     <div class="space-y-3">
-        <a href="{% url 'core:initiate_purchase' slug=book.slug %}" class="btn btn-primary btn-lg btn-block">Try Again</a>
-        <a href="{{ book.get_absolute_url }}" class="btn btn-secondary btn-block">Back to Book</a>
+        <a href="{% url 'core:initiate_purchase' slug=book.slug %}" class="btn btn-primary btn-lg btn-block">{% trans "Try Again" %}</a>
+        <a href="{{ book.get_absolute_url }}" class="btn btn-secondary btn-block">{% trans "Back to Book" %}</a>
     </div>
 
     <p class="text-sm text-gray-500 mt-6">
-        If you were charged, please <a href="mailto:support@xanula.com" class="text-burgundy-500 hover:underline">contact support</a>
+        {% trans "If you were charged, please" %} <a href="mailto:support@xanula.com" class="text-burgundy-500 hover:underline">{% trans "contact support" %}</a>
     </p>
     {% endif %}
 </div>
