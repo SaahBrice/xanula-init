@@ -2,13 +2,12 @@
 Django signals for triggering notifications.
 Per Architecture Document Section 14 (Background Tasks & Notifications).
 
-These signals automatically queue notification emails via Django-Q
-when model status changes occur.
+These signals send notification emails directly when model status changes occur.
+(Modified to work without Django-Q worker on PythonAnywhere)
 """
 
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-from django_q.tasks import async_task
 import logging
 
 logger = logging.getLogger(__name__)
@@ -44,24 +43,23 @@ def book_status_changed(sender, instance, created, **kwargs):
         return  # No status change
     
     from core.models import Book
+    from core.tasks import send_book_approved_notification, send_book_denied_notification
     
     # In Review → Approved
     if previous_status == Book.Status.IN_REVIEW and instance.status == Book.Status.APPROVED:
-        logger.info(f"Book {instance.id} approved, queuing notification")
-        async_task(
-            'core.tasks.send_book_approved_notification',
-            instance.id,
-            task_name=f'book_approved_{instance.id}',
-        )
+        logger.info(f"Book {instance.id} approved, sending notification")
+        try:
+            send_book_approved_notification(instance.id)
+        except Exception as e:
+            logger.error(f"Failed to send book approved notification: {e}")
     
     # In Review → Denied
     elif previous_status == Book.Status.IN_REVIEW and instance.status == Book.Status.DENIED:
-        logger.info(f"Book {instance.id} denied, queuing notification")
-        async_task(
-            'core.tasks.send_book_denied_notification',
-            instance.id,
-            task_name=f'book_denied_{instance.id}',
-        )
+        logger.info(f"Book {instance.id} denied, sending notification")
+        try:
+            send_book_denied_notification(instance.id)
+        except Exception as e:
+            logger.error(f"Failed to send book denied notification: {e}")
 
 
 @receiver(pre_save, sender='core.PayoutRequest')
@@ -89,6 +87,7 @@ def payout_status_changed(sender, instance, created, **kwargs):
         return  # No status change
     
     from core.models import PayoutRequest
+    from core.tasks import send_payout_status_notification
     
     status_map = {
         PayoutRequest.Status.PROCESSING: 'processing',
@@ -97,22 +96,12 @@ def payout_status_changed(sender, instance, created, **kwargs):
     }
     
     new_status = status_map.get(instance.status)
-    if new_status and previous_status == PayoutRequest.Status.PENDING:
-        logger.info(f"Payout {instance.id} status changed to {new_status}, queuing notification")
-        async_task(
-            'core.tasks.send_payout_status_notification',
-            instance.id,
-            new_status,
-            task_name=f'payout_{new_status}_{instance.id}',
-        )
-    elif new_status and previous_status == PayoutRequest.Status.PROCESSING:
-        logger.info(f"Payout {instance.id} status changed to {new_status}, queuing notification")
-        async_task(
-            'core.tasks.send_payout_status_notification',
-            instance.id,
-            new_status,
-            task_name=f'payout_{new_status}_{instance.id}',
-        )
+    if new_status and previous_status in [PayoutRequest.Status.PENDING, PayoutRequest.Status.PROCESSING]:
+        logger.info(f"Payout {instance.id} status changed to {new_status}, sending notification")
+        try:
+            send_payout_status_notification(instance.id, new_status)
+        except Exception as e:
+            logger.error(f"Failed to send payout notification: {e}")
 
 
 @receiver(post_save, sender='core.Purchase')
@@ -121,11 +110,11 @@ def purchase_created(sender, instance, created, **kwargs):
     Send purchase receipt when new purchase is completed.
     """
     from core.models import Purchase
+    from core.tasks import send_purchase_receipt
     
     if created and instance.payment_status == Purchase.PaymentStatus.COMPLETED:
-        logger.info(f"Purchase {instance.id} completed, queuing receipt")
-        async_task(
-            'core.tasks.send_purchase_receipt',
-            instance.id,
-            task_name=f'purchase_receipt_{instance.id}',
-        )
+        logger.info(f"Purchase {instance.id} completed, sending receipt")
+        try:
+            send_purchase_receipt(instance.id)
+        except Exception as e:
+            logger.error(f"Failed to send purchase receipt: {e}")

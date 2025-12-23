@@ -6,20 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Xanula - Your gateway to African literature">
     <meta name="theme-color" content="#FAF7F2">
-    
+
     <!-- iOS PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Xanula">
     <link rel="apple-touch-icon" href="{% static 'images/icons/icon-192x192.png' %}">
-    
+    <link rel="apple-touch-icon" sizes="192x192" href="{% static 'images/icons/icon-192x192.png' %}">
+    <link rel="apple-touch-icon" sizes="512x512" href="{% static 'images/icons/icon-512x512.png' %}">
+
+    <!-- Android/PWA Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'images/icons/icon-192x192.png' %}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{% static 'images/icons/icon-512x512.png' %}">
     <title>{% block title %}Xanula{% endblock %}</title>
-    
+
     <!-- Fonts: Playfair Display (serif) + Source Sans 3 (body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -73,27 +78,27 @@
             }
         }
     </script>
-    
+
     <!-- Design System CSS -->
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    
+
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="{% url 'pwa:manifest' %}">
     <!-- Inline SVG Favicon - X in circle -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%238B2635'/%3E%3Cpath d='M35 35L65 65M65 35L35 65' stroke='white' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
-    
+
     <style>
         [x-cloak] { display: none !important; }
     </style>
-    
+
     {% block extra_head %}{% endblock %}
 </head>
 
 <body class="bg-paper dark:bg-dark-200 text-gray-800 dark:text-gray-100" x-data="app()" x-init="init()">
-    
+
     <!-- Desktop Top Navigation -->
     <header class="top-nav">
         <div class="top-nav-inner">
@@ -101,7 +106,7 @@
             <a href="{% url 'core:homepage' %}" class="nav-logo">
                 <span class="font-display text-2xl font-bold bg-gradient-to-r from-burgundy-500 via-burgundy-600 to-forest-500 bg-clip-text text-transparent">Xanula</span>
             </a>
-            
+
             <!-- Nav Links -->
             <nav class="nav-links">
                 <a href="{% url 'core:book_list' %}" class="nav-link {% if request.resolver_match.url_name == 'book_list' %}active{% endif %}">
@@ -117,7 +122,7 @@
                 <a href="{% url 'core:publish_book' %}" class="btn btn-primary">
                     Publish
                 </a>
-                
+
                 <!-- User Menu -->
                 <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open" @click.outside="open = false"
@@ -127,7 +132,7 @@
                             <span class="text-white text-sm font-semibold">{{ user.get_display_name|first|upper }}</span>
                         </div>
                     </button>
-                    
+
                     <div x-show="open" x-transition x-cloak
                         class="absolute right-0 mt-2 w-56 bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
                         <div class="p-3 border-b border-gray-100 dark:border-gray-700">
@@ -165,7 +170,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Theme Toggle -->
                 <button @click="toggleTheme()" class="theme-toggle" title="Toggle theme">
                     <svg x-show="isDark" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -191,7 +196,7 @@
         {% if messages %}
         <div x-init="{% for message in messages %}showToast('{{ message|escapejs }}', '{{ message.tags }}');{% endfor %}"></div>
         {% endif %}
-        
+
         {% block content %}{% endblock %}
     </main>
 
@@ -204,14 +209,14 @@
                 </svg>
                 <span>Home</span>
             </a>
-            
+
             <a href="{% url 'core:book_list' %}" class="nav-tab {% if request.resolver_match.url_name == 'book_list' %}active{% endif %}">
                 <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
                 </svg>
                 <span>Browse</span>
             </a>
-            
+
             {% if user.is_authenticated %}
             <a href="{% url 'core:publish_book' %}" class="nav-tab {% if request.resolver_match.url_name == 'publish_book' %}active{% endif %}">
                 <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -219,14 +224,14 @@
                 </svg>
                 <span>Publish</span>
             </a>
-            
+
             <a href="{% url 'core:library' %}" class="nav-tab {% if request.resolver_match.url_name == 'library' %}active{% endif %}">
                 <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
                 </svg>
                 <span>Library</span>
             </a>
-            
+
             <a href="{% url 'core:user_settings' %}" class="nav-tab {% if request.resolver_match.url_name == 'user_settings' %}active{% endif %}">
                 <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
@@ -246,7 +251,7 @@
 
     <!-- PWA Install Prompt -->
     <div x-show="showInstall && !isInstalled" x-cloak x-transition
-        class="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-80 z-40 
+        class="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-80 z-40
         bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-xl">
         <div class="flex items-start gap-3">
             <div class="w-12 h-12 bg-burgundy-500 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -272,7 +277,7 @@
 
     <!-- PWA Update Available Prompt -->
     <div x-show="showUpdate" x-cloak x-transition
-        class="fixed top-4 left-4 right-4 md:left-auto md:right-6 md:w-96 z-50 
+        class="fixed top-4 left-4 right-4 md:left-auto md:right-6 md:w-96 z-50
         bg-forest-500 text-white rounded-xl p-4 shadow-xl">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -295,16 +300,16 @@
     function showToast(message, type = 'info', duration = 4000) {
         const container = document.getElementById('toast-container');
         const id = 'toast-' + Date.now();
-        
+
         const icons = {
             success: '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>',
             error: '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>',
             warning: '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
             info: '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
         };
-        
+
         const toastType = type.includes('error') ? 'error' : type.includes('success') ? 'success' : type.includes('warning') ? 'warning' : 'info';
-        
+
         const toast = document.createElement('div');
         toast.id = id;
         toast.className = `toast toast-${toastType}`;
@@ -318,11 +323,11 @@
             </button>
             <div class="toast-progress"></div>
         `;
-        
+
         container.appendChild(toast);
         setTimeout(() => removeToast(id), duration);
     }
-    
+
     function removeToast(id) {
         const toast = document.getElementById(id);
         if (toast) {
@@ -330,7 +335,7 @@
             setTimeout(() => toast.remove(), 300);
         }
     }
-    
+
     // Main App
     function app() {
         return {
@@ -340,7 +345,7 @@
             isInstalled: false,
             deferredPrompt: null,
             waitingSW: null,
-            
+
             init() {
                 // Theme
                 const saved = localStorage.getItem('theme');
@@ -348,7 +353,7 @@
                     this.isDark = true;
                     document.documentElement.setAttribute('data-theme', 'dark');
                 }
-                
+
                 // PWA
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
@@ -359,17 +364,17 @@
                         setTimeout(() => this.showInstall = true, 2000);
                     }
                 });
-                
+
                 window.addEventListener('appinstalled', () => {
                     this.isInstalled = true;
                     this.showInstall = false;
-                    showToast('Xanula installed!', 'success');
+                    // Toast shown only once via installApp()
                 });
-                
+
                 if (window.matchMedia('(display-mode: standalone)').matches) {
                     this.isInstalled = true;
                 }
-                
+
                 // Service Worker with update detection
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.register('/static/js/serviceworker.js').then(reg => {
@@ -384,14 +389,14 @@
                             });
                         });
                     });
-                    
+
                     // Listen for SW messages
                     navigator.serviceWorker.addEventListener('message', (event) => {
                         if (event.data.type === 'SW_UPDATED') {
                             showToast('App updated to ' + event.data.version, 'success');
                         }
                     });
-                    
+
                     // Reload when new SW takes control
                     let refreshing = false;
                     navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -402,28 +407,31 @@
                     });
                 }
             },
-            
+
             toggleTheme() {
                 this.isDark = !this.isDark;
                 document.documentElement.setAttribute('data-theme', this.isDark ? 'dark' : 'light');
                 localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
                 document.querySelector('meta[name="theme-color"]').content = this.isDark ? '#1A1915' : '#FAF7F2';
             },
-            
+
             async installApp() {
                 if (!this.deferredPrompt) return;
                 this.deferredPrompt.prompt();
                 const { outcome } = await this.deferredPrompt.userChoice;
-                if (outcome === 'accepted') this.isInstalled = true;
+                if (outcome === 'accepted') {
+                    this.isInstalled = true;
+                    showToast('Xanula installed!', 'success');
+                }
                 this.showInstall = false;
                 this.deferredPrompt = null;
             },
-            
+
             dismissInstall() {
                 this.showInstall = false;
                 localStorage.setItem('installDismissed', Date.now().toString());
             },
-            
+
             applyUpdate() {
                 if (this.waitingSW) {
                     this.waitingSW.postMessage({ type: 'SKIP_WAITING' });
@@ -433,7 +441,7 @@
         }
     }
     </script>
-    
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,7 +1,7 @@
 /**
  * Xanula Service Worker
  * Per Architecture Document Section 12 (Offline Capability)
- * 
+ *
  * Caching strategies:
  * - Shell (essential UI): Cache-first
  * - Static assets: Cache-first
@@ -9,7 +9,7 @@
  * - Book files: Cache-only when downloaded
  */
 
-const CACHE_VERSION = 'v1.1.0';
+const CACHE_VERSION = 'v1.1.2';
 const STATIC_CACHE = `xanula-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `xanula-dynamic-${CACHE_VERSION}`;
 const BOOK_CACHE = 'xanula-books';

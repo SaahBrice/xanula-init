@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
-    
+
     # Third-party apps
     "allauth",
     "allauth.account",
@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     "theme",  # Tailwind theme app
     "pwa",
     "django_q",
-    
+
     # Local apps
     "core",
     "users",
@@ -307,7 +307,7 @@ EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@xanula.com")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="reepls.project@gmail.com")
 
 # Site URL for emails
 SITE_URL = config("SITE_URL", default="http://localhost:8000")
@@ -433,11 +433,12 @@ FAPSHI_BASE_URL = config('FAPSHI_BASE_URL', default='https://live.fapshi.com')
 # EMAIL CONFIGURATION
 # =============================================================================
 
-EMAIL_BACKEND = config(
-    'EMAIL_BACKEND',
-    default='django.core.mail.backends.console.EmailBackend'
-)
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@xanula.com')
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='reepls.project@gmail.com')
 
 # SMTP settings for production (uncomment and configure in .env)
 # EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
