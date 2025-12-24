@@ -1679,3 +1679,115 @@ msgstr "Lecture hors ligne - Téléchargez pour plus tard"
 msgid "Secure payments powered by Stripe & Fapshi"
 msgstr "Paiements sécurisés via Stripe et Fapshi"
 
+#: Publishing Services
+msgid "Publishing Services"
+msgstr "Services de Publication"
+
+msgid "Hard Copy Availability"
+msgstr "Disponibilité des Copies Papier"
+
+msgid "No hard copies"
+msgstr "Pas de copies papier"
+
+msgid "Ebook and/or audiobook only"
+msgstr "Ebook et/ou livre audio uniquement"
+
+msgid "I have hard copies to ship"
+msgstr "J'ai des copies papier à expédier"
+
+msgid "You have printed books ready to fulfill orders"
+msgstr "Vous avez des livres imprimés prêts à être expédiés"
+
+msgid "Xanula should produce hard copies"
+msgstr "Xanula devrait produire des copies papier"
+
+msgid "We'll print and ship on your behalf"
+msgstr "Nous imprimerons et expédierons en votre nom"
+
+msgid "Additional Services (Optional)"
+msgstr "Services Supplémentaires (Optionnel)"
+
+msgid "Select services you'd like Xanula to provide. Our team will contact you for details."
+msgstr "Sélectionnez les services que vous souhaitez. Notre équipe vous contactera pour les détails."
+
+msgid "Editing & Proofreading"
+msgstr "Édition et Relecture"
+
+msgid "Professional editing and proofreading services"
+msgstr "Services professionnels d'édition et de relecture"
+
+msgid "Cover Design"
+msgstr "Conception de Couverture"
+
+msgid "Cover Design (FREE)"
+msgstr "Conception de Couverture (GRATUIT)"
+
+msgid "Professional cover design or redesign"
+msgstr "Conception ou refonte professionnelle de couverture"
+
+msgid "Book Formatting"
+msgstr "Mise en Page du Livre"
+
+msgid "Book Formatting (FREE)"
+msgstr "Mise en Page du Livre (GRATUIT)"
+
+msgid "Professional layout and typesetting"
+msgstr "Mise en page et composition professionnelles"
+
+msgid "Social Media Marketing Kit"
+msgstr "Kit Marketing Réseaux Sociaux"
+
+msgid "Social Media Marketing Kit (FREE for kit of 4 items)"
+msgstr "Kit Marketing Réseaux Sociaux (GRATUIT pour 4 éléments)"
+
+msgid "Ready-to-post graphics and promotional materials"
+msgstr "Graphiques et matériels promotionnels prêts à publier"
+
+msgid "Third-Party Distribution"
+msgstr "Distribution Tierce"
+
+msgid "Third-Party Distribution (FREE)"
+msgstr "Distribution Tierce (GRATUIT)"
+
+msgid "Distribute to REEPLS, Amazon KDP, Smashwords, Draft2Digital, IngramSpark, Kobo, Apple Books, and more"
+msgstr "Distribuez sur REEPLS, Amazon KDP, Smashwords, Draft2Digital, IngramSpark, Kobo, Apple Books, et plus"
+
+msgid "For third-party distribution, we'll share the distribution links with you via email once your book is live on each platform. The commissions will be added automatically to your dashbaord."
+msgstr "Pour la distribution tierce, nous partagerons les liens de distribution par email une fois votre livre en ligne sur chaque plateforme. Les commissions seront ajoutées automatiquement à votre tableau de bord."
+
+msgid "ISBN for Printed Book"
+msgstr "ISBN pour Livre Imprimé"
+
+msgid "Get an official ISBN for your printed book"
+msgstr "Obtenez un ISBN officiel pour votre livre imprimé"
+
+msgid "Note: This increases the platform commission"
+msgstr "Note : Cela augmente la commission de la plateforme"
+
+msgid "If not selected, a FREE QR code linking to your book's public page on Xanula will be generated instead!"
+msgstr "Si non sélectionné, un QR code GRATUIT menant à la page publique de votre livre sur Xanula sera généré !"
+
+msgid "Don't have a cover? Check 'Cover Design' in Publishing Services below—we'll create one for you!"
+msgstr "Vous n'avez pas de couverture ? Cochez 'Conception de Couverture' dans Services de Publication—nous en créerons une pour vous !"
+
+msgid "Need formatting help? Check 'Book Formatting' in Publishing Services below—we offer free professional layout!"
+msgstr "Besoin d'aide pour la mise en page ? Cochez 'Mise en Page du Livre' dans Services de Publication—nous offrons une mise en page professionnelle gratuite !"
+
+msgid "QR"
+msgstr "QR"
+
+msgid "Download QR Code"
+msgstr "Télécharger le QR Code"
+
+msgid "Wishlist"
+msgstr "Liste de Souhaits"
+
+msgid "My Wishlist"
+msgstr "Ma Liste de Souhaits"
+
+msgid "Publish a Book"
+msgstr "Publier un Livre"
+
+msgid "Share your story with the world"
+msgstr "Partagez votre histoire avec le monde"
+

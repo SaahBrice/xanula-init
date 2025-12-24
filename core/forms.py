@@ -53,6 +53,14 @@ class BookSubmissionForm(forms.ModelForm):
             'language',
             'price',
             'manuscript_file',
+            # Publishing services
+            'hard_copy_option',
+            'wants_editor_services',
+            'wants_cover_design',
+            'wants_formatting',
+            'wants_marketing_kit',
+            'wants_third_party_distribution',
+            'wants_isbn',
         ]
         widgets = {
             'title': forms.TextInput(attrs={

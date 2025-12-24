@@ -33,6 +33,12 @@ class BookAdmin(admin.ModelAdmin):
         'status',
         'category',
         'language',
+        'hard_copy_option',
+        'wants_editor_services',
+        'wants_cover_design',
+        'wants_formatting',
+        'wants_marketing_kit',
+        'wants_third_party_distribution',
         'submission_date',
     )
     
@@ -66,6 +72,19 @@ class BookAdmin(admin.ModelAdmin):
         }),
         (_('Files'), {
             'fields': ('manuscript_file', 'cover_image', 'ebook_file', 'audiobook_file')
+        }),
+        (_('Publishing Services'), {
+            'fields': (
+                'hard_copy_option',
+                'wants_editor_services',
+                'wants_cover_design',
+                'wants_formatting',
+                'wants_marketing_kit',
+                'wants_third_party_distribution',
+                'wants_isbn',
+                'qr_code',
+            ),
+            'description': 'Author-requested publishing services. QR code auto-generated when status = Completed.'
         }),
         (_('Statistics'), {
             'fields': ('total_sales', 'average_rating'),
@@ -143,17 +162,40 @@ class BookAdmin(admin.ModelAdmin):
     @admin.action(description=_('Mark as Completed'))
     def mark_as_completed(self, request, queryset):
         """Mark books as completed."""
-        updated = queryset.filter(
-            status__in=[Book.Status.EBOOK_READY, Book.Status.AUDIOBOOK_GENERATED]
-        ).update(
-            status=Book.Status.COMPLETED,
-            completion_date=date.today()
-        )
+        for book in queryset.filter(status__in=[Book.Status.EBOOK_READY, Book.Status.AUDIOBOOK_GENERATED]):
+            book.status = Book.Status.COMPLETED
+            book.completion_date = date.today()
+            # Generate QR code
+            if not book.qr_code:
+                try:
+                    book.generate_qr_code()
+                except Exception as e:
+                    self.message_user(request, f'QR generation failed for {book.title}: {e}', messages.WARNING)
+            book.save()
         self.message_user(
             request,
-            f'{updated} book(s) marked as completed.',
+            f'{queryset.count()} book(s) marked as completed with QR codes.',
             messages.SUCCESS
         )
+    
+    def save_model(self, request, obj, form, change):
+        """Override save to generate QR code when status changes to COMPLETED."""
+        if change:
+            # Get old status from database
+            old_obj = Book.objects.get(pk=obj.pk)
+            old_status = old_obj.status
+            new_status = obj.status
+            
+            # Generate QR code if status changed to COMPLETED
+            if old_status != Book.Status.COMPLETED and new_status == Book.Status.COMPLETED:
+                if not obj.qr_code:
+                    try:
+                        obj.generate_qr_code()
+                        self.message_user(request, f'QR code generated for "{obj.title}"', messages.SUCCESS)
+                    except Exception as e:
+                        self.message_user(request, f'QR generation failed: {e}', messages.WARNING)
+        
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Purchase)

@@ -94,6 +94,12 @@ class Book(models.Model):
         LOW = 10, _('10%')
         HIGH = 30, _('30%')
     
+    # Hard copy availability options
+    class HardCopyOption(models.TextChoices):
+        NONE = 'none', _('No hard copies - Ebook/Audiobook only')
+        AUTHOR_PROVIDED = 'author', _('I have hard copies to ship')
+        XANULA_PRINT = 'xanula', _('Xanula should produce hard copies')
+    
     # Basic book information
     title = models.CharField(
         _('title'),
@@ -179,6 +185,54 @@ class Book(models.Model):
         blank=True,
         validators=[MinValueValidator(Decimal('0.00')), MaxValueValidator(Decimal('100.00'))],
         help_text=_('Optional custom commission rate. If set, overrides global settings.')
+    )
+    
+    # Publishing Services Options
+    hard_copy_option = models.CharField(
+        _('hard copy option'),
+        max_length=10,
+        choices=HardCopyOption.choices,
+        default=HardCopyOption.NONE,
+        help_text=_('Hard copy availability option.')
+    )
+    wants_editor_services = models.BooleanField(
+        _('wants editor services'),
+        default=False,
+        help_text=_('Author wants Xanula editing/proofreading services.')
+    )
+    wants_cover_design = models.BooleanField(
+        _('wants cover design'),
+        default=False,
+        help_text=_('Author wants Xanula to design/redesign the book cover.')
+    )
+    wants_formatting = models.BooleanField(
+        _('wants formatting'),
+        default=False,
+        help_text=_('Author wants Xanula to format the book layout.')
+    )
+    wants_marketing_kit = models.BooleanField(
+        _('wants marketing kit'),
+        default=False,
+        help_text=_('Author wants social media marketing materials.')
+    )
+    wants_third_party_distribution = models.BooleanField(
+        _('wants third-party distribution'),
+        default=False,
+        help_text=_('Author wants distribution to Amazon KDP, REEPLS, Smashwords, etc.')
+    )
+    wants_isbn = models.BooleanField(
+        _('wants ISBN'),
+        default=False,
+        help_text=_('Author wants ISBN for printed book (increases commission).')
+    )
+    
+    # QR Code - auto-generated when book status is COMPLETED
+    qr_code = models.ImageField(
+        _('QR code'),
+        upload_to='qr_codes/',
+        null=True,
+        blank=True,
+        help_text=_('Auto-generated QR code linking to book page.')
     )
     
     # Dates
@@ -333,3 +387,39 @@ class Book(models.Model):
             return CommissionSettings.get_audiobook_rate()
         else:
             return CommissionSettings.get_ebook_rate()
+    
+    def generate_qr_code(self):
+        """
+        Generate a QR code linking to the book page.
+        Called when book status changes to COMPLETED.
+        """
+        import qrcode
+        from io import BytesIO
+        from django.core.files.base import ContentFile
+        
+        # Generate URL
+        book_url = f"https://xanula.reepls.com/books/{self.slug}/"
+        
+        # Create QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(book_url)
+        qr.make(fit=True)
+        
+        # Create image
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Save to BytesIO
+        buffer = BytesIO()
+        img.save(buffer, format='PNG')
+        buffer.seek(0)
+        
+        # Save to model field
+        filename = f"qr_{self.slug}.png"
+        self.qr_code.save(filename, ContentFile(buffer.read()), save=False)
+        
+        return True

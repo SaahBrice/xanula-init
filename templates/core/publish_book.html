@@ -8,6 +8,7 @@
      x-data="{
          charCount: 0,
          makeFree: false,
+         priceValue: {{ form.price.value|default:'0' }},
          coverPreview: null,
          manuscriptName: '',
          manuscriptError: '',
@@ -134,6 +135,7 @@
                     <input type="file" name="cover_image" x-ref="coverInput" @change="previewCover($event)" class="hidden" accept="image/jpeg,image/png">
                     <p x-show="coverError" x-text="coverError" class="mt-2 text-sm text-red-500"></p>
                     {% if form.cover_image.errors %}<p class="mt-1 text-sm text-red-500">{{ form.cover_image.errors.0 }}</p>{% endif %}
+                    <p class="text-xs text-gray-500 mt-2">💡 {% trans "Don't have a cover? Check 'Cover Design' in Publishing Services below—we'll create one for you!" %}</p>
                 </div>
                 
                 <!-- Manuscript Upload -->
@@ -159,6 +161,7 @@
                     <input type="file" name="manuscript_file" x-ref="manuscriptInput" @change="checkManuscript($event)" class="hidden" accept=".pdf,.docx,.epub,.txt">
                     <p x-show="manuscriptError" x-text="manuscriptError" class="mt-2 text-sm text-red-500"></p>
                     {% if form.manuscript_file.errors %}<p class="mt-1 text-sm text-red-500">{{ form.manuscript_file.errors.0 }}</p>{% endif %}
+                    <p class="text-xs text-gray-500 mt-2">💡 {% trans "Need formatting help? Check 'Book Formatting' in Publishing Services below—we offer free professional layout!" %}</p>
                 </div>
             </div>
         </div>
@@ -171,10 +174,16 @@
             </h2>
             
             <div class="max-w-md">
-                <label for="id_price" class="label">{% trans "Price (XAF)" %}</label>
+                <label for="id_price_display" class="label">{% trans "Price (XAF)" %}</label>
                 <div class="relative">
-                    <input type="number" name="price" id="id_price" value="{{ form.price.value|default:'0' }}"
-                        class="input pr-16" placeholder="0" min="0" max="50000" step="100" :disabled="makeFree">
+                    <!-- Hidden input that always submits -->
+                    <input type="hidden" name="price" x-bind:value="makeFree ? 0 : priceValue">
+                    <!-- Visible input for user interaction -->
+                    <input type="number" id="id_price_display" 
+                        x-model="priceValue"
+                        class="input pr-16" placeholder="0" min="0" max="50000" step="100" 
+                        :disabled="makeFree"
+                        :class="makeFree ? 'bg-gray-100 dark:bg-gray-800' : ''">
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">XAF</span>
                 </div>
                 {% if form.price.errors %}<p class="mt-1 text-sm text-red-500">{{ form.price.errors.0 }}</p>{% endif %}
@@ -187,6 +196,115 @@
                 <p class="text-xs text-gray-500 mt-3">
                     {% trans "Think again ..." %}
                 </p>
+            </div>
+        </div>
+        
+        <!-- Publishing Services Section -->
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                <span class="w-8 h-8 bg-forest-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">4</span>
+                {% trans "Publishing Services" %}
+            </h2>
+            
+            <!-- Hard Copy Options -->
+            <div class="mb-6">
+                <label class="label mb-3">{% trans "Hard Copy Availability" %}</label>
+                <div class="space-y-3">
+                    <label class="flex items-start gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-50">
+                        <input type="radio" name="hard_copy_option" value="none" checked
+                            class="mt-1 w-4 h-4 text-burgundy-500 focus:ring-burgundy-500">
+                        <div>
+                            <span class="font-medium text-gray-900 dark:text-white">{% trans "No hard copies" %}</span>
+                            <p class="text-sm text-gray-500">{% trans "Ebook and/or audiobook only" %}</p>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-50">
+                        <input type="radio" name="hard_copy_option" value="author"
+                            class="mt-1 w-4 h-4 text-burgundy-500 focus:ring-burgundy-500">
+                        <div>
+                            <span class="font-medium text-gray-900 dark:text-white">{% trans "I have hard copies to ship" %}</span>
+                            <p class="text-sm text-gray-500">{% trans "You have printed books ready to fulfill orders" %}</p>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-50">
+                        <input type="radio" name="hard_copy_option" value="xanula"
+                            class="mt-1 w-4 h-4 text-burgundy-500 focus:ring-burgundy-500">
+                        <div>
+                            <span class="font-medium text-gray-900 dark:text-white">{% trans "Xanula should produce hard copies" %}</span>
+                            <p class="text-sm text-gray-500">{% trans "We'll print and ship on your behalf" %}</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Additional Services -->
+            <div class="border-t border-gray-100 dark:border-gray-700 pt-6">
+                <label class="label mb-3">{% trans "Additional Services (Optional)" %}</label>
+                <p class="text-sm text-gray-500 mb-4">{% trans "Select services you'd like Xanula to provide. Our team will contact you for details." %}</p>
+                
+                <div class="space-y-3">
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-50">
+                        <input type="checkbox" name="wants_editor_services"
+                            class="w-5 h-5 rounded border-gray-300 text-burgundy-500 focus:ring-burgundy-500">
+                        <div>
+                            <span class="font-medium text-gray-900 dark:text-white">✏️ {% trans "Editing & Proofreading" %}</span>
+                            <p class="text-sm text-gray-500">{% trans "Professional editing and proofreading services" %}</p>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-50">
+                        <input type="checkbox" name="wants_cover_design"
+                            class="w-5 h-5 rounded border-gray-300 text-burgundy-500 focus:ring-burgundy-500">
+                        <div>
+                            <span class="font-medium text-gray-900 dark:text-white">🎨 {% trans "Cover Design (FREE)" %}</span>
+                            <p class="text-sm text-gray-500">{% trans "Professional cover design or redesign" %}</p>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-50">
+                        <input type="checkbox" name="wants_formatting"
+                            class="w-5 h-5 rounded border-gray-300 text-burgundy-500 focus:ring-burgundy-500">
+                        <div>
+                            <span class="font-medium text-gray-900 dark:text-white">📐 {% trans "Book Formatting (FREE)" %}</span>
+                            <p class="text-sm text-gray-500">{% trans "Professional layout and typesetting" %}</p>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-50">
+                        <input type="checkbox" name="wants_marketing_kit"
+                            class="w-5 h-5 rounded border-gray-300 text-burgundy-500 focus:ring-burgundy-500">
+                        <div>
+                            <span class="font-medium text-gray-900 dark:text-white">📱 {% trans "Social Media Marketing Kit (FREE for kit of 4 items)" %}</span>
+                            <p class="text-sm text-gray-500">{% trans "Ready-to-post graphics and promotional materials" %}</p>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-50">
+                        <input type="checkbox" name="wants_third_party_distribution"
+                            class="w-5 h-5 rounded border-gray-300 text-burgundy-500 focus:ring-burgundy-500">
+                        <div>
+                            <span class="font-medium text-gray-900 dark:text-white">🌍 {% trans "Third-Party Distribution (FREE)" %}</span>
+                            <p class="text-sm text-gray-500">{% trans "Distribute to REEPLS, Amazon KDP, Smashwords, Draft2Digital, IngramSpark, Kobo, Apple Books, and more" %}</p>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center gap-3 p-3 border border-orange-200 dark:border-orange-600 rounded-xl cursor-pointer hover:bg-orange-50 dark:hover:bg-orange-900/20 bg-orange-50/50 dark:bg-orange-900/10">
+                        <input type="checkbox" name="wants_isbn"
+                            class="w-5 h-5 rounded border-gray-300 text-burgundy-500 focus:ring-burgundy-500">
+                        <div>
+                            <span class="font-medium text-gray-900 dark:text-white">📘 {% trans "ISBN for Printed Book" %}</span>
+                            <p class="text-sm text-gray-500">{% trans "Get an official ISBN for your printed book" %}</p>
+                            <p class="text-xs text-orange-600 dark:text-orange-400 mt-1">⚠️ {% trans "Note: This increases the platform commission" %}</p>
+                            <p class="text-xs text-forest-600 dark:text-forest-400 mt-1">✓ {% trans "If not selected, a FREE QR code linking to your book's public page on Xanula will be generated instead!" %}</p>
+                        </div>
+                    </label>
+                </div>
+                
+                <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                    <p class="text-sm text-blue-800 dark:text-blue-200">
+                        💡 {% trans "For third-party distribution, we'll share the distribution links with you via email once your book is live on each platform. The commissions will be added automatically to your dashbaord." %}
+                    </p>
+                </div>
             </div>
         </div>
         
