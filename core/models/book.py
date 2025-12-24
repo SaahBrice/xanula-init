@@ -169,7 +169,16 @@ class Book(models.Model):
         _('commission rate'),
         choices=CommissionRate.choices,
         default=CommissionRate.LOW,
-        help_text=_('Platform commission rate percentage.')
+        help_text=_('Platform commission rate percentage (for legacy compatibility).')
+    )
+    custom_commission_rate = models.DecimalField(
+        _('custom commission rate'),
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal('0.00')), MaxValueValidator(Decimal('100.00'))],
+        help_text=_('Optional custom commission rate. If set, overrides global settings.')
     )
     
     # Dates
@@ -306,3 +315,21 @@ class Book(models.Model):
         avg = self.reviews.filter(is_visible=True).aggregate(Avg('rating'))['rating__avg']
         self.average_rating = Decimal(str(avg)) if avg else Decimal('0.00')
         self.save(update_fields=['average_rating'])
+    
+    def get_effective_commission_rate(self):
+        """
+        Get the effective commission rate as a decimal (e.g., 0.30 for 30%).
+        Priority:
+        1. If custom_commission_rate is set, use it
+        2. Otherwise, use global CommissionSettings based on book format
+        """
+        # Check for custom per-book rate first
+        if self.custom_commission_rate is not None:
+            return self.custom_commission_rate / Decimal('100')
+        
+        # Use global settings based on book format
+        from .social import CommissionSettings
+        if self.has_audiobook:
+            return CommissionSettings.get_audiobook_rate()
+        else:
+            return CommissionSettings.get_ebook_rate()

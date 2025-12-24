@@ -133,8 +133,9 @@ class Donation(models.Model):
         return f"{self.donor} → {self.recipient}: {self.amount:,.0f} XAF"
     
     def calculate_split(self):
-        """Calculate the 10/90 split between platform and author."""
-        self.platform_commission = (self.amount * Decimal('0.10')).quantize(Decimal('0.01'))
+        """Calculate the platform/author split based on global commission settings."""
+        rate = CommissionSettings.get_donation_rate()
+        self.platform_commission = (self.amount * rate).quantize(Decimal('0.01'))
         self.author_earning = self.amount - self.platform_commission
     
     def save(self, *args, **kwargs):
@@ -188,3 +189,71 @@ class ReferralSettings(models.Model):
         if settings.is_active:
             return settings.referral_percent
         return Decimal('0.00')
+
+
+class CommissionSettings(models.Model):
+    """
+    Singleton model for global platform commission settings.
+    Only one instance should exist in the database.
+    """
+    ebook_commission = models.DecimalField(
+        _('ebook commission percent'),
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('10.00'),
+        validators=[MinValueValidator(Decimal('0.00')), MaxValueValidator(Decimal('100.00'))],
+        help_text=_('Platform commission for ebook-only purchases (default 10%).')
+    )
+    audiobook_commission = models.DecimalField(
+        _('audiobook commission percent'),
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('30.00'),
+        validators=[MinValueValidator(Decimal('0.00')), MaxValueValidator(Decimal('100.00'))],
+        help_text=_('Platform commission for purchases with audiobook (default 30%).')
+    )
+    donation_commission = models.DecimalField(
+        _('donation commission percent'),
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('10.00'),
+        validators=[MinValueValidator(Decimal('0.00')), MaxValueValidator(Decimal('100.00'))],
+        help_text=_('Platform commission for donations (default 10%).')
+    )
+    
+    class Meta:
+        verbose_name = _('commission settings')
+        verbose_name_plural = _('commission settings')
+    
+    def __str__(self):
+        return f"Commission Settings (Ebook: {self.ebook_commission}%, Audiobook: {self.audiobook_commission}%, Donation: {self.donation_commission}%)"
+    
+    def save(self, *args, **kwargs):
+        # Ensure only one instance exists (singleton)
+        if not self.pk and CommissionSettings.objects.exists():
+            raise ValueError("Only one CommissionSettings instance allowed.")
+        super().save(*args, **kwargs)
+    
+    @classmethod
+    def get_settings(cls):
+        """Get the singleton settings instance, creating it if needed."""
+        settings, _ = cls.objects.get_or_create(pk=1)
+        return settings
+    
+    @classmethod
+    def get_ebook_rate(cls):
+        """Get current ebook commission rate as decimal (e.g., 0.10 for 10%)."""
+        settings = cls.get_settings()
+        return settings.ebook_commission / Decimal('100')
+    
+    @classmethod
+    def get_audiobook_rate(cls):
+        """Get current audiobook commission rate as decimal (e.g., 0.30 for 30%)."""
+        settings = cls.get_settings()
+        return settings.audiobook_commission / Decimal('100')
+    
+    @classmethod
+    def get_donation_rate(cls):
+        """Get current donation commission rate as decimal (e.g., 0.10 for 10%)."""
+        settings = cls.get_settings()
+        return settings.donation_commission / Decimal('100')

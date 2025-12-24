@@ -790,11 +790,104 @@ def initiate_purchase(request, slug):
         return redirect('core:my_books')
     
     # For priced books, show payment selection page
+    # Calculate balance payment options
+    user_balance = request.user.earnings_balance
+    can_pay_full_balance = user_balance >= book.price
+    can_pay_partial = user_balance > 0 and user_balance < book.price
+    balance_to_use = min(user_balance, book.price)
+    remaining_amount = max(book.price - user_balance, Decimal('0.00'))
+    
     context = {
         'book': book,
         'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
+        'user_balance': user_balance,
+        'can_pay_full_balance': can_pay_full_balance,
+        'can_pay_partial': can_pay_partial,
+        'balance_to_use': balance_to_use,
+        'remaining_amount': remaining_amount,
+        'balance_after_purchase': user_balance - book.price if can_pay_full_balance else Decimal('0.00'),
     }
     return render(request, 'core/purchase_page.html', context)
+
+
+@login_required
+@require_POST
+def purchase_with_balance(request, book_id):
+    """
+    Purchase a book using account balance only.
+    User must have sufficient balance to cover the full price.
+    """
+    from ..models import Purchase, ReferralSettings
+    from users.models import User
+    
+    book = get_object_or_404(Book, id=book_id)
+    
+    # Anti-duplicate check
+    if LibraryEntry.objects.filter(user=request.user, book=book).exists():
+        messages.info(request, 'You already own this book!')
+        return redirect('core:my_books')
+    
+    # Verify sufficient balance
+    if request.user.earnings_balance < book.price:
+        messages.error(request, 'Insufficient balance. Please use a payment method.')
+        return redirect('core:initiate_purchase', slug=book.slug)
+    
+    # Check for referral code
+    referral_code = request.POST.get('referral_code', '').strip().upper()
+    referred_by = None
+    
+    if referral_code:
+        try:
+            referrer = User.objects.get(referral_code=referral_code)
+            if referrer != request.user:
+                referred_by = referrer
+        except User.DoesNotExist:
+            pass
+    
+    # Deduct balance from buyer
+    request.user.earnings_balance -= book.price
+    request.user.save(update_fields=['earnings_balance'])
+    
+    # Create purchase record
+    purchase = Purchase.objects.create(
+        buyer=request.user,
+        book=book,
+        amount_paid=book.price,
+        payment_method=Purchase.PaymentMethod.BALANCE,
+        payment_status=Purchase.PaymentStatus.COMPLETED,
+        payment_transaction_id=f'BAL-{request.user.id}-{book.id}',
+        referred_by=referred_by,
+        balance_used=book.price
+    )
+    
+    # Calculate commission using book's effective rate
+    commission_rate = book.get_effective_commission_rate()
+    purchase.platform_commission = book.price * commission_rate
+    purchase.author_earning = book.price - purchase.platform_commission
+    purchase.save()
+    
+    # Process referral commission
+    process_referral_commission(purchase)
+    
+    # Credit author's balance (with upfront recouping)
+    author = book.author
+    recouped = process_upfront_recouping(purchase, author)
+    final_earning = purchase.author_earning - recouped
+    author.earnings_balance += final_earning
+    author.save(update_fields=['earnings_balance'])
+    
+    # Create library entry
+    LibraryEntry.objects.get_or_create(
+        user=request.user,
+        book=book
+    )
+    
+    # Increment book sales
+    book.total_sales += 1
+    book.save(update_fields=['total_sales'])
+    
+    messages.success(request, f'Successfully purchased "{book.title}" using your balance!')
+    return redirect('core:my_books')
 
 
 @login_required
@@ -832,17 +925,34 @@ def create_stripe_checkout(request, book_id):
         except User.DoesNotExist:
             messages.warning(request, 'Invalid referral code.')
     
+    # Check if user wants to use balance for partial payment
+    use_balance = request.POST.get('use_balance') == 'on'
+    balance_to_use = Decimal('0.00')
+    amount_to_charge = book.price
+    
+    if use_balance and request.user.earnings_balance > 0:
+        balance_to_use = min(request.user.earnings_balance, book.price)
+        amount_to_charge = book.price - balance_to_use
+        
+        # Deduct balance immediately
+        request.user.earnings_balance -= balance_to_use
+        request.user.save(update_fields=['earnings_balance'])
+    
     # Configure Stripe
     stripe.api_key = settings.STRIPE_SECRET_KEY
+    
+    # Determine payment method
+    payment_method = Purchase.PaymentMethod.PARTIAL if balance_to_use > 0 else Purchase.PaymentMethod.STRIPE
     
     # Create pending purchase record
     purchase = Purchase.objects.create(
         buyer=request.user,
         book=book,
-        amount_paid=book.price,
-        payment_method=Purchase.PaymentMethod.STRIPE,
+        amount_paid=book.price,  # Total book price
+        payment_method=payment_method,
         payment_status=Purchase.PaymentStatus.PENDING,
-        referred_by=referred_by
+        referred_by=referred_by,
+        balance_used=balance_to_use
     )
     
     # Build URLs
@@ -851,10 +961,9 @@ def create_stripe_checkout(request, book_id):
     cancel_url = f"{domain}/books/{book.slug}/?cancelled=1"
     
     try:
-        # Convert XAF to EUR for Stripe (avoids currency conversion fees)
-        # Exchange rate: 1 EUR = 655 XAF (fixed rate)
+        # Convert remaining XAF to EUR for Stripe
         XAF_TO_EUR_RATE = 655
-        price_in_eur = float(book.price) / XAF_TO_EUR_RATE
+        price_in_eur = float(amount_to_charge) / XAF_TO_EUR_RATE
         # Stripe uses cents, so multiply by 100 and round
         price_in_cents = int(round(price_in_eur * 100))
         
@@ -866,7 +975,7 @@ def create_stripe_checkout(request, book_id):
                     'currency': 'eur',
                     'product_data': {
                         'name': book.title,
-                        'description': f"{book.short_description[:150]}... ({int(book.price):,} XAF)" if book.short_description else f"Price: {int(book.price):,} XAF",
+                        'description': f"Remaining: {int(amount_to_charge):,} XAF (Balance used: {int(balance_to_use):,} XAF)" if balance_to_use > 0 else (f"{book.short_description[:100]}..." if book.short_description else f"Price: {int(book.price):,} XAF"),
                     },
                     'unit_amount': price_in_cents,  # EUR in cents
                 },
@@ -951,15 +1060,10 @@ def purchase_success(request, purchase_id):
             purchase.payment_status = Purchase.PaymentStatus.COMPLETED
             purchase.payment_transaction_id = session.payment_intent or session_id
             
-            # Calculate commission based on book format
-            # Per Planning Document Section 6:
-            # - With audiobook: 30% platform commission
-            # - Ebook only: 10% platform commission
+            # Calculate commission based on book's effective rate
+            # Uses custom per-book rate if set, otherwise global CommissionSettings
             amount = purchase.amount_paid
-            if purchase.book.has_audiobook:
-                commission_rate = Decimal('0.30')
-            else:
-                commission_rate = Decimal('0.10')
+            commission_rate = purchase.book.get_effective_commission_rate()
             
             purchase.platform_commission = amount * commission_rate
             purchase.author_earning = amount - purchase.platform_commission
@@ -1452,23 +1556,40 @@ def create_fapshi_checkout(request, book_id):
         except User.DoesNotExist:
             messages.warning(request, 'Invalid referral code.')
     
+    # Check if user wants to use balance for partial payment
+    use_balance = request.POST.get('use_balance') == 'on'
+    balance_to_use = Decimal('0.00')
+    amount_to_charge = book.price
+    
+    if use_balance and request.user.earnings_balance > 0:
+        balance_to_use = min(request.user.earnings_balance, book.price)
+        amount_to_charge = book.price - balance_to_use
+        
+        # Deduct balance immediately
+        request.user.earnings_balance -= balance_to_use
+        request.user.save(update_fields=['earnings_balance'])
+    
+    # Determine payment method
+    payment_method = Purchase.PaymentMethod.PARTIAL if balance_to_use > 0 else Purchase.PaymentMethod.FAPSHI
+    
     # Create pending purchase record
     purchase = Purchase.objects.create(
         buyer=request.user,
         book=book,
-        amount_paid=book.price,
-        payment_method=Purchase.PaymentMethod.FAPSHI,
+        amount_paid=book.price,  # Total book price
+        payment_method=payment_method,
         payment_status=Purchase.PaymentStatus.PENDING,
-        referred_by=referred_by
+        referred_by=referred_by,
+        balance_used=balance_to_use
     )
     
     # Build return URL
     domain = request.build_absolute_uri('/').rstrip('/')
     return_url = f"{domain}/purchase/fapshi/return/{purchase.id}/"
     
-    # Call Fapshi API
+    # Call Fapshi API with remaining amount (after balance deduction)
     result = fapshi_utils.create_payment(
-        amount=int(book.price),
+        amount=int(amount_to_charge),
         email=request.user.email,
         redirect_url=return_url,
         user_id=str(request.user.id),

@@ -709,3 +709,30 @@ class ReferralSettingsAdmin(admin.ModelAdmin):
     
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+from .models import CommissionSettings
+
+@admin.register(CommissionSettings)
+class CommissionSettingsAdmin(admin.ModelAdmin):
+    """Admin for global commission settings (singleton)."""
+    
+    list_display = ('ebook_commission', 'audiobook_commission', 'donation_commission')
+    
+    fieldsets = (
+        (_('Purchase Commissions'), {
+            'fields': ('ebook_commission', 'audiobook_commission'),
+            'description': _('Platform commission rates for book purchases.')
+        }),
+        (_('Donation Commissions'), {
+            'fields': ('donation_commission',),
+            'description': _('Platform commission rate for author donations.')
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        # Only allow one instance
+        return not CommissionSettings.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        return False

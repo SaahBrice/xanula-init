@@ -9,6 +9,7 @@ from ._views import (
     create_fapshi_checkout,
     fapshi_return,
     check_purchase_status_api,
+    purchase_with_balance,
 )
 
 __all__ = [
@@ -19,4 +20,5 @@ __all__ = [
     'create_fapshi_checkout',
     'fapshi_return',
     'check_purchase_status_api',
+    'purchase_with_balance',
 ]

@@ -26,6 +26,7 @@ from .author import (
 from .social import (
     Donation,
     ReferralSettings,
+    CommissionSettings,
 )
 
 __all__ = [
@@ -46,4 +47,5 @@ __all__ = [
     # Social
     'Donation',
     'ReferralSettings',
+    'CommissionSettings',
 ]

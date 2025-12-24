@@ -18,6 +18,8 @@ class Purchase(models.Model):
     class PaymentMethod(models.TextChoices):
         STRIPE = 'stripe', _('Stripe (Card)')
         FAPSHI = 'fapshi', _('Fapshi (Mobile Money)')
+        BALANCE = 'balance', _('Account Balance')
+        PARTIAL = 'partial', _('Partial (Balance + Gateway)')
     
     class PaymentStatus(models.TextChoices):
         PENDING = 'pending', _('Pending')
@@ -49,7 +51,7 @@ class Purchase(models.Model):
     )
     payment_method = models.CharField(
         _('payment method'),
-        max_length=10,
+        max_length=15,
         choices=PaymentMethod.choices
     )
     payment_transaction_id = models.CharField(
@@ -95,6 +97,15 @@ class Purchase(models.Model):
         decimal_places=2,
         default=Decimal('0.00'),
         help_text=_('Commission paid to referrer.')
+    )
+    
+    # Balance payment tracking
+    balance_used = models.DecimalField(
+        _('balance used'),
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text=_('Amount paid from user account balance.')
     )
     
     class Meta:

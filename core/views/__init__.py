@@ -42,6 +42,9 @@ from ._views import (
     fapshi_return,
     check_purchase_status_api,
     
+    # Balance payment view
+    purchase_with_balance,
+    
     # Library views
     user_library,
     toggle_download_status,

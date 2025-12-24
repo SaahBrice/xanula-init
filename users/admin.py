@@ -45,9 +45,9 @@ class UserAdmin(BaseUserAdmin):
         (_('Personal info'), {
             'fields': ('display_name', 'bio', 'profile_picture')
         }),
-        (_('Author info'), {
-            'fields': ('earnings_balance',),
-            'description': 'Earnings information for authors.',
+        (_('Balance & Referral'), {
+            'fields': ('earnings_balance', 'referral_code'),
+            'description': 'User balance and referral code. Balance is editable.',
         }),
         (_('Wishlist'), {
             'fields': ('wishlist',),

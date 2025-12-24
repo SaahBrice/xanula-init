@@ -62,14 +62,81 @@
         <p id="referral_status" class="text-sm mt-2 hidden"></p>
     </div>
 
-    <!-- Payment Methods -->
-    <div class="space-y-4 mb-8">
-        <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white text-center">{% trans "Choose Payment Method" %}</h3>
+    <!-- Balance Payment Section -->
+    <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-6">
+        <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+            <span>💰</span> {% trans "Your Balance" %}
+        </h3>
         
-        <!-- Card Payment -->
-        <form action="{% url 'core:create_stripe_checkout' book_id=book.id %}" method="POST" class="payment-form">
+        <div class="flex items-center justify-between mb-4">
+            <span class="text-gray-600 dark:text-gray-400">{% trans "Available Balance:" %}</span>
+            <span class="text-xl font-bold {% if can_pay_full_balance %}text-forest-600{% elif can_pay_partial %}text-yellow-600{% else %}text-gray-400{% endif %}">
+                {{ user_balance|floatformat:0 }} XAF
+            </span>
+        </div>
+        
+        {% if can_pay_full_balance %}
+        <!-- Full Balance Payment -->
+        <form action="{% url 'core:purchase_with_balance' book_id=book.id %}" method="POST" class="payment-form">
             {% csrf_token %}
             <input type="hidden" name="referral_code" class="referral-input" value="">
+            <button type="submit"
+                class="block w-full p-5 bg-gradient-to-r from-forest-500 to-forest-600 hover:from-forest-600 hover:to-forest-700 rounded-2xl text-white text-center font-semibold transition-all shadow-lg hover:shadow-xl cursor-pointer">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                    </svg>
+                    <span class="text-lg">{% trans "Pay with Balance" %}</span>
+                </div>
+                <p class="text-sm opacity-80">{% trans "Use your balance to pay instantly" %}</p>
+            </button>
+        </form>
+        <div class="text-center text-sm text-gray-500 mt-3">
+            {% trans "Remaining balance after purchase:" %} <strong>{{ balance_after_purchase|floatformat:0 }} XAF</strong>
+        </div>
+        
+        {% elif can_pay_partial %}
+        <!-- Partial Payment Info -->
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 mb-4">
+            <div class="flex items-start gap-3">
+                <span class="text-yellow-500 text-xl">💡</span>
+                <div>
+                    <p class="text-yellow-800 dark:text-yellow-200 font-medium mb-1">{% trans "Partial Payment Available" %}</p>
+                    <p class="text-yellow-700 dark:text-yellow-300 text-sm">
+                        {% blocktrans with balance=balance_to_use|floatformat:0 remaining=remaining_amount|floatformat:0 %}
+                        We'll use your {{ balance }} XAF balance + pay {{ remaining }} XAF via Card/Mobile Money.
+                        {% endblocktrans %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 mb-2">
+            <input type="checkbox" id="use_balance" name="use_balance" checked
+                class="w-5 h-5 text-forest-500 border-gray-300 rounded focus:ring-forest-500">
+            <label for="use_balance" class="text-gray-700 dark:text-gray-300 cursor-pointer">
+                {% blocktrans with balance=balance_to_use|floatformat:0 %}Use my {{ balance }} XAF balance{% endblocktrans %}
+            </label>
+        </div>
+        
+        {% else %}
+        <!-- No Balance -->
+        <div class="text-center py-4 text-gray-400">
+            <p class="text-sm">{% trans "No balance available. Pay with Card or Mobile Money below." %}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="space-y-4 mb-8">
+        <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white text-center">
+            {% if can_pay_partial %}{% trans "Complete Payment" %}{% else %}{% trans "Choose Payment Method" %}{% endif %}
+        </h3>
+        
+        <!-- Card Payment -->
+        <form action="{% url 'core:create_stripe_checkout' book_id=book.id %}" method="post" class="payment-form">
+            {% csrf_token %}
+            <input type="hidden" name="referral_code" class="referral-input" value="">
+            <input type="hidden" name="use_balance" class="use-balance-input" value="{% if can_pay_partial %}on{% endif %}">
             <button type="submit"
                 class="block w-full p-5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-2xl text-white text-center font-semibold transition-all shadow-lg hover:shadow-xl cursor-pointer">
                 <div class="flex items-center justify-center gap-3 mb-2">
@@ -88,9 +155,10 @@
         </form>
         
         <!-- Mobile Money -->
-        <form action="{% url 'core:create_fapshi_checkout' book_id=book.id %}" method="POST" class="payment-form">
+        <form action="{% url 'core:create_fapshi_checkout' book_id=book.id %}" method="post" class="payment-form">
             {% csrf_token %}
             <input type="hidden" name="referral_code" class="referral-input" value="">
+            <input type="hidden" name="use_balance" class="use-balance-input" value="{% if can_pay_partial %}on{% endif %}">
             <button type="submit"
                 class="block w-full p-5 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 rounded-2xl text-white text-center font-semibold transition-all shadow-lg hover:shadow-xl cursor-pointer">
                 <div class="flex items-center justify-center gap-3 mb-2">
@@ -165,6 +233,17 @@ referralInput.addEventListener('input', function() {
         statusEl.classList.add('hidden');
     }
 });
+
+// Sync use_balance checkbox with hidden inputs in payment forms
+const useBalanceCheckbox = document.getElementById('use_balance');
+const useBalanceHiddenInputs = document.querySelectorAll('.use-balance-input');
+
+if (useBalanceCheckbox) {
+    useBalanceCheckbox.addEventListener('change', function() {
+        const value = this.checked ? 'on' : '';
+        useBalanceHiddenInputs.forEach(input => input.value = value);
+    });
+}
 
 async function validateReferralCode(code) {
     if (!code || code.length !== 11) return;

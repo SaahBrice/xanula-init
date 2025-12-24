@@ -32,6 +32,9 @@ urlpatterns = [
     path('purchase/success/<int:purchase_id>/', views.purchase_success, name='purchase_success'),
     path('account/purchases/', views.purchase_history, name='purchase_history'),
     
+    # Purchase with Balance
+    path('purchase/balance/<int:book_id>/', views.purchase_with_balance, name='purchase_with_balance'),
+    
     # Purchase & Payment - Fapshi (Mobile Money)
     path('purchase/fapshi/<int:book_id>/', views.create_fapshi_checkout, name='create_fapshi_checkout'),
     path('purchase/fapshi/return/<int:purchase_id>/', views.fapshi_return, name='fapshi_return'),
