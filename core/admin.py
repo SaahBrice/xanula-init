@@ -7,7 +7,7 @@ from django.contrib import messages
 from datetime import date
 from django.utils import timezone
 
-from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest, HardCopyRequest, UpfrontPaymentApplication, Donation, ReferralSettings
+from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest, HardCopyRequest, UpfrontPaymentApplication, Donation, ReferralSettings, FeaturedBook
 
 
 @admin.register(Book)
@@ -778,3 +778,35 @@ class CommissionSettingsAdmin(admin.ModelAdmin):
     
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(FeaturedBook)
+class FeaturedBookAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for Featured Books on homepage.
+    Allows curating 6 books per language.
+    """
+    list_display = ('book_title', 'book_author', 'language', 'position', 'is_active', 'updated_at')
+    list_filter = ('language', 'is_active')
+    list_editable = ('position', 'is_active')
+    ordering = ('language', 'position')
+    autocomplete_fields = ('book',)
+    
+    fieldsets = (
+        (None, {
+            'fields': ('book', 'language', 'position', 'is_active'),
+            'description': _('Select published books to feature on the homepage. Maximum 6 per language.')
+        }),
+    )
+    
+    def book_title(self, obj):
+        return obj.book.title
+    book_title.short_description = _('Book Title')
+    book_title.admin_order_field = 'book__title'
+    
+    def book_author(self, obj):
+        return obj.book.author.get_display_name() if hasattr(obj.book.author, 'get_display_name') else obj.book.author
+    book_author.short_description = _('Author')
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('book', 'book__author')

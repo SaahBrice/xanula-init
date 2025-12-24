@@ -29,6 +29,8 @@ from .social import (
     CommissionSettings,
 )
 
+from .featured import FeaturedBook
+
 __all__ = [
     # Book
     'Book',
@@ -48,4 +50,6 @@ __all__ = [
     'Donation',
     'ReferralSettings',
     'CommissionSettings',
+    # Featured
+    'FeaturedBook',
 ]

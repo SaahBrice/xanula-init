@@ -68,8 +68,29 @@ def homepage(request):
     Homepage view with hero, featured books, and category browse.
     Per Planning Document Section 4.
     """
-    # Featured books - latest 6 available books
-    featured_books = get_available_books().order_by('-submission_date')[:6]
+    from core.models import FeaturedBook
+    
+    # Get user's preferred language from Django's locale
+    user_language = getattr(request, 'LANGUAGE_CODE', 'en')[:2]  # 'en' or 'fr'
+    
+    # Get featured books for user's language, fallback to English
+    featured_entries = FeaturedBook.objects.filter(
+        language=user_language, 
+        is_active=True
+    ).select_related('book', 'book__author').order_by('position')[:6]
+    
+    # If no featured books for user's language, try English
+    if not featured_entries.exists() and user_language != 'en':
+        featured_entries = FeaturedBook.objects.filter(
+            language='en', 
+            is_active=True
+        ).select_related('book', 'book__author').order_by('position')[:6]
+    
+    # Extract books from featured entries, or fallback to latest books
+    if featured_entries.exists():
+        featured_books = [entry.book for entry in featured_entries]
+    else:
+        featured_books = list(get_available_books().order_by('-submission_date')[:6])
     
     # All categories for browse section
     categories = [
