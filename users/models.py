@@ -2,8 +2,21 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from decimal import Decimal
+import secrets
+import string
 
 from .managers import CustomUserManager
+
+
+def generate_referral_code():
+    """Generate a unique referral code in format REEPLS-XXXX."""
+    chars = string.ascii_uppercase + string.digits
+    while True:
+        code = 'REEPLS-' + ''.join(secrets.choice(chars) for _ in range(4))
+        # Check if code already exists
+        from users.models import User
+        if not User.objects.filter(referral_code=code).exists():
+            return code
 
 
 class User(AbstractUser):
@@ -84,6 +97,16 @@ class User(AbstractUser):
         help_text=_('Books saved for later purchase.'),
     )
     
+    # Referral code - unique per user, format: REEPLS-XXXX
+    referral_code = models.CharField(
+        _('referral code'),
+        max_length=11,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text=_('Unique referral code for this user.'),
+    )
+    
     # Use email as the username field
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # Email is already required by USERNAME_FIELD
@@ -123,4 +146,17 @@ class User(AbstractUser):
         if self.can_request_payout():
             return self.earnings_balance
         return Decimal('0.00')
+    
+    def ensure_referral_code(self):
+        """Ensure user has a referral code, generate if missing."""
+        if not self.referral_code:
+            self.referral_code = generate_referral_code()
+            self.save(update_fields=['referral_code'])
+        return self.referral_code
+    
+    def save(self, *args, **kwargs):
+        # Auto-generate referral code for new users
+        if not self.pk and not self.referral_code:
+            self.referral_code = generate_referral_code()
+        super().save(*args, **kwargs)
 

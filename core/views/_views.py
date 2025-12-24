@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
 from django.conf import settings
 
-from .models import Book, Review, LibraryEntry, PayoutRequest, UpfrontPaymentApplication, Donation
+from ..models import Book, Review, LibraryEntry, PayoutRequest, UpfrontPaymentApplication, Donation, ReferralSettings
 
 
 def process_upfront_recouping(purchase, author):
@@ -250,7 +250,7 @@ def book_detail(request, slug):
     Book detail page with all information.
     Per Planning Document Section 4.
     """
-    from .models import Review
+    from ..models import Review
     from django.db.models import Count
     
     book = get_object_or_404(
@@ -324,7 +324,7 @@ def submit_review(request, book_id):
     Submit a new review for a book.
     User must own the book and not have already reviewed it.
     """
-    from .models import Review
+    from ..models import Review
     import json
     
     book = get_object_or_404(Book, id=book_id)
@@ -394,7 +394,7 @@ def edit_review(request, review_id):
     """
     Edit an existing review. Users can only edit their own reviews.
     """
-    from .models import Review
+    from ..models import Review
     import json
     
     review = get_object_or_404(Review, id=review_id)
@@ -453,7 +453,7 @@ def delete_review(request, review_id):
     """
     Delete a review. Users can only delete their own reviews.
     """
-    from .models import Review
+    from ..models import Review
     
     review = get_object_or_404(Review, id=review_id)
     book = review.book
@@ -556,7 +556,7 @@ def publish_book(request):
     Book submission page for authors.
     Per Planning Document Section 3.
     """
-    from .forms import BookSubmissionForm
+    from ..forms import BookSubmissionForm
     
     if request.method == 'POST':
         form = BookSubmissionForm(request.POST, request.FILES)
@@ -600,7 +600,7 @@ def my_books(request):
     
     # Calculate earnings per book (from completed purchases)
     from django.db.models import Sum, Count
-    from .models import Purchase
+    from ..models import Purchase
     
     book_earnings = {}
     for book in books:
@@ -650,7 +650,7 @@ def edit_book(request, book_id):
     Edit a denied book for resubmission.
     Per Planning Document answer 3.
     """
-    from .forms import BookEditForm
+    from ..forms import BookEditForm
     
     book = get_object_or_404(Book, id=book_id, author=request.user)
     
@@ -693,7 +693,7 @@ def request_payout(request):
     Request a payout of earnings.
     Per Planning Document Section 6.
     """
-    from .forms import PayoutRequestForm
+    from ..forms import PayoutRequestForm
     
     # Check if user can request payout
     if not request.user.can_request_payout():
@@ -762,7 +762,7 @@ def initiate_purchase(request, slug):
     
     # Handle free books - skip payment completely
     if book.is_free:
-        from .models import Purchase
+        from ..models import Purchase
         
         # Create purchase record
         purchase = Purchase.objects.create(
@@ -803,7 +803,12 @@ def create_stripe_checkout(request, book_id):
     Create Stripe checkout session and redirect to Stripe.
     """
     import stripe
-    from .models import Purchase
+    from ..models import Purchase, ReferralSettings
+    from users.models import User
+    
+    # Require POST
+    if request.method != 'POST':
+        return redirect('core:book_detail', slug=get_object_or_404(Book, id=book_id).slug)
     
     book = get_object_or_404(Book, id=book_id)
     
@@ -811,6 +816,21 @@ def create_stripe_checkout(request, book_id):
     if LibraryEntry.objects.filter(user=request.user, book=book).exists():
         messages.info(request, 'You already own this book!')
         return redirect('core:my_books')
+    
+    # Check for referral code
+    referral_code = request.POST.get('referral_code', '').strip().upper()
+    referred_by = None
+    
+    if referral_code:
+        try:
+            referrer = User.objects.get(referral_code=referral_code)
+            # Validate: not self-referral
+            if referrer != request.user:
+                referred_by = referrer
+            else:
+                messages.warning(request, 'You cannot use your own referral code.')
+        except User.DoesNotExist:
+            messages.warning(request, 'Invalid referral code.')
     
     # Configure Stripe
     stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -821,7 +841,8 @@ def create_stripe_checkout(request, book_id):
         book=book,
         amount_paid=book.price,
         payment_method=Purchase.PaymentMethod.STRIPE,
-        payment_status=Purchase.PaymentStatus.PENDING
+        payment_status=Purchase.PaymentStatus.PENDING,
+        referred_by=referred_by
     )
     
     # Build URLs
@@ -890,7 +911,7 @@ def purchase_success(request, purchase_id):
     Verifies payment and creates library entry.
     """
     import stripe
-    from .models import Purchase
+    from ..models import Purchase
     from decimal import Decimal
     from django.core.mail import send_mail
     from django.template.loader import render_to_string
@@ -943,6 +964,9 @@ def purchase_success(request, purchase_id):
             purchase.platform_commission = amount * commission_rate
             purchase.author_earning = amount - purchase.platform_commission
             purchase.save()
+            
+            # Process referral commission (deducted from author earning)
+            process_referral_commission(purchase)
             
             # Update author's earnings balance (after recouping for upfront payments)
             author = purchase.book.author
@@ -1013,7 +1037,7 @@ def purchase_history(request):
     """
     Display user's purchase history.
     """
-    from .models import Purchase
+    from ..models import Purchase
     from django.core.paginator import Paginator
     
     # Get filter
@@ -1391,11 +1415,16 @@ def create_fapshi_checkout(request, book_id):
     """
     Create Fapshi mobile money payment and redirect to Fapshi.
     """
-    from .models import Purchase
-    from . import fapshi_utils
+    from ..models import Purchase
+    from .. import fapshi_utils
+    from users.models import User
     import logging
     
     logger = logging.getLogger(__name__)
+    
+    # Require POST
+    if request.method != 'POST':
+        return redirect('core:book_detail', slug=get_object_or_404(Book, id=book_id).slug)
     
     book = get_object_or_404(Book, id=book_id)
     
@@ -1408,13 +1437,29 @@ def create_fapshi_checkout(request, book_id):
     if book.is_free:
         return redirect('core:initiate_purchase', slug=book.slug)
     
+    # Check for referral code
+    referral_code = request.POST.get('referral_code', '').strip().upper()
+    referred_by = None
+    
+    if referral_code:
+        try:
+            referrer = User.objects.get(referral_code=referral_code)
+            # Validate: not self-referral
+            if referrer != request.user:
+                referred_by = referrer
+            else:
+                messages.warning(request, 'You cannot use your own referral code.')
+        except User.DoesNotExist:
+            messages.warning(request, 'Invalid referral code.')
+    
     # Create pending purchase record
     purchase = Purchase.objects.create(
         buyer=request.user,
         book=book,
         amount_paid=book.price,
         payment_method=Purchase.PaymentMethod.FAPSHI,
-        payment_status=Purchase.PaymentStatus.PENDING
+        payment_status=Purchase.PaymentStatus.PENDING,
+        referred_by=referred_by
     )
     
     # Build return URL
@@ -1461,8 +1506,8 @@ def fapshi_return(request, purchase_id):
     Handle return from Fapshi after payment attempt.
     Verifies payment and creates library entry.
     """
-    from .models import Purchase
-    from . import fapshi_utils
+    from ..models import Purchase
+    from .. import fapshi_utils
     from decimal import Decimal
     from django.core.mail import send_mail
     from django.template.loader import render_to_string
@@ -1516,6 +1561,9 @@ def fapshi_return(request, purchase_id):
             purchase.platform_commission = amount * commission_rate
             purchase.author_earning = amount - purchase.platform_commission
             purchase.save()
+            
+            # Process referral commission (deducted from author earning)
+            process_referral_commission(purchase)
             
             # Update author's earnings balance (after recouping for upfront payments)
             author = purchase.book.author
@@ -1596,8 +1644,8 @@ def check_purchase_status_api(request, purchase_id):
     """
     API endpoint for polling purchase status (used by Fapshi pending page).
     """
-    from .models import Purchase
-    from . import fapshi_utils
+    from ..models import Purchase
+    from .. import fapshi_utils
     from django.http import JsonResponse
     from decimal import Decimal
     import logging
@@ -1814,6 +1862,7 @@ def user_settings(request):
     
     context = {
         'user': user,
+        'referral_percent': ReferralSettings.get_referral_percent(),
     }
     return render(request, 'core/settings.html', context)
 
@@ -1881,7 +1930,7 @@ def author_analytics(request):
     """
     Author analytics dashboard with sales charts, earnings data, and reading engagement stats.
     """
-    from .models import Purchase
+    from ..models import Purchase
     from django.db.models import Sum, Count, Q
     from django.db.models.functions import TruncDate, TruncMonth
     from datetime import datetime, timedelta
@@ -1988,7 +2037,7 @@ def analytics_data_api(request):
     API endpoint for analytics chart data.
     Returns daily sales and reading activity for the last 30 days.
     """
-    from .models import Purchase
+    from ..models import Purchase
     from django.db.models import Count, Sum
     from django.db.models.functions import TruncDate
     from datetime import datetime, timedelta
@@ -2068,7 +2117,7 @@ def request_hard_copy(request, book_id):
     Handle hard copy book request from library.
     Users can request physical copies of books they own.
     """
-    from .models import HardCopyRequest
+    from ..models import HardCopyRequest
     from django_q.tasks import async_task
     
     book = get_object_or_404(Book, id=book_id)
@@ -2405,7 +2454,7 @@ def donation_stripe_payment(request, donation_id):
 @login_required
 def donation_fapshi_payment(request, donation_id):
     """Handle Fapshi payment for donation."""
-    from . import fapshi_utils
+    from .. import fapshi_utils
     
     donation = get_object_or_404(Donation, id=donation_id, donor=request.user)
     
@@ -2439,7 +2488,7 @@ def donation_fapshi_payment(request, donation_id):
 @login_required
 def donation_fapshi_callback(request, donation_id):
     """Handle Fapshi callback for donation."""
-    from . import fapshi_utils
+    from .. import fapshi_utils
     from django.utils import timezone
     
     donation = get_object_or_404(Donation, id=donation_id)
@@ -2523,3 +2572,64 @@ def author_donations(request):
         'total_received': total_received,
         'donation_count': donation_count,
     })
+
+
+# =============================================================================
+# Referral System Views
+# =============================================================================
+
+def validate_referral_code_api(request, code):
+    """API endpoint to validate a referral code."""
+    from users.models import User
+    
+    code = code.strip().upper()
+    
+    # Check format
+    if not code.match(r'^REEPLS-[A-Z0-9]{4}$') if hasattr(code, 'match') else not __import__('re').match(r'^REEPLS-[A-Z0-9]{4}$', code):
+        return JsonResponse({'valid': False, 'error': 'Invalid format'})
+    
+    try:
+        referrer = User.objects.get(referral_code=code)
+        
+        # Check if user is trying to use their own code
+        is_self = request.user.is_authenticated and referrer == request.user
+        
+        return JsonResponse({
+            'valid': not is_self,
+            'is_self': is_self,
+        })
+    except User.DoesNotExist:
+        return JsonResponse({'valid': False, 'error': 'Code not found'})
+
+
+def process_referral_commission(purchase):
+    """
+    Process referral commission for a purchase.
+    Called after successful payment verification.
+    """
+    from ..models import ReferralSettings
+    from decimal import Decimal
+    
+    if not purchase.referred_by:
+        return
+    
+    # Get referral settings
+    referral_percent = ReferralSettings.get_referral_percent()
+    if referral_percent <= 0:
+        return
+    
+    # Calculate referral commission
+    commission_rate = referral_percent / Decimal('100')
+    referral_commission = (purchase.amount_paid * commission_rate).quantize(Decimal('0.01'))
+    
+    # Update purchase record
+    purchase.referral_commission = referral_commission
+    
+    # Deduct from author earning (not platform commission)
+    purchase.author_earning = purchase.author_earning - referral_commission
+    purchase.save(update_fields=['referral_commission', 'author_earning'])
+    
+    # Credit referrer's earnings balance
+    purchase.referred_by.earnings_balance += referral_commission
+    purchase.referred_by.save(update_fields=['earnings_balance'])
+

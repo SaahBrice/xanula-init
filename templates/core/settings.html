@@ -57,6 +57,34 @@
             </div>
         </div>
 
+        <!-- Referral Code Section -->
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                🎉 {% trans "Your Referral Code" %} 🎉
+            </h2>
+            
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                {% blocktrans with percent=referral_percent %}Share this code with friends. You'll earn {{ percent }}% of every purchase they make!{% endblocktrans %}
+            </p>
+            
+            <div class="flex gap-2 items-center">
+                <div class="flex-1 bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3">
+                    <code id="referral-code" class="text-lg font-mono font-bold text-burgundy-500">{{ user.referral_code|default:"-" }}</code>
+                </div>
+                {% if user.referral_code %}
+                <button onclick="copyReferralCode()" class="btn btn-primary px-4" id="copy-btn">
+                    <span id="copy-text">{% trans "Copy" %}</span>
+                </button>
+                {% else %}
+                <a href="?generate_referral=1" class="btn btn-primary px-4">{% trans "Generate" %}</a>
+                {% endif %}
+            </div>
+            
+            {% if user.referral_code %}
+            <p class="text-gray-500 dark:text-gray-400 text-xs mt-2" id="copy-feedback"></p>
+            {% endif %}
+        </div>
+
         <!-- Profile Settings -->
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
             <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
@@ -276,6 +304,21 @@ function notificationSettings() {
             setTimeout(() => this.saved = false, 2000);
         }
     }
+}
+
+// Copy referral code to clipboard
+function copyReferralCode() {
+    const code = document.getElementById('referral-code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        const btn = document.getElementById('copy-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.classList.add('bg-forest-500');
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('bg-forest-500');
+        }, 2000);
+    });
 }
 </script>
 {% endblock %}

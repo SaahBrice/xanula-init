@@ -7,7 +7,7 @@ from django.contrib import messages
 from datetime import date
 from django.utils import timezone
 
-from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest, HardCopyRequest, UpfrontPaymentApplication, Donation
+from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest, HardCopyRequest, UpfrontPaymentApplication, Donation, ReferralSettings
 
 
 @admin.register(Book)
@@ -695,3 +695,17 @@ class DonationAdmin(admin.ModelAdmin):
     def amount_display(self, obj):
         return f"{obj.amount:,.0f} XAF"
     amount_display.short_description = _('Amount')
+
+
+@admin.register(ReferralSettings)
+class ReferralSettingsAdmin(admin.ModelAdmin):
+    """Admin for global referral settings (singleton)."""
+    
+    list_display = ('referral_percent', 'is_active')
+    
+    def has_add_permission(self, request):
+        # Only allow one instance
+        return not ReferralSettings.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        return False

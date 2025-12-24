@@ -94,6 +94,9 @@ urlpatterns = [
     path('support/fapshi-callback/<int:donation_id>/', views.donation_fapshi_callback, name='donation_fapshi_callback'),
     path('support/success/<int:donation_id>/', views.donation_success, name='donation_success'),
     path('my-books/donations/', views.author_donations, name='author_donations'),
+    
+    # Referral System
+    path('api/validate-referral/<str:code>/', views.validate_referral_code_api, name='validate_referral_code'),
 ]
 
 

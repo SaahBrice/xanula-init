@@ -129,7 +129,18 @@
                 </div>
                 {% endif %}
             </div>
-
+            <!-- Tips -->
+            <div class="bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+                <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <span class="text-burgundy-500">💡</span> {% trans "Tips" %}
+                </h2>
+                <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                    <li>• {% trans "Write a compelling description" %}</li>
+                    <li>• {% trans "Use a professional cover image" %}</li>
+                    <li>• {% trans "Price competitively for your category" %}</li>
+                    <li>• {% trans "Respond to reader reviews" %}</li>
+                </ul>
+            </div>
             <!-- Upfront Payment Card -->
             <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
                 <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
@@ -176,19 +187,6 @@
                 </div>
             </div>
             {% endif %}
-
-            <!-- Tips -->
-            <div class="bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
-                <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <span class="text-burgundy-500">💡</span> {% trans "Tips" %}
-                </h2>
-                <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
-                    <li>• {% trans "Write a compelling description" %}</li>
-                    <li>• {% trans "Use a professional cover image" %}</li>
-                    <li>• {% trans "Price competitively for your category" %}</li>
-                    <li>• {% trans "Respond to reader reviews" %}</li>
-                </ul>
-            </div>
         </div>
     </div>
 </div>

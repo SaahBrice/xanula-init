@@ -47,42 +47,65 @@
         </div>
     </div>
 
+    <!-- Referral Code Input -->
+    <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-6">
+        <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+            <span>🎁</span> {% trans "Have a Referral Code?" %}
+        </h3>
+        <div class="flex gap-2">
+            <input type="text" id="referral_code" name="referral_code" 
+                placeholder="{% trans 'Enter code (e.g., REEPLS-XXXX)' %}"
+                maxlength="11"
+                class="input flex-1 uppercase"
+                oninput="validateReferralCode(this.value)">
+        </div>
+        <p id="referral_status" class="text-sm mt-2 hidden"></p>
+    </div>
+
     <!-- Payment Methods -->
     <div class="space-y-4 mb-8">
         <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white text-center">{% trans "Choose Payment Method" %}</h3>
         
         <!-- Card Payment -->
-        <a href="{% url 'core:create_stripe_checkout' book_id=book.id %}"
-            class="block w-full p-5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-2xl text-white text-center font-semibold transition-all shadow-lg hover:shadow-xl">
-            <div class="flex items-center justify-center gap-3 mb-2">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
-                </svg>
-                <span class="text-lg">{% trans "Pay with Card" %}</span>
-            </div>
-            <div class="flex items-center justify-center gap-2 opacity-80">
-                <span class="text-xs bg-white/20 px-2 py-0.5 rounded">VISA</span>
-                <span class="text-xs bg-white/20 px-2 py-0.5 rounded">Mastercard</span>
-                <span class="text-xs bg-white/20 px-2 py-0.5 rounded">AMEX</span>
-            </div>
-            <p class="text-xs opacity-70 mt-2">{% trans "International cards accepted" %}</p>
-        </a>
+        <form action="{% url 'core:create_stripe_checkout' book_id=book.id %}" method="POST" class="payment-form">
+            {% csrf_token %}
+            <input type="hidden" name="referral_code" class="referral-input" value="">
+            <button type="submit"
+                class="block w-full p-5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-2xl text-white text-center font-semibold transition-all shadow-lg hover:shadow-xl cursor-pointer">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+                    </svg>
+                    <span class="text-lg">{% trans "Pay with Card" %}</span>
+                </div>
+                <div class="flex items-center justify-center gap-2 opacity-80">
+                    <span class="text-xs bg-white/20 px-2 py-0.5 rounded">VISA</span>
+                    <span class="text-xs bg-white/20 px-2 py-0.5 rounded">Mastercard</span>
+                    <span class="text-xs bg-white/20 px-2 py-0.5 rounded">AMEX</span>
+                </div>
+                <p class="text-xs opacity-70 mt-2">{% trans "International cards accepted" %}</p>
+            </button>
+        </form>
         
         <!-- Mobile Money -->
-        <a href="{% url 'core:create_fapshi_checkout' book_id=book.id %}"
-            class="block w-full p-5 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 rounded-2xl text-white text-center font-semibold transition-all shadow-lg hover:shadow-xl">
-            <div class="flex items-center justify-center gap-3 mb-2">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>
-                </svg>
-                <span class="text-lg">{% trans "Pay with Mobile Money" %}</span>
-            </div>
-            <div class="flex items-center justify-center gap-2 opacity-80">
-                <span class="text-xs bg-white/20 px-2 py-0.5 rounded">MTN MoMo</span>
-                <span class="text-xs bg-white/20 px-2 py-0.5 rounded">Orange Money</span>
-            </div>
-            <p class="text-xs opacity-70 mt-2">{% trans "Recommended for Cameroon & Central Africa" %}</p>
-        </a>
+        <form action="{% url 'core:create_fapshi_checkout' book_id=book.id %}" method="POST" class="payment-form">
+            {% csrf_token %}
+            <input type="hidden" name="referral_code" class="referral-input" value="">
+            <button type="submit"
+                class="block w-full p-5 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 rounded-2xl text-white text-center font-semibold transition-all shadow-lg hover:shadow-xl cursor-pointer">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>
+                    </svg>
+                    <span class="text-lg">{% trans "Pay with Mobile Money" %}</span>
+                </div>
+                <div class="flex items-center justify-center gap-2 opacity-80">
+                    <span class="text-xs bg-white/20 px-2 py-0.5 rounded">MTN MoMo</span>
+                    <span class="text-xs bg-white/20 px-2 py-0.5 rounded">Orange Money</span>
+                </div>
+                <p class="text-xs opacity-70 mt-2">{% trans "Recommended for Cameroon & Central Africa" %}</p>
+            </button>
+        </form>
     </div>
 
     <!-- What You'll Get -->
@@ -121,4 +144,49 @@
         🔒 {% trans "Secure payments powered by Stripe & Fapshi" %}
     </p>
 </div>
+
+<script>
+// Sync referral code to hidden inputs
+const referralInput = document.getElementById('referral_code');
+const hiddenInputs = document.querySelectorAll('.referral-input');
+const statusEl = document.getElementById('referral_status');
+
+referralInput.addEventListener('input', function() {
+    const code = this.value.toUpperCase().trim();
+    hiddenInputs.forEach(input => input.value = code);
+    
+    // Validate format: REEPLS-XXXX
+    if (code.length === 11 && code.match(/^REEPLS-[A-Z0-9]{4}$/)) {
+        validateReferralCode(code);
+    } else if (code.length > 0) {
+        statusEl.textContent = "{% trans 'Code format: REEPLS-XXXX' %}";
+        statusEl.className = 'text-sm mt-2 text-gray-500';
+    } else {
+        statusEl.classList.add('hidden');
+    }
+});
+
+async function validateReferralCode(code) {
+    if (!code || code.length !== 11) return;
+    
+    try {
+        const response = await fetch(`/api/validate-referral/${code}/`);
+        const data = await response.json();
+        
+        statusEl.classList.remove('hidden');
+        if (data.valid) {
+            statusEl.textContent = `✓ {% trans "Code valid!" %}`;
+            statusEl.className = 'text-sm mt-2 text-forest-500 font-medium';
+        } else if (data.is_self) {
+            statusEl.textContent = `✗ {% trans "You cannot use your own code." %}`;
+            statusEl.className = 'text-sm mt-2 text-red-500';
+        } else {
+            statusEl.textContent = `✗ {% trans "Invalid code" %}`;
+            statusEl.className = 'text-sm mt-2 text-red-500';
+        }
+    } catch (e) {
+        // Silent fail - validation will happen server-side
+    }
+}
+</script>
 {% endblock %}
