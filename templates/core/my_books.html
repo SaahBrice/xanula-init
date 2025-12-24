@@ -130,6 +130,18 @@
                 {% endif %}
             </div>
 
+            <!-- Upfront Payment Card -->
+            <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+                <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                    <span></span> {% trans "Upfront Payment" %}
+                </h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">{% trans "Need an advance on your royalties? Apply for upfront payment." %}</p>
+                <div class="flex flex-col gap-2">
+                    <a href="{% url 'core:apply_upfront_payment' %}" class="btn btn-block bg-burgundy-500 hover:bg-burgundy-600 text-white text-center">{% trans "Apply Now" %}</a>
+                    <a href="{% url 'core:upfront_applications' %}" class="text-sm text-burgundy-500 hover:text-burgundy-700 text-center">{% trans "View My Applications" %}</a>
+                </div>
+            </div>
+
             <!-- Recent Payouts -->
             {% if payout_requests %}
             <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">

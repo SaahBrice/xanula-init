@@ -7,7 +7,7 @@ from django.contrib import messages
 from datetime import date
 from django.utils import timezone
 
-from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest, HardCopyRequest
+from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest, HardCopyRequest, UpfrontPaymentApplication
 
 
 @admin.register(Book)
@@ -531,3 +531,118 @@ class HardCopyRequestAdmin(admin.ModelAdmin):
             status__in=[HardCopyRequest.Status.DELIVERED, HardCopyRequest.Status.CANCELLED]
         ).update(status=HardCopyRequest.Status.CANCELLED)
         self.message_user(request, f'{updated} request(s) cancelled.', messages.SUCCESS)
+
+
+@admin.register(UpfrontPaymentApplication)
+class UpfrontPaymentApplicationAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for UpfrontPaymentApplication model.
+    Allows admins to review, approve, or reject author advance requests.
+    """
+    
+    list_display = (
+        'author',
+        'amount_display',
+        'book_display',
+        'status',
+        'repayment_rate_display',
+        'progress_display',
+        'created_at',
+    )
+    
+    list_filter = (
+        'status',
+        'created_at',
+    )
+    
+    search_fields = (
+        'author__email',
+        'author__display_name',
+        'book__title',
+        'reason',
+    )
+    
+    readonly_fields = (
+        'author',
+        'book',
+        'amount_requested',
+        'reason',
+        'created_at',
+        'updated_at',
+        'amount_recouped',
+        'terms_accepted',
+        'approved_at',
+        'completed_at',
+    )
+    
+    fieldsets = (
+        (_('Application Info'), {
+            'fields': ('author', 'book', 'amount_requested', 'reason', 'terms_accepted', 'created_at')
+        }),
+        (_('Review Status'), {
+            'fields': ('status', 'rejection_reason', 'approved_at', 'completed_at')
+        }),
+        (_('Repayment'), {
+            'fields': ('repayment_rate', 'amount_recouped'),
+            'description': 'Set repayment rate before approving. This is the extra % taken per sale.'
+        }),
+        (_('Admin Notes'), {
+            'fields': ('admin_notes',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    date_hierarchy = 'created_at'
+    ordering = ['-created_at']
+    
+    actions = ['approve_applications', 'reject_applications']
+    
+    def amount_display(self, obj):
+        return f"{obj.amount_requested:,.0f} XAF"
+    amount_display.short_description = _('Amount')
+    
+    def book_display(self, obj):
+        return obj.book.title if obj.book else _('All Books')
+    book_display.short_description = _('Book')
+    
+    def repayment_rate_display(self, obj):
+        return f"{obj.repayment_rate}%"
+    repayment_rate_display.short_description = _('Repayment Rate')
+    
+    def progress_display(self, obj):
+        if obj.status == UpfrontPaymentApplication.Status.APPROVED:
+            return f"{obj.recoup_progress_percent}% ({obj.amount_recouped:,.0f}/{obj.amount_requested:,.0f} XAF)"
+        elif obj.status == UpfrontPaymentApplication.Status.COMPLETED:
+            return "100% ✓"
+        return "-"
+    progress_display.short_description = _('Recouped')
+    
+    @admin.action(description=_('Approve selected applications'))
+    def approve_applications(self, request, queryset):
+        updated = queryset.filter(
+            status=UpfrontPaymentApplication.Status.IN_REVIEW
+        ).update(
+            status=UpfrontPaymentApplication.Status.APPROVED,
+            approved_at=timezone.now()
+        )
+        self.message_user(request, f'{updated} application(s) approved.', messages.SUCCESS)
+    
+    @admin.action(description=_('Reject selected applications'))
+    def reject_applications(self, request, queryset):
+        # Check that rejection reason is set
+        apps_without_reason = queryset.filter(
+            status=UpfrontPaymentApplication.Status.IN_REVIEW,
+            rejection_reason=''
+        ).count()
+        if apps_without_reason > 0:
+            self.message_user(
+                request,
+                f'{apps_without_reason} application(s) need a rejection reason set first.',
+                messages.WARNING
+            )
+            return
+        
+        updated = queryset.filter(
+            status=UpfrontPaymentApplication.Status.IN_REVIEW
+        ).update(status=UpfrontPaymentApplication.Status.REJECTED)
+        self.message_user(request, f'{updated} application(s) rejected.', messages.SUCCESS)

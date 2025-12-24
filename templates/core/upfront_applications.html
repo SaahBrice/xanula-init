@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Upfront Payment Applications" %} - Xanula{% endblock %}
+
+{% block content %}
+<div class="container py-6 max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <a href="{% url 'core:my_books' %}" class="text-gray-500 hover:text-burgundy-500 text-sm mb-2 inline-block">← {% trans "Back to My Books" %}</a>
+            <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{% trans "Upfront Payment Applications" %}</h1>
+            <p class="text-gray-600 dark:text-gray-400">{% trans "Manage your advance payment requests." %}</p>
+        </div>
+        <a href="{% url 'core:apply_upfront_payment' %}" class="btn btn-primary whitespace-nowrap">
+            + {% trans "New Application" %}
+        </a>
+    </div>
+
+    {% if applications %}
+    <div class="space-y-4">
+        {% for app in applications %}
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+                <!-- Status Badge -->
+                <div>
+                    {% if app.status == 'in_review' %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gold-100 text-gold-800 dark:bg-gold-900/30 dark:text-gold-400">
+                        🕐 {% trans "In Review" %}
+                    </span>
+                    {% elif app.status == 'approved' %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        ✓ {% trans "Approved" %}
+                    </span>
+                    {% elif app.status == 'completed' %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-forest-100 text-forest-800 dark:bg-forest-900/30 dark:text-forest-400">
+                        ✓ {% trans "Completed" %}
+                    </span>
+                    {% elif app.status == 'rejected' %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                        ✕ {% trans "Rejected" %}
+                    </span>
+                    {% elif app.status == 'cancelled' %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400">
+                        {% trans "Cancelled" %}
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <!-- Details -->
+                <div class="flex-1">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                        <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white">
+                            {{ app.amount_requested|floatformat:0 }} XAF
+                        </h3>
+                        <span class="text-gray-500 dark:text-gray-400 text-sm">•</span>
+                        <span class="text-gray-600 dark:text-gray-400">
+                            {% if app.book %}{{ app.book.title }}{% else %}{% trans "All Books" %}{% endif %}
+                        </span>
+                    </div>
+                    
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">{{ app.reason|truncatewords:30 }}</p>
+                    
+                    <!-- Progress bar for approved applications -->
+                    {% if app.status == 'approved' %}
+                    <div class="mb-3">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-600 dark:text-gray-400">{% trans "Recouped" %}</span>
+                            <span class="font-medium text-gray-900 dark:text-white">{{ app.recoup_progress_percent }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="bg-forest-500 h-2 rounded-full transition-all" style="width: {{ app.recoup_progress_percent }}%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>{{ app.amount_recouped|floatformat:0 }} XAF</span>
+                            <span>{{ app.amount_requested|floatformat:0 }} XAF</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Rejection reason -->
+                    {% if app.status == 'rejected' and app.rejection_reason %}
+                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-3">
+                        <p class="text-sm text-red-700 dark:text-red-400">
+                            <strong>{% trans "Reason" %}:</strong> {{ app.rejection_reason }}
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                        <span>{% trans "Applied" %}: {{ app.created_at|date:"M d, Y" }}</span>
+                        {% if app.approved_at %}
+                        <span>{% trans "Approved" %}: {{ app.approved_at|date:"M d, Y" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                {% if app.status == 'in_review' %}
+                <button type="button" class="text-red-500 hover:text-red-700 text-sm" onclick="showCancelModal({{ app.id }})">
+                    {% trans "Cancel" %}
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-12 text-center">
+        <div class="text-4xl mb-4">💰</div>
+        <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-2">{% trans "No Applications Yet" %}</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">{% trans "Apply for an upfront payment to receive an advance on your book sales." %}</p>
+        <a href="{% url 'core:apply_upfront_payment' %}" class="btn btn-primary">
+            {% trans "Apply Now" %}
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div id="cancelModal" class="fixed inset-0 z-50 hidden">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="hideCancelModal()"></div>
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-dark-100 rounded-2xl shadow-xl max-w-sm w-full p-6 relative">
+            <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-2">{% trans "Cancel Application?" %}</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">{% trans "Are you sure you want to cancel this application? This action cannot be undone." %}</p>
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="hideCancelModal()" class="btn btn-secondary">{% trans "Keep Application" %}</button>
+                <form id="cancelForm" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn bg-red-500 hover:bg-red-600 text-white">{% trans "Yes, Cancel" %}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showCancelModal(appId) {
+    document.getElementById('cancelForm').action = '{% url "core:cancel_upfront_application" 0 %}'.replace('/0/', '/' + appId + '/');
+    document.getElementById('cancelModal').classList.remove('hidden');
+}
+function hideCancelModal() {
+    document.getElementById('cancelModal').classList.add('hidden');
+}
+</script>
+{% endblock %}

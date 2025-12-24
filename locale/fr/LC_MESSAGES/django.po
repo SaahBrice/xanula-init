@@ -1157,3 +1157,349 @@ msgstr "1 000 - 5 000 XAF"
 msgid "Above 5,000 XAF"
 msgstr "Plus de 5 000 XAF"
 
+#: Upfront Payment Feature
+msgid "Upfront Payment Applications"
+msgstr "Demandes de Paiement Anticipé"
+
+msgid "Manage your advance payment requests."
+msgstr "Gérez vos demandes de paiement anticipé."
+
+msgid "New Application"
+msgstr "Nouvelle Demande"
+
+msgid "Back to My Books"
+msgstr "Retour à Mes Livres"
+
+msgid "Back to Applications"
+msgstr "Retour aux Demandes"
+
+msgid "In Review"
+msgstr "En Cours d'Examen"
+
+msgid "Approved"
+msgstr "Approuvé"
+
+msgid "Completed"
+msgstr "Terminé"
+
+msgid "Rejected"
+msgstr "Rejeté"
+
+msgid "Cancelled"
+msgstr "Annulé"
+
+msgid "All Books"
+msgstr "Tous les Livres"
+
+msgid "Recouped"
+msgstr "Récupéré"
+
+msgid "Applied"
+msgstr "Demandé"
+
+msgid "No Applications Yet"
+msgstr "Aucune Demande"
+
+msgid "Apply for an upfront payment to receive an advance on your book sales."
+msgstr "Demandez un paiement anticipé pour recevoir une avance sur vos ventes de livres."
+
+msgid "Apply Now"
+msgstr "Faire une Demande"
+
+msgid "Apply for Upfront Payment"
+msgstr "Demander un Paiement Anticipé"
+
+msgid "Request an advance on your book sales."
+msgstr "Demandez une avance sur vos ventes de livres."
+
+msgid "How It Works"
+msgstr "Comment ça Fonctionne"
+
+msgid "Submit your application with the amount you need."
+msgstr "Soumettez votre demande avec le montant souhaité."
+
+msgid "Our team will review your request (typically 2-5 business days)."
+msgstr "Notre équipe examinera votre demande (généralement 2-5 jours ouvrables)."
+
+msgid "If approved, you receive the advance payment."
+msgstr "Si approuvée, vous recevez le paiement anticipé."
+
+msgid "We recoup the advance via increased commission on your future sales."
+msgstr "Nous récupérons l'avance via une commission accrue sur vos ventes futures."
+
+msgid "Application Details"
+msgstr "Détails de la Demande"
+
+msgid "Apply For"
+msgstr "Demander Pour"
+
+msgid "All My Books"
+msgstr "Tous Mes Livres"
+
+msgid "Choose a specific book or apply for all your books."
+msgstr "Choisissez un livre spécifique ou faites une demande pour tous vos livres."
+
+msgid "Amount Requested (XAF)"
+msgstr "Montant Demandé (XAF)"
+
+msgid "Minimum: 1,000 XAF"
+msgstr "Minimum : 1 000 XAF"
+
+msgid "Reason for Request"
+msgstr "Motif de la Demande"
+
+msgid "Explain why you need this advance payment..."
+msgstr "Expliquez pourquoi vous avez besoin de ce paiement anticipé..."
+
+msgid "Terms & Conditions"
+msgstr "Conditions Générales"
+
+msgid "Upfront Payment Agreement"
+msgstr "Accord de Paiement Anticipé"
+
+msgid "By accepting this agreement, you acknowledge:"
+msgstr "En acceptant cet accord, vous reconnaissez :"
+
+msgid "The advance payment is an early disbursement of your future royalties."
+msgstr "Le paiement anticipé est un versement anticipé de vos futurs droits d'auteur."
+
+msgid "Xanula will take an increased commission on each sale until the advance is fully recouped. The typical rate is 20% extra, but may vary based on your application."
+msgstr "Xanula prélèvera une commission accrue sur chaque vente jusqu'à ce que l'avance soit entièrement récupérée. Le taux typique est de 20% supplémentaire, mais peut varier selon votre demande."
+
+msgid "The exact repayment rate will be set by Xanula upon approval of your application."
+msgstr "Le taux de remboursement exact sera fixé par Xanula lors de l'approbation de votre demande."
+
+msgid "If the selected book does not generate enough sales, Xanula may recoup from your other books. You will never be required to pay money back to Xanula."
+msgstr "Si le livre sélectionné ne génère pas suffisamment de ventes, Xanula pourra récupérer l'avance sur vos autres livres. Vous n'aurez jamais à rembourser de l'argent à Xanula."
+
+msgid "If you selected 'All Books', the advance will be recouped from all your current and future book sales on the platform."
+msgstr "Si vous avez sélectionné 'Tous les Livres', l'avance sera récupérée sur toutes vos ventes de livres actuelles et futures sur la plateforme."
+
+msgid "You may not remove books from the platform while an upfront payment is being recouped, unless the full remaining balance is settled."
+msgstr "Vous ne pouvez pas retirer de livres de la plateforme tant qu'un paiement anticipé est en cours de récupération, sauf si le solde restant est réglé."
+
+msgid "Advance payments are typically processed within 3-7 business days after approval."
+msgstr "Les paiements anticipés sont généralement traités dans les 3-7 jours ouvrables après approbation."
+
+msgid "Payment will be sent via your registered payout method (Mobile Money or Bank Transfer)."
+msgstr "Le paiement sera envoyé via votre méthode de paiement enregistrée (Mobile Money ou Virement Bancaire)."
+
+msgid "This agreement does not guarantee approval of your application."
+msgstr "Cet accord ne garantit pas l'approbation de votre demande."
+
+msgid "Xanula reserves the right to reject applications at its discretion based on sales history and platform standing."
+msgstr "Xanula se réserve le droit de rejeter les demandes à sa discrétion en fonction de l'historique des ventes et de votre réputation sur la plateforme."
+
+msgid "You may only have one active upfront payment at a time. New applications can be submitted after the current advance is fully recouped."
+msgstr "Vous ne pouvez avoir qu'un seul paiement anticipé actif à la fois. De nouvelles demandes peuvent être soumises après que l'avance actuelle soit entièrement récupérée."
+
+msgid "Xanula may contact you for additional information during the review process."
+msgstr "Xanula peut vous contacter pour des informations supplémentaires pendant le processus d'examen."
+
+msgid "I have read and accept the terms and conditions for upfront payment."
+msgstr "J'ai lu et j'accepte les conditions générales pour le paiement anticipé."
+
+msgid "Submit Application"
+msgstr "Soumettre la Demande"
+
+msgid "Are you sure you want to cancel this application?"
+msgstr "Êtes-vous sûr de vouloir annuler cette demande ?"
+
+msgid "You need at least one published book to apply for upfront payment."
+msgstr "Vous avez besoin d'au moins un livre publié pour demander un paiement anticipé."
+
+msgid "You already have a pending application. Please wait for it to be reviewed."
+msgstr "Vous avez déjà une demande en attente. Veuillez attendre qu'elle soit examinée."
+
+msgid "You must accept the terms and conditions."
+msgstr "Vous devez accepter les conditions générales."
+
+msgid "Minimum amount is 1,000 XAF."
+msgstr "Le montant minimum est de 1 000 XAF."
+
+msgid "Invalid amount."
+msgstr "Montant invalide."
+
+msgid "Your upfront payment application has been submitted and is now under review."
+msgstr "Votre demande de paiement anticipé a été soumise et est en cours d'examen."
+
+msgid "Only pending applications can be cancelled."
+msgstr "Seules les demandes en attente peuvent être annulées."
+
+msgid "Your application has been cancelled."
+msgstr "Votre demande a été annulée."
+
+msgid "Upfront Payment"
+msgstr "Paiement Anticipé"
+
+msgid "Need an advance on your royalties? Apply for upfront payment."
+msgstr "Besoin d'une avance sur vos droits d'auteur ? Demandez un paiement anticipé."
+
+msgid "View My Applications"
+msgstr "Voir Mes Demandes"
+
+#: Upfront Terms Content Template
+msgid "Upfront Payment Terms & Conditions"
+msgstr "Conditions Générales du Paiement Anticipé"
+
+msgid "Nature of Upfront Payment"
+msgstr "Nature du Paiement Anticipé"
+
+msgid "An upfront payment (advance) is an early disbursement of royalties you would otherwise earn from future sales of your book(s) on the Xanula platform."
+msgstr "Un paiement anticipé (avance) est un versement anticipé des droits d'auteur que vous gagneriez normalement sur les ventes futures de vos livre(s) sur la plateforme Xanula."
+
+msgid "Repayment Terms"
+msgstr "Conditions de Remboursement"
+
+msgid "Upon approval, Xanula will retain an increased commission rate on each sale of your book(s) until the full advance amount has been recouped. The typical rate is 20% extra, but may vary based on your application and sales history."
+msgstr "Après approbation, Xanula retiendra un taux de commission accru sur chaque vente de vos livre(s) jusqu'à ce que le montant total de l'avance soit récupéré. Le taux typique est de 20% supplémentaire, mais peut varier selon votre demande et votre historique de ventes."
+
+msgid "No Cash Repayment Required"
+msgstr "Aucun Remboursement en Espèces Requis"
+
+msgid "You will never be required to pay money back to Xanula. If the selected book does not generate sufficient sales, Xanula may recoup the remaining balance from your other books on the platform."
+msgstr "Vous n'aurez jamais à rembourser de l'argent à Xanula. Si le livre sélectionné ne génère pas suffisamment de ventes, Xanula pourra récupérer le solde restant sur vos autres livres de la plateforme."
+
+msgid "All Books Option"
+msgstr "Option Tous les Livres"
+
+msgid "If you select 'All Books', the advance will be recouped from all your current and future book sales on the platform until fully recovered."
+msgstr "Si vous sélectionnez 'Tous les Livres', l'avance sera récupérée sur toutes vos ventes de livres actuelles et futures sur la plateforme jusqu'à récupération complète."
+
+msgid "Book Removal Restrictions"
+msgstr "Restrictions de Retrait de Livres"
+
+msgid "You may not remove books from the platform while an upfront payment is being recouped, unless the full remaining balance is settled through alternative arrangements."
+msgstr "Vous ne pouvez pas retirer de livres de la plateforme tant qu'un paiement anticipé est en cours de récupération, sauf si le solde restant est réglé par d'autres arrangements."
+
+msgid "Eligibility"
+msgstr "Éligibilité"
+
+msgid "Eligibility for upfront payment is determined at Xanula's sole discretion. Factors considered may include your sales history, book performance, and platform standing."
+msgstr "L'éligibilité au paiement anticipé est déterminée à la seule discrétion de Xanula. Les facteurs pris en compte peuvent inclure votre historique de ventes, les performances de vos livres et votre réputation sur la plateforme."
+
+msgid "Processing Time"
+msgstr "Délai de Traitement"
+
+msgid "Advance payments are typically processed within 3-7 business days after approval. Payment will be sent via your registered payout method (Mobile Money or Bank Transfer)."
+msgstr "Les paiements anticipés sont généralement traités dans les 3-7 jours ouvrables après approbation. Le paiement sera envoyé via votre méthode de paiement enregistrée (Mobile Money ou Virement Bancaire)."
+
+msgid "One Active Advance"
+msgstr "Une Seule Avance Active"
+
+msgid "You may only have one active upfront payment at a time. New applications can be submitted after the current advance is fully recouped."
+msgstr "Vous ne pouvez avoir qu'un seul paiement anticipé actif à la fois. De nouvelles demandes peuvent être soumises après que l'avance actuelle soit entièrement récupérée."
+
+msgid "Application Review"
+msgstr "Examen de la Demande"
+
+msgid "All applications are reviewed manually. Xanula reserves the right to approve, reject, or request additional information for any application. Review typically takes 2-5 business days."
+msgstr "Toutes les demandes sont examinées manuellement. Xanula se réserve le droit d'approuver, de rejeter ou de demander des informations supplémentaires pour toute demande. L'examen prend généralement 2-5 jours ouvrables."
+
+msgid "Modifications"
+msgstr "Modifications"
+
+msgid "These terms may be updated from time to time. Your continued use of the upfront payment feature constitutes acceptance of any modifications."
+msgstr "Ces conditions peuvent être mises à jour de temps en temps. Votre utilisation continue de la fonctionnalité de paiement anticipé constitue l'acceptation de toute modification."
+
+#: Cancel Modal
+msgid "Cancel Application?"
+msgstr "Annuler la Demande ?"
+
+msgid "Are you sure you want to cancel this application? This action cannot be undone."
+msgstr "Êtes-vous sûr de vouloir annuler cette demande ? Cette action est irréversible."
+
+msgid "Keep Application"
+msgstr "Garder la Demande"
+
+msgid "Yes, Cancel"
+msgstr "Oui, Annuler"
+
+#: My Books Page
+msgid "Manage your published books and track earnings."
+msgstr "Gérez vos livres publiés et suivez vos revenus."
+
+msgid "Publish New Book"
+msgstr "Publier un Nouveau Livre"
+
+msgid "Published"
+msgstr "Publié"
+
+msgid "Denied"
+msgstr "Refusé"
+
+msgid "Ebook Ready"
+msgstr "Ebook Prêt"
+
+msgid "Audiobook Ready"
+msgstr "Audiobook Prêt"
+
+msgid "Submitted"
+msgstr "Soumis"
+
+msgid "Reason:"
+msgstr "Raison :"
+
+msgid "sales"
+msgstr "ventes"
+
+msgid "earned"
+msgstr "gagnés"
+
+msgid "Edit & Resubmit"
+msgstr "Modifier & Resoumettre"
+
+msgid "Awaiting Review"
+msgstr "En Attente d'Examen"
+
+msgid "View Page"
+msgstr "Voir la Page"
+
+msgid "No books yet"
+msgstr "Pas encore de livres"
+
+msgid "Start your publishing journey today!"
+msgstr "Commencez votre aventure d'auteur dès aujourd'hui !"
+
+msgid "Publish your first book"
+msgstr "Publiez votre premier livre"
+
+msgid "Earnings"
+msgstr "Revenus"
+
+msgid "Current Balance"
+msgstr "Solde Actuel"
+
+msgid "Request Payout"
+msgstr "Demander un Paiement"
+
+msgid "Minimum balance of 5,000 XAF required for payout."
+msgstr "Solde minimum de 5 000 XAF requis pour un paiement."
+
+msgid "Recent Payouts"
+msgstr "Paiements Récents"
+
+msgid "Pending"
+msgstr "En Attente"
+
+msgid "Processing"
+msgstr "En Traitement"
+
+msgid "Failed"
+msgstr "Échoué"
+
+msgid "Tips"
+msgstr "Conseils"
+
+msgid "Write a compelling description"
+msgstr "Rédigez une description captivante"
+
+msgid "Use a professional cover image"
+msgstr "Utilisez une image de couverture professionnelle"
+
+msgid "Price competitively for your category"
+msgstr "Fixez un prix compétitif pour votre catégorie"
+
+msgid "Respond to reader reviews"
+msgstr "Répondez aux avis des lecteurs"
+

@@ -725,3 +725,155 @@ class HardCopyRequest(models.Model):
     def __str__(self):
         return f"{self.user.email} - {self.book.title} ({self.status})"
 
+
+class UpfrontPaymentApplication(models.Model):
+    """
+    Upfront payment (advance) application for authors.
+    Authors can apply for an advance payment which is recouped via
+    increased commission on future sales.
+    """
+    
+    class Status(models.TextChoices):
+        IN_REVIEW = 'in_review', _('In Review')
+        APPROVED = 'approved', _('Approved')
+        COMPLETED = 'completed', _('Completed')  # Fully recouped
+        REJECTED = 'rejected', _('Rejected')
+        CANCELLED = 'cancelled', _('Cancelled')
+    
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='upfront_applications',
+        verbose_name=_('author'),
+        help_text=_('The author applying for upfront payment.')
+    )
+    book = models.ForeignKey(
+        'Book',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='upfront_applications',
+        verbose_name=_('book'),
+        help_text=_('Specific book for the advance, or null for all books.')
+    )
+    amount_requested = models.DecimalField(
+        _('amount requested'),
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('1000.00'))],
+        help_text=_('Amount requested in XAF.')
+    )
+    reason = models.TextField(
+        _('reason'),
+        help_text=_('Why you need this advance payment.')
+    )
+    status = models.CharField(
+        _('status'),
+        max_length=20,
+        choices=Status.choices,
+        default=Status.IN_REVIEW
+    )
+    rejection_reason = models.TextField(
+        _('rejection reason'),
+        blank=True,
+        help_text=_('Reason for rejection if applicable.')
+    )
+    repayment_rate = models.DecimalField(
+        _('repayment rate'),
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('20.00'),
+        validators=[MinValueValidator(Decimal('0.00')), MaxValueValidator(Decimal('50.00'))],
+        help_text=_('Extra percentage taken per sale to recoup advance (e.g., 20 means +20%).')
+    )
+    amount_recouped = models.DecimalField(
+        _('amount recouped'),
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text=_('Total amount recouped from sales so far.')
+    )
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True
+    )
+    updated_at = models.DateTimeField(
+        _('updated at'),
+        auto_now=True
+    )
+    approved_at = models.DateTimeField(
+        _('approved at'),
+        null=True,
+        blank=True
+    )
+    completed_at = models.DateTimeField(
+        _('completed at'),
+        null=True,
+        blank=True
+    )
+    admin_notes = models.TextField(
+        _('admin notes'),
+        blank=True,
+        help_text=_('Internal notes for admin review.')
+    )
+    terms_accepted = models.BooleanField(
+        _('terms accepted'),
+        default=False,
+        help_text=_('Author has accepted the terms and conditions.')
+    )
+    
+    class Meta:
+        verbose_name = _('upfront payment application')
+        verbose_name_plural = _('upfront payment applications')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['author']),
+            models.Index(fields=['status']),
+        ]
+    
+    def __str__(self):
+        book_name = self.book.title if self.book else _('All Books')
+        return f"{self.author.email} - {self.amount_requested} XAF ({self.status})"
+    
+    @property
+    def remaining_amount(self):
+        """Amount still to be recouped."""
+        return max(Decimal('0.00'), self.amount_requested - self.amount_recouped)
+    
+    @property
+    def recoup_progress_percent(self):
+        """Percentage of advance that has been recouped."""
+        if self.amount_requested <= 0:
+            return 0
+        return min(100, round((self.amount_recouped / self.amount_requested) * 100, 1))
+    
+    @property
+    def is_fully_recouped(self):
+        """Check if the advance has been fully recouped."""
+        return self.amount_recouped >= self.amount_requested
+    
+    def recoup_from_sale(self, author_earning, sale_price):
+        """
+        Recoup from a sale. Returns the amount to deduct from author earnings.
+        """
+        if self.status != self.Status.APPROVED:
+            return Decimal('0.00')
+        
+        # Calculate extra amount to deduct based on repayment_rate
+        # repayment_rate is the extra % of sale price to take
+        deduction = (sale_price * self.repayment_rate / 100).quantize(Decimal('0.01'))
+        
+        # Don't deduct more than remaining amount or more than author earning
+        deduction = min(deduction, self.remaining_amount, author_earning)
+        
+        self.amount_recouped += deduction
+        
+        # Check if fully recouped
+        if self.is_fully_recouped:
+            from django.utils import timezone
+            self.status = self.Status.COMPLETED
+            self.completed_at = timezone.now()
+        
+        self.save()
+        return deduction
+

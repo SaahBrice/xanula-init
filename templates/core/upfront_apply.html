@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Apply for Upfront Payment" %} - Xanula{% endblock %}
+
+{% block content %}
+<div class="container py-6 max-w-xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <a href="{% url 'core:upfront_applications' %}" class="text-gray-500 hover:text-burgundy-500 text-sm mb-2 inline-block">← {% trans "Back to Applications" %}</a>
+        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">{% trans "Apply for Upfront Payment" %}</h1>
+        <p class="text-gray-600 dark:text-gray-400">{% trans "Request an advance on your book sales." %}</p>
+    </div>
+
+    <!-- Info Box -->
+    <div class="bg-forest-50 dark:bg-forest-900/20 border border-forest-200 dark:border-forest-800 rounded-2xl p-4 mb-6">
+        <h4 class="font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+            <span>💡</span> {% trans "How It Works" %}
+        </h4>
+        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+            <li>• {% trans "Submit your application with the amount you need." %}</li>
+            <li>• {% trans "Our team will review your request (typically 2-5 business days)." %}</li>
+            <li>• {% trans "If approved, you receive the advance payment." %}</li>
+            <li>• {% trans "We recoup the advance via increased commission on your future sales." %}</li>
+        </ul>
+    </div>
+
+    <!-- Form -->
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "Application Details" %}</h3>
+            
+            <div class="form-group">
+                <label for="book_id" class="label">{% trans "Apply For" %}</label>
+                <select name="book_id" id="book_id" class="input">
+                    <option value="all">{% trans "All My Books" %}</option>
+                    {% for book in author_books %}
+                    <option value="{{ book.id }}">{{ book.title }}</option>
+                    {% endfor %}
+                </select>
+                <p class="text-xs text-gray-500 mt-1">{% trans "Choose a specific book or apply for all your books." %}</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="amount" class="label">{% trans "Amount Requested (XAF)" %}</label>
+                <input type="number" name="amount" id="amount" required min="1000" step="100" class="input" placeholder="50000">
+                <p class="text-xs text-gray-500 mt-1">{% trans "Minimum: 1,000 XAF" %}</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="reason" class="label">{% trans "Reason for Request" %}</label>
+                <textarea name="reason" id="reason" required rows="4" class="input resize-none" placeholder="{% trans 'Explain why you need this advance payment...' %}"></textarea>
+            </div>
+        </div>
+        
+        <!-- Terms & Conditions -->
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "Terms & Conditions" %}</h3>
+            
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4 max-h-64 overflow-y-auto text-sm text-gray-600 dark:text-gray-400">
+                <p class="mb-3"><strong>{% trans "Upfront Payment Agreement" %}</strong></p>
+                <p class="mb-2">{% trans "By accepting this agreement, you acknowledge:" %}</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>{% trans "The advance payment is an early disbursement of your future royalties." %}</li>
+                    <li>{% trans "Xanula will take an increased commission on each sale until the advance is fully recouped. The typical rate is 20% extra, but may vary based on your application." %}</li>
+                    <li>{% trans "The exact repayment rate will be set by Xanula upon approval of your application." %}</li>
+                    <li>{% trans "If the selected book does not generate enough sales, Xanula may recoup from your other books. You will never be required to pay money back to Xanula." %}</li>
+                    <li>{% trans "If you selected 'All Books', the advance will be recouped from all your current and future book sales on the platform." %}</li>
+                    <li>{% trans "You may not remove books from the platform while an upfront payment is being recouped, unless the full remaining balance is settled." %}</li>
+                    <li>{% trans "Advance payments are typically processed within 3-7 business days after approval." %}</li>
+                    <li>{% trans "Payment will be sent via your registered payout method (Mobile Money or Bank Transfer)." %}</li>
+                    <li>{% trans "This agreement does not guarantee approval of your application." %}</li>
+                    <li>{% trans "Xanula reserves the right to reject applications at its discretion based on sales history and platform standing." %}</li>
+                    <li>{% trans "You may only have one active upfront payment at a time. New applications can be submitted after the current advance is fully recouped." %}</li>
+                    <li>{% trans "Xanula may contact you for additional information during the review process." %}</li>
+                </ul>
+            </div>
+            
+            <label class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" name="terms_accepted" id="terms_accepted" required class="mt-1 w-4 h-4 text-burgundy-500 border-gray-300 rounded focus:ring-burgundy-500">
+                <span class="text-sm text-gray-700 dark:text-gray-300">
+                    {% trans "I have read and accept the terms and conditions for upfront payment." %}
+                </span>
+            </label>
+        </div>
+        
+        <!-- Submit -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-end">
+            <a href="{% url 'core:upfront_applications' %}" class="btn btn-secondary text-center">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn btn-primary">{% trans "Submit Application" %}</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

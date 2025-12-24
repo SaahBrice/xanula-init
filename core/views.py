@@ -8,10 +8,51 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
 from django.conf import settings
 
-from .models import Book, Review, LibraryEntry, PayoutRequest
+from .models import Book, Review, LibraryEntry, PayoutRequest, UpfrontPaymentApplication
+
+
+def process_upfront_recouping(purchase, author):
+    """
+    Process upfront payment recouping for a completed purchase.
+    Deducts from author earnings if they have an active upfront payment.
+    
+    Returns:
+        Decimal: The amount deducted from author earnings
+    """
+    from decimal import Decimal
+    
+    # Find active upfront payment application(s) for this author
+    # Either for the specific book or for all books
+    active_applications = UpfrontPaymentApplication.objects.filter(
+        author=author,
+        status=UpfrontPaymentApplication.Status.APPROVED
+    ).filter(
+        # Either the application is for this specific book or for all books (book=None)
+        Q(book=purchase.book) | Q(book__isnull=True)
+    ).order_by('created_at')  # Process oldest first
+    
+    total_deducted = Decimal('0.00')
+    
+    for application in active_applications:
+        if application.remaining_amount <= 0:
+            continue
+            
+        # Calculate deduction based on repayment rate
+        deduction = application.recoup_from_sale(
+            author_earning=purchase.author_earning - total_deducted,
+            sale_price=purchase.amount_paid
+        )
+        total_deducted += deduction
+        
+        # If all earnings are recouped, stop processing
+        if total_deducted >= purchase.author_earning:
+            break
+    
+    return total_deducted
 
 
 def get_available_books():
+
     """Get books that are available for purchase/viewing."""
     return Book.objects.filter(
         status__in=[
@@ -895,9 +936,11 @@ def purchase_success(request, purchase_id):
             purchase.author_earning = amount - purchase.platform_commission
             purchase.save()
             
-            # Update author's earnings balance
+            # Update author's earnings balance (after recouping for upfront payments)
             author = purchase.book.author
-            author.earnings_balance += purchase.author_earning
+            recouped = process_upfront_recouping(purchase, author)
+            final_earning = purchase.author_earning - recouped
+            author.earnings_balance += final_earning
             author.save(update_fields=['earnings_balance'])
             
             # Create library entry (check for duplicates)
@@ -1466,9 +1509,11 @@ def fapshi_return(request, purchase_id):
             purchase.author_earning = amount - purchase.platform_commission
             purchase.save()
             
-            # Update author's earnings balance
+            # Update author's earnings balance (after recouping for upfront payments)
             author = purchase.book.author
-            author.earnings_balance += purchase.author_earning
+            recouped = process_upfront_recouping(purchase, author)
+            final_earning = purchase.author_earning - recouped
+            author.earnings_balance += final_earning
             author.save(update_fields=['earnings_balance'])
             
             # Create library entry
@@ -1600,9 +1645,11 @@ def check_purchase_status_api(request, purchase_id):
             purchase.author_earning = amount - purchase.platform_commission
             purchase.save()
             
-            # Update author earnings
+            # Update author earnings (after recouping for upfront payments)
             author = purchase.book.author
-            author.earnings_balance += purchase.author_earning
+            recouped = process_upfront_recouping(purchase, author)
+            final_earning = purchase.author_earning - recouped
+            author.earnings_balance += final_earning
             author.save(update_fields=['earnings_balance'])
             
             # Create library entry
@@ -2087,3 +2134,123 @@ def privacy_page(request):
 def legal_page(request):
     """Legal Notice page."""
     return render(request, 'core/legal.html')
+
+
+# ===== UPFRONT PAYMENT VIEWS =====
+
+@login_required
+def upfront_applications_list(request):
+    """
+    List all upfront payment applications for the logged-in author.
+    """
+    applications = UpfrontPaymentApplication.objects.filter(
+        author=request.user
+    ).select_related('book').order_by('-created_at')
+    
+    context = {
+        'applications': applications,
+    }
+    return render(request, 'core/upfront_applications.html', context)
+
+
+@login_required
+def apply_upfront_payment(request):
+    """
+    Apply for an upfront payment (advance) on a book.
+    """
+    # Get author's books that are approved/ready
+    author_books = Book.objects.filter(
+        author=request.user,
+        status__in=[Book.Status.APPROVED, Book.Status.EBOOK_READY, 
+                    Book.Status.AUDIOBOOK_GENERATED, Book.Status.COMPLETED]
+    ).order_by('title')
+    
+    if not author_books.exists():
+        messages.warning(request, 'You need at least one published book to apply for upfront payment.')
+        return redirect('core:my_books')
+    
+    # Check for existing pending application
+    existing_pending = UpfrontPaymentApplication.objects.filter(
+        author=request.user,
+        status=UpfrontPaymentApplication.Status.IN_REVIEW
+    ).exists()
+    
+    if existing_pending:
+        messages.warning(request, 'You already have a pending application. Please wait for it to be reviewed.')
+        return redirect('core:upfront_applications')
+    
+    if request.method == 'POST':
+        book_id = request.POST.get('book_id')
+        amount = request.POST.get('amount')
+        reason = request.POST.get('reason', '').strip()
+        terms_accepted = request.POST.get('terms_accepted') == 'on'
+        
+        if not terms_accepted:
+            messages.error(request, 'You must accept the terms and conditions.')
+            return redirect('core:apply_upfront_payment')
+        
+        try:
+            amount = Decimal(amount)
+            if amount < 1000:
+                messages.error(request, 'Minimum amount is 1,000 XAF.')
+                return redirect('core:apply_upfront_payment')
+        except:
+            messages.error(request, 'Invalid amount.')
+            return redirect('core:apply_upfront_payment')
+        
+        # Get book if specified
+        book = None
+        if book_id and book_id != 'all':
+            book = get_object_or_404(Book, id=book_id, author=request.user)
+        
+        # Create application
+        application = UpfrontPaymentApplication.objects.create(
+            author=request.user,
+            book=book,
+            amount_requested=amount,
+            reason=reason,
+            terms_accepted=True,
+        )
+        
+        messages.success(request, 'Your upfront payment application has been submitted and is now under review.')
+        return redirect('core:upfront_applications')
+    
+    context = {
+        'author_books': author_books,
+    }
+    return render(request, 'core/upfront_apply.html', context)
+
+
+@login_required
+@require_POST
+def cancel_upfront_application(request, application_id):
+    """
+    Cancel an upfront payment application (only if still in review).
+    """
+    application = get_object_or_404(
+        UpfrontPaymentApplication,
+        id=application_id,
+        author=request.user
+    )
+    
+    if application.status != UpfrontPaymentApplication.Status.IN_REVIEW:
+        messages.error(request, 'Only pending applications can be cancelled.')
+        return redirect('core:upfront_applications')
+    
+    application.status = UpfrontPaymentApplication.Status.CANCELLED
+    application.save()
+    
+    messages.success(request, 'Your application has been cancelled.')
+    return redirect('core:upfront_applications')
+
+
+def upfront_terms_content(request):
+    """
+    Return the terms and conditions content for upfront payments.
+    Used by the modal popup.
+    """
+    return render(request, 'core/upfront_terms_content.html')
+
+
+# Import Decimal for upfront payment amount handling
+from decimal import Decimal

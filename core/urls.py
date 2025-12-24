@@ -79,6 +79,12 @@ urlpatterns = [
     path('terms/', views.terms_page, name='terms'),
     path('privacy/', views.privacy_page, name='privacy'),
     path('legal/', views.legal_page, name='legal'),
+    
+    # Upfront Payment
+    path('my-books/upfront/', views.upfront_applications_list, name='upfront_applications'),
+    path('my-books/upfront/apply/', views.apply_upfront_payment, name='apply_upfront_payment'),
+    path('my-books/upfront/cancel/<int:application_id>/', views.cancel_upfront_application, name='cancel_upfront_application'),
+    path('upfront-terms/', views.upfront_terms_content, name='upfront_terms_content'),
 ]
 
 
