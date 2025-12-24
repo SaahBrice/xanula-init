@@ -7,7 +7,7 @@ from django.contrib import messages
 from datetime import date
 from django.utils import timezone
 
-from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest, HardCopyRequest, UpfrontPaymentApplication, Donation, ReferralSettings, FeaturedBook
+from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest, HardCopyRequest, UpfrontPaymentApplication, Donation, ReferralSettings, FeaturedBook, Notification
 
 
 @admin.register(Book)
@@ -810,3 +810,35 @@ class FeaturedBookAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('book', 'book__author')
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for Notifications.
+    Allows viewing and managing user notifications.
+    """
+    list_display = ('user_display', 'title', 'notification_type', 'is_read', 'created_at')
+    list_filter = ('notification_type', 'is_read', 'created_at')
+    search_fields = ('title', 'message', 'user__email')
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
+    date_hierarchy = 'created_at'
+    
+    fieldsets = (
+        (None, {
+            'fields': ('user', 'notification_type', 'title', 'message', 'icon')
+        }),
+        (_('Status'), {
+            'fields': ('is_read', 'created_at')
+        }),
+        (_('Related Content'), {
+            'fields': ('related_book_id', 'related_url'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def user_display(self, obj):
+        return obj.user.email
+    user_display.short_description = _('User')
+    user_display.admin_order_field = 'user__email'

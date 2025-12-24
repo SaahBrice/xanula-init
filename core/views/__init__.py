@@ -99,3 +99,9 @@ from ._views import (
     validate_referral_code_api,
     process_referral_commission,
 )
+
+from .notifications import (
+    notifications_page,
+    mark_notifications_read,
+    notifications_count_api,
+)

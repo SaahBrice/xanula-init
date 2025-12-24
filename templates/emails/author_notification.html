@@ -1,0 +1,60 @@
+{% extends "emails/base_email.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} - Xanula{% endblock %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 24px;">
+    <span style="font-size: 48px;">{{ icon|default:"📚" }}</span>
+</div>
+
+<h1 style="text-align: center; color: #2D4739;">{{ title }}</h1>
+
+<p style="font-size: 16px; color: #333; text-align: center; margin-bottom: 24px;">
+    {{ message }}
+</p>
+
+{% if book %}
+<div class="book-card">
+    <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            {% if book.cover_image %}
+            <td width="100" style="vertical-align: top;">
+                <img src="{{ site_url }}{{ book.cover_image.url }}" alt="{{ book.title }}" 
+                     style="width: 80px; height: 120px; border-radius: 8px; object-fit: cover;">
+            </td>
+            {% endif %}
+            <td style="vertical-align: top; padding-left: 16px;">
+                <p class="book-title">{{ book.title }}</p>
+                <p class="book-author">{% trans "by" %} {{ book.author.get_display_name }}</p>
+                {% if book.formatted_price %}
+                <p class="book-price">{{ book.formatted_price }}</p>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+</div>
+{% endif %}
+
+{% if details %}
+<div class="info-box success" style="margin-top: 24px;">
+    {% for key, value in details.items %}
+    <div style="display: flex; justify-content: space-between; padding: 8px 0; {% if not forloop.last %}border-bottom: 1px solid rgba(45, 71, 57, 0.2);{% endif %}">
+        <span style="color: #666; font-size: 14px;">{{ key }}</span>
+        <span style="color: #2D4739; font-size: 14px; font-weight: 600;">{{ value }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if cta_url and cta_text %}
+<div style="text-align: center; margin-top: 32px;">
+    <a href="{{ cta_url }}" class="btn btn-secondary">{{ cta_text }}</a>
+</div>
+{% endif %}
+
+<p style="color: #888; font-size: 12px; text-align: center; margin-top: 32px;">
+    {% trans "This is an automated notification from Xanula." %}<br>
+    {% trans "You can manage your notification preferences in Settings." %}
+</p>
+{% endblock %}

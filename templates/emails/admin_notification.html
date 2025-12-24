@@ -1,0 +1,36 @@
+{% extends "emails/base_email.html" %}
+{% load i18n %}
+
+{% block title %}Admin Notification - Xanula{% endblock %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 24px;">
+    <span style="font-size: 48px;">{{ icon|default:"🔔" }}</span>
+</div>
+
+<h1 style="text-align: center; color: #8B2635;">{{ title }}</h1>
+
+<div class="info-box {% if priority == 'high' %}{% elif priority == 'medium' %}warning{% else %}success{% endif %}">
+    <p style="margin: 0; font-size: 15px; color: #333;">{{ message }}</p>
+</div>
+
+{% if details %}
+<div class="book-card" style="margin-top: 24px;">
+    <h3 style="margin: 0 0 12px 0; color: #1a1a1a; font-size: 16px;">{% trans "Details" %}</h3>
+    {% for key, value in details.items %}
+    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E8E4DC;">
+        <span style="color: #666; font-size: 14px;">{{ key }}</span>
+        <span style="color: #1a1a1a; font-size: 14px; font-weight: 600;">{{ value }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 32px;">
+    <a href="{{ admin_url|default:site_url }}/admin/" class="btn">{% trans "Go to Admin Panel" %}</a>
+</div>
+
+<p style="color: #888; font-size: 12px; text-align: center; margin-top: 24px;">
+    {% trans "This is an automated admin notification from Xanula." %}
+</p>
+{% endblock %}

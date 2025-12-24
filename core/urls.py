@@ -100,6 +100,11 @@ urlpatterns = [
     
     # Referral System
     path('api/validate-referral/<str:code>/', views.validate_referral_code_api, name='validate_referral_code'),
+    
+    # Notifications
+    path('notifications/', views.notifications_page, name='notifications'),
+    path('api/notifications/mark-read/', views.mark_notifications_read, name='mark_notifications_read'),
+    path('api/notifications/count/', views.notifications_count_api, name='notifications_count'),
 ]
 
 

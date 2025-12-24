@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Notifications" %} - Xanula{% endblock %}
+
+{% block content %}
+<div class="container py-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                {% trans "Notifications" %}
+            </h1>
+            {% if unread_count > 0 %}
+            <button onclick="markAllRead()" class="btn btn-secondary btn-sm">
+                ✓ {% trans "Mark all as read" %}
+            </button>
+            {% endif %}
+        </div>
+        
+        <!-- Notifications List -->
+        {% if notifications %}
+        <div class="space-y-3">
+            {% for notification in notifications %}
+            <div class="flex gap-4 p-4 bg-white dark:bg-dark-100 rounded-xl border {% if not notification.is_read %}border-burgundy-200 dark:border-burgundy-800 bg-burgundy-50/50 dark:bg-burgundy-900/20{% else %}border-gray-200 dark:border-gray-700{% endif %} transition-all">
+                <!-- Icon -->
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-cream dark:bg-dark-50 flex items-center justify-center text-xl">
+                    {{ notification.icon }}
+                </div>
+                
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <h3 class="font-semibold text-gray-900 dark:text-white text-sm">
+                            {{ notification.title }}
+                        </h3>
+                        {% if not notification.is_read %}
+                        <span class="w-2 h-2 rounded-full bg-burgundy-500 flex-shrink-0"></span>
+                        {% endif %}
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                        {{ notification.message }}
+                    </p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        {{ notification.created_at|timesince }} {% trans "ago" %}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-16">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-cream dark:bg-dark-50 flex items-center justify-center">
+                <span class="text-4xl">🔔</span>
+            </div>
+            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">{% trans "No notifications yet" %}</h3>
+            <p class="text-gray-500 dark:text-gray-400">{% trans "When you receive notifications, they'll appear here." %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function markAllRead() {
+    fetch("{% url 'core:mark_notifications_read' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Refresh the page to show updated state
+            window.location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

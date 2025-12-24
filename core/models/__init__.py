@@ -31,6 +31,8 @@ from .social import (
 
 from .featured import FeaturedBook
 
+from .notification import Notification
+
 __all__ = [
     # Book
     'Book',
@@ -52,4 +54,7 @@ __all__ = [
     'CommissionSettings',
     # Featured
     'FeaturedBook',
+    # Notification
+    'Notification',
 ]
+
