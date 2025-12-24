@@ -830,17 +830,24 @@ def create_stripe_checkout(request, book_id):
     cancel_url = f"{domain}/books/{book.slug}/?cancelled=1"
     
     try:
+        # Convert XAF to EUR for Stripe (avoids currency conversion fees)
+        # Exchange rate: 1 EUR = 655 XAF (fixed rate)
+        XAF_TO_EUR_RATE = 655
+        price_in_eur = float(book.price) / XAF_TO_EUR_RATE
+        # Stripe uses cents, so multiply by 100 and round
+        price_in_cents = int(round(price_in_eur * 100))
+        
         # Create Stripe Checkout Session
         checkout_session = stripe.checkout.Session.create(
             customer_email=request.user.email,
             line_items=[{
                 'price_data': {
-                    'currency': 'xaf',
+                    'currency': 'eur',
                     'product_data': {
                         'name': book.title,
-                        'description': book.short_description[:200] if book.short_description else '',
+                        'description': f"{book.short_description[:150]}... ({int(book.price):,} XAF)" if book.short_description else f"Price: {int(book.price):,} XAF",
                     },
-                    'unit_amount': int(book.price),  # XAF doesn't use cents
+                    'unit_amount': price_in_cents,  # EUR in cents
                 },
                 'quantity': 1,
             }],
@@ -851,6 +858,7 @@ def create_stripe_checkout(request, book_id):
                 'purchase_id': str(purchase.id),
                 'user_id': str(request.user.id),
                 'book_id': str(book.id),
+                'original_xaf_amount': str(book.price),
             }
         )
         
