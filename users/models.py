@@ -107,6 +107,18 @@ class User(AbstractUser):
         help_text=_('Unique referral code for this user.'),
     )
     
+    # Notification preferences
+    email_notifications = models.BooleanField(
+        _('email notifications'),
+        default=True,
+        help_text=_('Receive email notifications for purchases, updates, etc.'),
+    )
+    reading_reminders = models.BooleanField(
+        _('reading reminders'),
+        default=True,
+        help_text=_('Receive reminders to continue reading books.'),
+    )
+    
     # Use email as the username field
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # Email is already required by USERNAME_FIELD
