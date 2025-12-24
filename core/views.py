@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
 from django.conf import settings
 
-from .models import Book, Review, LibraryEntry, PayoutRequest, UpfrontPaymentApplication
+from .models import Book, Review, LibraryEntry, PayoutRequest, UpfrontPaymentApplication, Donation
 
 
 def process_upfront_recouping(purchase, author):
@@ -2262,3 +2262,264 @@ def upfront_terms_content(request):
 
 # Import Decimal for upfront payment amount handling
 from decimal import Decimal
+
+
+# ===== DONATION / SUPPORT ME VIEWS =====
+
+@login_required
+def support_author(request, author_id, book_id=None):
+    """
+    Display the support/donation form for an author.
+    """
+    from users.models import User
+    
+    author = get_object_or_404(User, id=author_id)
+    book = None
+    if book_id:
+        book = get_object_or_404(Book, id=book_id)
+    
+    # Can't donate to yourself
+    if author == request.user:
+        messages.error(request, "You cannot support yourself.")
+        return redirect('core:library')
+    
+    if request.method == 'POST':
+        amount = request.POST.get('amount')
+        message = request.POST.get('message', '')
+        payment_method = request.POST.get('payment_method', 'fapshi')
+        terms_accepted = request.POST.get('terms_accepted') == 'on'
+        
+        # Validation
+        if not terms_accepted:
+            messages.error(request, 'You must accept the terms and conditions.')
+            return render(request, 'core/support_author.html', {
+                'author': author,
+                'book': book,
+            })
+        
+        try:
+            amount = Decimal(amount)
+            if amount < 500:
+                messages.error(request, 'Minimum donation is 500 XAF.')
+                return render(request, 'core/support_author.html', {
+                    'author': author,
+                    'book': book,
+                })
+            if amount > 327500:
+                messages.error(request, 'Maximum donation is 327,500 XAF (~500 EUR).')
+                return render(request, 'core/support_author.html', {
+                    'author': author,
+                    'book': book,
+                })
+        except (ValueError, TypeError):
+            messages.error(request, 'Invalid amount.')
+            return render(request, 'core/support_author.html', {
+                'author': author,
+                'book': book,
+            })
+        
+        # Create donation record
+        donation = Donation.objects.create(
+            donor=request.user,
+            recipient=author,
+            book=book,
+            amount=amount,
+            message=message,
+            terms_accepted=True,
+            payment_method=Donation.PaymentMethod.STRIPE if payment_method == 'stripe' else Donation.PaymentMethod.FAPSHI,
+        )
+        
+        # Redirect to payment
+        if payment_method == 'stripe':
+            return redirect('core:donation_stripe_payment', donation_id=donation.id)
+        else:
+            return redirect('core:donation_fapshi_payment', donation_id=donation.id)
+    
+    return render(request, 'core/support_author.html', {
+        'author': author,
+        'book': book,
+    })
+
+
+@login_required
+def donation_stripe_payment(request, donation_id):
+    """Handle Stripe checkout for donation."""
+    import stripe
+    
+    donation = get_object_or_404(Donation, id=donation_id, donor=request.user)
+    
+    if donation.payment_status != Donation.PaymentStatus.PENDING:
+        messages.error(request, 'This donation has already been processed.')
+        return redirect('core:library')
+    
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    
+    # Build URLs
+    domain = request.build_absolute_uri('/').rstrip('/')
+    success_url = f"{domain}/support/success/{donation.id}/?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{domain}/library/?cancelled=1"
+    
+    try:
+        # Convert XAF to EUR
+        XAF_TO_EUR_RATE = 655
+        price_in_eur = float(donation.amount) / XAF_TO_EUR_RATE
+        price_in_cents = int(round(price_in_eur * 100))
+        
+        checkout_session = stripe.checkout.Session.create(
+            customer_email=request.user.email,
+            line_items=[{
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {
+                        'name': f"Support {donation.recipient.get_display_name()}",
+                        'description': f"Donation of {int(donation.amount):,} XAF",
+                    },
+                    'unit_amount': price_in_cents,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                'donation_id': str(donation.id),
+                'type': 'donation',
+            }
+        )
+        
+        donation.payment_transaction_id = checkout_session.id
+        donation.save(update_fields=['payment_transaction_id'])
+        
+        return redirect(checkout_session.url)
+        
+    except stripe.error.StripeError as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Stripe error for donation {donation.id}: {str(e)}")
+        donation.payment_status = Donation.PaymentStatus.FAILED
+        donation.save(update_fields=['payment_status'])
+        messages.error(request, 'Payment failed. Please try again.')
+        return redirect('core:library')
+
+
+@login_required
+def donation_fapshi_payment(request, donation_id):
+    """Handle Fapshi payment for donation."""
+    from . import fapshi_utils
+    
+    donation = get_object_or_404(Donation, id=donation_id, donor=request.user)
+    
+    if donation.payment_status != Donation.PaymentStatus.PENDING:
+        messages.error(request, 'This donation has already been processed.')
+        return redirect('core:library')
+    
+    # Build URLs
+    domain = request.build_absolute_uri('/').rstrip('/')
+    
+    result = fapshi_utils.create_payment(
+        amount=int(donation.amount),
+        email=request.user.email,
+        redirect_url=f"{domain}/support/fapshi-callback/{donation.id}/",
+        user_id=str(request.user.id),
+        external_id=f"DON-{donation.id}",
+        message=f"Support {donation.recipient.get_display_name()}"
+    )
+    
+    if result['success']:
+        donation.payment_transaction_id = result.get('trans_id', '')
+        donation.save(update_fields=['payment_transaction_id'])
+        return redirect(result['link'])
+    else:
+        donation.payment_status = Donation.PaymentStatus.FAILED
+        donation.save(update_fields=['payment_status'])
+        messages.error(request, f"Payment initiation failed: {result.get('error', 'Unknown error')}")
+        return redirect('core:library')
+
+
+@login_required
+def donation_fapshi_callback(request, donation_id):
+    """Handle Fapshi callback for donation."""
+    from . import fapshi_utils
+    from django.utils import timezone
+    
+    donation = get_object_or_404(Donation, id=donation_id)
+    
+    if donation.payment_status == Donation.PaymentStatus.COMPLETED:
+        return redirect('core:donation_success', donation_id=donation.id)
+    
+    # Check payment status
+    trans_id = request.GET.get('transId') or donation.payment_transaction_id
+    if trans_id:
+        result = fapshi_utils.check_payment_status(trans_id)
+        
+        if result['success'] and fapshi_utils.is_payment_successful(result['status']):
+            donation.payment_status = Donation.PaymentStatus.COMPLETED
+            donation.completed_at = timezone.now()
+            donation.save()
+            
+            # Credit author's earnings
+            author = donation.recipient
+            author.earnings_balance += donation.author_earning
+            author.save(update_fields=['earnings_balance'])
+            
+            return redirect('core:donation_success', donation_id=donation.id)
+    
+    # Still pending - poll
+    return render(request, 'core/donation_pending.html', {
+        'donation': donation,
+    })
+
+
+@login_required
+def donation_success(request, donation_id):
+    """Display thank you page after successful donation."""
+    import stripe
+    from django.utils import timezone
+    
+    donation = get_object_or_404(Donation, id=donation_id)
+    
+    # Verify Stripe payment if needed
+    session_id = request.GET.get('session_id')
+    if session_id and donation.payment_status == Donation.PaymentStatus.PENDING:
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        try:
+            session = stripe.checkout.Session.retrieve(session_id)
+            if session.payment_status == 'paid':
+                donation.payment_status = Donation.PaymentStatus.COMPLETED
+                donation.completed_at = timezone.now()
+                donation.save()
+                
+                # Credit author's earnings
+                author = donation.recipient
+                author.earnings_balance += donation.author_earning
+                author.save(update_fields=['earnings_balance'])
+        except Exception:
+            pass
+    
+    if donation.payment_status != Donation.PaymentStatus.COMPLETED:
+        messages.error(request, 'Donation was not completed.')
+        return redirect('core:library')
+    
+    return render(request, 'core/donation_success.html', {
+        'donation': donation,
+    })
+
+
+@login_required
+def author_donations(request):
+    """Display donations received by the author."""
+    from django.db.models import Sum
+    
+    donations = Donation.objects.filter(
+        recipient=request.user,
+        payment_status=Donation.PaymentStatus.COMPLETED
+    ).select_related('donor', 'book').order_by('-created_at')
+    
+    total_received = donations.aggregate(total=Sum('author_earning'))['total'] or Decimal('0.00')
+    donation_count = donations.count()
+    
+    return render(request, 'core/author_donations.html', {
+        'donations': donations,
+        'total_received': total_received,
+        'donation_count': donation_count,
+    })

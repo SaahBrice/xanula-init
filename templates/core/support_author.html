@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Support" %} {{ author.get_display_name }} - Xanula{% endblock %}
+
+{% block content %}
+<div class="container py-6 max-w-xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <a href="{% url 'core:library' %}" class="text-gray-500 hover:text-burgundy-500 text-sm mb-2 inline-block">← {% trans "Back to Library" %}</a>
+        <h1 class="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">{% trans "Support Author" %}</h1>
+        <p class="text-gray-600 dark:text-gray-400">{% trans "Show your appreciation with a tip." %}</p>
+    </div>
+
+    <!-- Author Card -->
+    <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-6">
+        <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-burgundy-500 to-forest-500 flex items-center justify-center flex-shrink-0">
+                {% if author.profile_picture %}
+                <img src="{{ author.profile_picture.url }}" alt="{{ author.get_display_name }}" class="w-full h-full object-cover">
+                {% else %}
+                <span class="text-2xl font-bold text-white">{{ author.get_display_name|first|upper }}</span>
+                {% endif %}
+            </div>
+            <div>
+                <h2 class="font-display text-xl font-semibold text-gray-900 dark:text-white">{{ author.get_display_name }}</h2>
+                {% if book %}
+                <p class="text-gray-500 dark:text-gray-400 text-sm">{% trans "For" %}: {{ book.title }}</p>
+                {% else %}
+                <p class="text-gray-500 dark:text-gray-400 text-sm">{% trans "Author on Xanula" %}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "Donation Details" %}</h3>
+            
+            <!-- Amount -->
+            <div class="form-group mb-4">
+                <label for="amount" class="label">{% trans "Amount (XAF)" %}</label>
+                <input type="number" name="amount" id="amount" required min="500" max="327500" step="100" class="input text-lg" placeholder="5000">
+                <p class="text-xs text-gray-500 mt-1">{% trans "Minimum: 500 XAF • Maximum: 327,500 XAF" %}</p>
+            </div>
+            
+            <!-- Quick amounts -->
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button type="button" onclick="setAmount(1000)" class="px-4 py-2 bg-cream dark:bg-dark-50 hover:bg-burgundy-100 dark:hover:bg-burgundy-900/30 rounded-full text-sm font-medium transition-colors">1,000</button>
+                <button type="button" onclick="setAmount(2500)" class="px-4 py-2 bg-cream dark:bg-dark-50 hover:bg-burgundy-100 dark:hover:bg-burgundy-900/30 rounded-full text-sm font-medium transition-colors">2,500</button>
+                <button type="button" onclick="setAmount(5000)" class="px-4 py-2 bg-cream dark:bg-dark-50 hover:bg-burgundy-100 dark:hover:bg-burgundy-900/30 rounded-full text-sm font-medium transition-colors">5,000</button>
+                <button type="button" onclick="setAmount(10000)" class="px-4 py-2 bg-cream dark:bg-dark-50 hover:bg-burgundy-100 dark:hover:bg-burgundy-900/30 rounded-full text-sm font-medium transition-colors">10,000</button>
+                <button type="button" onclick="setAmount(25000)" class="px-4 py-2 bg-cream dark:bg-dark-50 hover:bg-burgundy-100 dark:hover:bg-burgundy-900/30 rounded-full text-sm font-medium transition-colors">25,000</button>
+            </div>
+            
+            <!-- Message -->
+            <div class="form-group">
+                <label for="message" class="label">{% trans "Personal Message" %} ({% trans "optional" %})</label>
+                <textarea name="message" id="message" rows="3" maxlength="500" class="input resize-none" placeholder="{% trans 'Write a message to the author...' %}"></textarea>
+            </div>
+        </div>
+        
+        <!-- Payment Method -->
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "Payment Method" %}</h3>
+            
+            <div class="space-y-3">
+                <label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-xl cursor-pointer hover:bg-cream dark:hover:bg-dark-50 transition-colors">
+                    <input type="radio" name="payment_method" value="fapshi" checked class="w-4 h-4 text-burgundy-500">
+                    <span class="flex-1">
+                        <span class="font-medium text-gray-900 dark:text-white">Fapshi (Mobile Money)</span>
+                        <span class="block text-sm text-gray-500">MTN, Orange Money</span>
+                    </span>
+                </label>
+                <label class="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-xl cursor-pointer hover:bg-cream dark:hover:bg-dark-50 transition-colors">
+                    <input type="radio" name="payment_method" value="stripe" class="w-4 h-4 text-burgundy-500">
+                    <span class="flex-1">
+                        <span class="font-medium text-gray-900 dark:text-white">Stripe (Card)</span>
+                        <span class="block text-sm text-gray-500">Visa, Mastercard</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- Terms & Conditions -->
+        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+            <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-4">{% trans "Terms & Conditions" %}</h3>
+            
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4 max-h-40 overflow-y-auto text-sm text-gray-600 dark:text-gray-400">
+                <p class="mb-2">{% trans "By making this donation, you confirm that:" %}</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>{% trans "This donation is voluntary and made of your own free will." %}</li>
+                    <li>{% trans "You have not been forced, coerced, or pressured by the author or Xanula to make this donation." %}</li>
+                    <li>{% trans "This is a gift to support the author and you do not expect any goods or services in return." %}</li>
+                    <li>{% trans "You understand that donations are non-refundable." %}</li>
+                    <li>{% trans "You are at least 18 years old or have parental consent." %}</li>
+                </ul>
+            </div>
+            
+            <label class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" name="terms_accepted" id="terms_accepted" required class="mt-1 w-4 h-4 text-burgundy-500 border-gray-300 rounded focus:ring-burgundy-500">
+                <span class="text-sm text-gray-700 dark:text-gray-300">
+                    {% trans "I have read and accept the donation terms and conditions." %}
+                </span>
+            </label>
+        </div>
+        
+        <!-- Submit -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-end">
+            <a href="{% url 'core:library' %}" class="btn btn-secondary text-center">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn btn-primary flex items-center justify-center gap-2">
+                <span>❤️</span> {% trans "Send Support" %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function setAmount(amount) {
+    document.getElementById('amount').value = amount;
+}
+</script>
+{% endblock %}

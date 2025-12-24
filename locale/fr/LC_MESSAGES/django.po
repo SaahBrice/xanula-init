@@ -1503,3 +1503,179 @@ msgstr "Fixez un prix compétitif pour votre catégorie"
 msgid "Respond to reader reviews"
 msgstr "Répondez aux avis des lecteurs"
 
+#: Donations / Support Me Feature
+msgid "Support Author"
+msgstr "Soutenir l'Auteur"
+
+msgid "Show your appreciation with a tip."
+msgstr "Montrez votre appréciation avec un pourboire."
+
+msgid "Author on Xanula"
+msgstr "Auteur sur Xanula"
+
+msgid "Donation Details"
+msgstr "Détails du Don"
+
+msgid "Amount (XAF)"
+msgstr "Montant (XAF)"
+
+msgid "Minimum: 500 XAF • Maximum: 327,500 XAF"
+msgstr "Minimum : 500 XAF • Maximum : 327 500 XAF"
+
+msgid "Personal Message"
+msgstr "Message Personnel"
+
+msgid "optional"
+msgstr "optionnel"
+
+msgid "Write a message to the author..."
+msgstr "Écrivez un message à l'auteur..."
+
+msgid "By making this donation, you confirm that:"
+msgstr "En effectuant ce don, vous confirmez que :"
+
+msgid "This donation is voluntary and made of your own free will."
+msgstr "Ce don est volontaire et fait de votre propre gré."
+
+msgid "You have not been forced, coerced, or pressured by the author or Xanula to make this donation."
+msgstr "Vous n'avez pas été forcé, contraint ou pressé par l'auteur ou Xanula pour effectuer ce don."
+
+msgid "This is a gift to support the author and you do not expect any goods or services in return."
+msgstr "Il s'agit d'un cadeau pour soutenir l'auteur et vous n'attendez aucun bien ou service en retour."
+
+msgid "You understand that donations are non-refundable."
+msgstr "Vous comprenez que les dons ne sont pas remboursables."
+
+msgid "You are at least 18 years old or have parental consent."
+msgstr "Vous avez au moins 18 ans ou avez le consentement parental."
+
+msgid "I have read and accept the donation terms and conditions."
+msgstr "J'ai lu et j'accepte les conditions générales des dons."
+
+msgid "Send Support"
+msgstr "Envoyer le Soutien"
+
+msgid "Tip"
+msgstr "Pourboire"
+
+msgid "Support Author"
+msgstr "Soutenir"
+
+msgid "Thank You!"
+msgstr "Merci !"
+
+msgid "Your support means the world to"
+msgstr "Votre soutien signifie beaucoup pour"
+
+msgid "Donation Summary"
+msgstr "Résumé du Don"
+
+msgid "Recipient"
+msgstr "Bénéficiaire"
+
+msgid "For Book"
+msgstr "Pour le Livre"
+
+msgid "Your Message"
+msgstr "Votre Message"
+
+msgid "View Author Profile"
+msgstr "Voir le Profil de l'Auteur"
+
+msgid "Donations Received"
+msgstr "Dons Reçus"
+
+msgid "See who has supported your work."
+msgstr "Voyez qui a soutenu votre travail."
+
+msgid "Total Received"
+msgstr "Total Reçu"
+
+msgid "Supporters"
+msgstr "Supporteurs"
+
+msgid "No Donations Yet"
+msgstr "Pas Encore de Dons"
+
+msgid "When readers support your work, their donations will appear here."
+msgstr "Lorsque les lecteurs soutiennent votre travail, leurs dons apparaîtront ici."
+
+msgid "Processing Payment"
+msgstr "Traitement du Paiement"
+
+msgid "Please wait while we confirm your payment..."
+msgstr "Veuillez patienter pendant que nous confirmons votre paiement..."
+
+msgid "Donations"
+msgstr "Dons"
+
+msgid "See who has supported your work with tips."
+msgstr "Voyez qui a soutenu votre travail avec des pourboires."
+
+msgid "View Donations"
+msgstr "Voir les Dons"
+
+msgid "Minimum donation is 500 XAF."
+msgstr "Le don minimum est de 500 XAF."
+
+msgid "Maximum donation is 327,500 XAF (~500 EUR)."
+msgstr "Le don maximum est de 327 500 XAF (~500 EUR)."
+
+msgid "You cannot support yourself."
+msgstr "Vous ne pouvez pas vous soutenir vous-même."
+
+msgid "This donation has already been processed."
+msgstr "Ce don a déjà été traité."
+
+msgid "Donation was not completed."
+msgstr "Le don n'a pas été complété."
+
+#: Purchase Page
+msgid "Purchase"
+msgstr "Acheter"
+
+msgid "Back to Book Details"
+msgstr "Retour aux détails du livre"
+
+msgid "Complete Your Purchase"
+msgstr "Finalisez votre achat"
+
+msgid "by"
+msgstr "par"
+
+msgid "Choose Payment Method"
+msgstr "Choisissez le mode de paiement"
+
+msgid "Pay with Card"
+msgstr "Payer par carte"
+
+msgid "International cards accepted"
+msgstr "Cartes internationales acceptées"
+
+msgid "Pay with Mobile Money"
+msgstr "Payer par Mobile Money"
+
+msgid "Recommended for Cameroon & Central Africa"
+msgstr "Recommandé pour le Cameroun et l'Afrique Centrale"
+
+msgid "What You'll Get"
+msgstr "Ce que vous obtiendrez"
+
+msgid "Digital Ebook - Read on any device"
+msgstr "Ebook numérique - Lisez sur n'importe quel appareil"
+
+msgid "AI-Generated Audiobook - Listen anywhere"
+msgstr "Livre audio généré par IA - Écoutez partout"
+
+msgid "One Hard Cover Book - Delivered to you"
+msgstr "Un livre relié - Livré chez vous"
+
+msgid "Lifetime Access - No subscriptions"
+msgstr "Accès à vie - Sans abonnement"
+
+msgid "Offline Reading - Download for later"
+msgstr "Lecture hors ligne - Téléchargez pour plus tard"
+
+msgid "Secure payments powered by Stripe & Fapshi"
+msgstr "Paiements sécurisés via Stripe et Fapshi"
+

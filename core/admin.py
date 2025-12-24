@@ -7,7 +7,7 @@ from django.contrib import messages
 from datetime import date
 from django.utils import timezone
 
-from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest, HardCopyRequest, UpfrontPaymentApplication
+from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest, HardCopyRequest, UpfrontPaymentApplication, Donation
 
 
 @admin.register(Book)
@@ -646,3 +646,52 @@ class UpfrontPaymentApplicationAdmin(admin.ModelAdmin):
             status=UpfrontPaymentApplication.Status.IN_REVIEW
         ).update(status=UpfrontPaymentApplication.Status.REJECTED)
         self.message_user(request, f'{updated} application(s) rejected.', messages.SUCCESS)
+
+
+@admin.register(Donation)
+class DonationAdmin(admin.ModelAdmin):
+    """Admin configuration for Donation model."""
+    
+    list_display = (
+        'id',
+        'donor_display',
+        'recipient_display',
+        'amount_display',
+        'payment_status',
+        'payment_method',
+        'created_at',
+    )
+    
+    list_filter = ('payment_status', 'payment_method', 'created_at')
+    search_fields = ('donor__email', 'recipient__email', 'message')
+    readonly_fields = ('created_at', 'completed_at', 'platform_commission', 'author_earning')
+    
+    fieldsets = (
+        (_('Participants'), {
+            'fields': ('donor', 'recipient', 'book')
+        }),
+        (_('Donation Details'), {
+            'fields': ('amount', 'message', 'terms_accepted')
+        }),
+        (_('Payment'), {
+            'fields': ('payment_method', 'payment_status', 'payment_transaction_id')
+        }),
+        (_('Commission Split'), {
+            'fields': ('platform_commission', 'author_earning')
+        }),
+        (_('Timestamps'), {
+            'fields': ('created_at', 'completed_at')
+        }),
+    )
+    
+    def donor_display(self, obj):
+        return obj.donor.get_display_name()
+    donor_display.short_description = _('Donor')
+    
+    def recipient_display(self, obj):
+        return obj.recipient.get_display_name()
+    recipient_display.short_description = _('Recipient')
+    
+    def amount_display(self, obj):
+        return f"{obj.amount:,.0f} XAF"
+    amount_display.short_description = _('Amount')

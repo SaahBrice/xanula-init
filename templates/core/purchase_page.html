@@ -92,17 +92,21 @@
         </h3>
         <ul class="space-y-3 text-gray-700 dark:text-gray-300">
             <li class="flex items-center gap-3">
-                <span class="w-8 h-8 bg-forest-50 dark:bg-forest-900/30 rounded-full flex items-center justify-center text-sm">📚</span>
+                <span class="w-8 h-8 bg-forest-50 dark:bg-forest-900/30 rounded-full flex items-center justify-center text-sm">📖</span>
                 <span>{% trans "Digital Ebook - Read on any device" %}</span>
             </li>
             {% if book.has_audiobook %}
             <li class="flex items-center gap-3">
                 <span class="w-8 h-8 bg-burgundy-50 dark:bg-burgundy-900/30 rounded-full flex items-center justify-center text-sm">🎧</span>
-                <span>{% trans "AI-Generated Audiobook" %}</span>
+                <span>{% trans "AI-Generated Audiobook - Listen anywhere" %}</span>
             </li>
             {% endif %}
             <li class="flex items-center gap-3">
-                <span class="w-8 h-8 bg-gold-50 dark:bg-gold-900/30 rounded-full flex items-center justify-center text-sm">♾️</span>
+                <span class="w-8 h-8 bg-gold-50 dark:bg-gold-900/30 rounded-full flex items-center justify-center text-sm">📦</span>
+                <span>{% trans "One Hard Cover Book - Delivered to you" %}</span>
+            </li>
+            <li class="flex items-center gap-3">
+                <span class="w-8 h-8 bg-purple-50 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-sm">♾️</span>
                 <span>{% trans "Lifetime Access - No subscriptions" %}</span>
             </li>
             <li class="flex items-center gap-3">

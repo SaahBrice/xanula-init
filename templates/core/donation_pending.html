@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Processing Payment" %} - Xanula{% endblock %}
+
+{% block content %}
+<div class="container py-12 max-w-md mx-auto text-center">
+    <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-8">
+        <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-gold-100 dark:bg-gold-900/30 flex items-center justify-center">
+            <div class="spinner"></div>
+        </div>
+        <h1 class="font-display text-2xl font-bold text-gray-900 dark:text-white mb-2">{% trans "Processing Payment" %}</h1>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">{% trans "Please wait while we confirm your payment..." %}</p>
+        
+        <div class="text-sm text-gray-500">
+            <p>{% trans "Amount" %}: <span class="font-semibold text-gray-900 dark:text-white">{{ donation.amount|floatformat:0 }} XAF</span></p>
+            <p>{% trans "For" %}: <span class="font-semibold text-gray-900 dark:text-white">{{ donation.recipient.get_display_name }}</span></p>
+        </div>
+    </div>
+</div>
+
+<style>
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #E8E4DC;
+    border-top-color: #B8864C;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+// Poll for payment status
+setInterval(function() {
+    window.location.reload();
+}, 5000);
+</script>
+{% endblock %}

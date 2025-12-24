@@ -877,3 +877,139 @@ class UpfrontPaymentApplication(models.Model):
         self.save()
         return deduction
 
+
+class Donation(models.Model):
+    """
+    Donation/Tip model for supporting authors.
+    Users can send tips to authors with optional messages.
+    Platform takes 10% commission, author receives 90%.
+    """
+    
+    class PaymentMethod(models.TextChoices):
+        STRIPE = 'stripe', _('Stripe (Card)')
+        FAPSHI = 'fapshi', _('Fapshi (Mobile Money)')
+    
+    class PaymentStatus(models.TextChoices):
+        PENDING = 'pending', _('Pending')
+        COMPLETED = 'completed', _('Completed')
+        FAILED = 'failed', _('Failed')
+        REFUNDED = 'refunded', _('Refunded')
+    
+    # Who donated
+    donor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='donations_made',
+        verbose_name=_('donor'),
+        help_text=_('User who made the donation.')
+    )
+    
+    # Who receives
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='donations_received',
+        verbose_name=_('recipient'),
+        help_text=_('Author receiving the donation.')
+    )
+    
+    # Optional: Which book inspired this
+    book = models.ForeignKey(
+        'Book',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='donations',
+        verbose_name=_('book'),
+        help_text=_('Book that inspired this donation (optional).')
+    )
+    
+    # Amount in XAF
+    amount = models.DecimalField(
+        _('amount'),
+        max_digits=12,
+        decimal_places=2,
+        validators=[
+            MinValueValidator(Decimal('500.00')),
+            MaxValueValidator(Decimal('327500.00'))  # ~500 EUR at 655 rate
+        ],
+        help_text=_('Donation amount in XAF (min 500, max 327,500).')
+    )
+    
+    # Personal message
+    message = models.TextField(
+        _('message'),
+        max_length=500,
+        blank=True,
+        help_text=_('Personal message to the author.')
+    )
+    
+    # Terms accepted
+    terms_accepted = models.BooleanField(
+        _('terms accepted'),
+        default=False,
+        help_text=_('User accepted donation terms.')
+    )
+    
+    # Payment details
+    payment_method = models.CharField(
+        _('payment method'),
+        max_length=20,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.FAPSHI
+    )
+    
+    payment_status = models.CharField(
+        _('payment status'),
+        max_length=20,
+        choices=PaymentStatus.choices,
+        default=PaymentStatus.PENDING
+    )
+    
+    payment_transaction_id = models.CharField(
+        _('transaction ID'),
+        max_length=255,
+        blank=True,
+        help_text=_('Payment gateway transaction ID.')
+    )
+    
+    # Commission split (10% platform, 90% author)
+    platform_commission = models.DecimalField(
+        _('platform commission'),
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text=_('Platform commission (10%).')
+    )
+    
+    author_earning = models.DecimalField(
+        _('author earning'),
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text=_('Amount received by author (90%).')
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+    completed_at = models.DateTimeField(_('completed at'), null=True, blank=True)
+    
+    class Meta:
+        verbose_name = _('donation')
+        verbose_name_plural = _('donations')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.donor} → {self.recipient}: {self.amount:,.0f} XAF"
+    
+    def calculate_split(self):
+        """Calculate the 10/90 split between platform and author."""
+        self.platform_commission = (self.amount * Decimal('0.10')).quantize(Decimal('0.01'))
+        self.author_earning = self.amount - self.platform_commission
+    
+    def save(self, *args, **kwargs):
+        # Auto-calculate split if not set
+        if self.author_earning == Decimal('0.00') and self.amount > 0:
+            self.calculate_split()
+        super().save(*args, **kwargs)
+

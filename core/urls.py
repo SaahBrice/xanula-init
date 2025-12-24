@@ -85,6 +85,15 @@ urlpatterns = [
     path('my-books/upfront/apply/', views.apply_upfront_payment, name='apply_upfront_payment'),
     path('my-books/upfront/cancel/<int:application_id>/', views.cancel_upfront_application, name='cancel_upfront_application'),
     path('upfront-terms/', views.upfront_terms_content, name='upfront_terms_content'),
+    
+    # Donations / Support Me
+    path('support/<int:author_id>/', views.support_author, name='support_author'),
+    path('support/<int:author_id>/book/<int:book_id>/', views.support_author, name='support_author_book'),
+    path('support/pay/stripe/<int:donation_id>/', views.donation_stripe_payment, name='donation_stripe_payment'),
+    path('support/pay/fapshi/<int:donation_id>/', views.donation_fapshi_payment, name='donation_fapshi_payment'),
+    path('support/fapshi-callback/<int:donation_id>/', views.donation_fapshi_callback, name='donation_fapshi_callback'),
+    path('support/success/<int:donation_id>/', views.donation_success, name='donation_success'),
+    path('my-books/donations/', views.author_donations, name='author_donations'),
 ]
 
 

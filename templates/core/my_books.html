@@ -142,6 +142,15 @@
                 </div>
             </div>
 
+            <!-- Donations Received Card -->
+            <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+                <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                    <span>❤️</span> {% trans "Donations" %}
+                </h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">{% trans "See who has supported your work with tips." %}</p>
+                <a href="{% url 'core:author_donations' %}" class="btn btn-block bg-pink-500 hover:bg-pink-600 text-white text-center">{% trans "View Donations" %}</a>
+            </div>
+
             <!-- Recent Payouts -->
             {% if payout_requests %}
             <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
