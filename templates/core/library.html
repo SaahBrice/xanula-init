@@ -79,9 +79,9 @@
     
     {% if entries %}
     <!-- Books Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 md:gap-6">
         {% for entry in entries %}
-        <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden hover:shadow-lg transition-all group"
+        <div class="group"
             x-data="{ 
                 bookId: {{ entry.book.id }},
                 entryId: {{ entry.id }},
@@ -90,150 +90,112 @@
                 audiobookUrl: '{% if entry.book.audiobook_file %}{{ entry.book.audiobook_file.url }}{% endif %}',
                 coverUrl: '{% if entry.book.cover_image %}{{ entry.book.cover_image.url }}{% endif %}'
             }">
-            <!-- Cover Image with Status -->
-            <div class="relative aspect-[2/3] overflow-hidden">
-                {% if entry.book.cover_image %}
-                <img src="{{ entry.book.cover_image.url }}" alt="{{ entry.book.title }}" 
-                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                {% else %}
-                <div class="w-full h-full bg-gradient-to-br from-burgundy-500 to-forest-500 flex items-center justify-center">
-                    <span class="text-4xl font-display font-bold text-white/40">{{ entry.book.title|first }}</span>
-                </div>
-                {% endif %}
-                
-                <!-- Status Badges -->
-                <div class="absolute top-3 left-3 flex flex-col gap-2">
-                    {% if entry.completion_status == 'completed' %}
-                    <span class="px-3 py-1 bg-forest-500 text-white text-xs font-medium rounded-full shadow">
-                        ✓ {% trans "Completed" %}
-                    </span>
-                    {% elif entry.completion_status == 'in_progress' %}
-                    <span class="px-3 py-1 bg-gold-500 text-white text-xs font-medium rounded-full shadow">
-                        📖 {% trans "Reading" %}
-                    </span>
+            <!-- Cover Card (isolated) -->
+            <a href="{% url 'core:book_reader' slug=entry.book.slug %}" class="block">
+                <div class="aspect-[2/3] rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow bg-gray-100 dark:bg-dark-50 relative">
+                    {% if entry.book.cover_image %}
+                    <img src="{{ entry.book.cover_image.url }}" alt="{{ entry.book.title }}" 
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    {% else %}
+                    <div class="w-full h-full bg-gradient-to-br from-burgundy-500 to-forest-500 flex items-center justify-center">
+                        <span class="text-3xl font-display font-bold text-white/40">{{ entry.book.title|first }}</span>
+                    </div>
                     {% endif %}
                     
-                    <!-- Offline Badge (reactive) -->
-                    <span x-show="isDownloaded || downloads[bookId]?.status === 'complete'" x-cloak
-                        class="px-3 py-1 bg-white/90 dark:bg-dark-100/90 text-forest-500 text-xs font-medium rounded-full shadow backdrop-blur-sm">
-                        📱 {% trans "Offline" %}
-                    </span>
-                </div>
-                
-                <!-- Download Progress Overlay -->
-                <div x-show="downloads[bookId]?.status === 'downloading'" x-cloak
-                    class="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white">
-                    <div class="w-16 h-16 mb-3">
-                        <svg class="animate-spin" viewBox="0 0 24 24" fill="none">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                        </svg>
+                    <!-- Status Badges -->
+                    <div class="absolute top-2 left-2 flex flex-col gap-1">
+                        {% if entry.completion_status == 'completed' %}
+                        <span class="px-2 py-0.5 bg-forest-500 text-white text-[10px] font-medium rounded-full shadow">✓</span>
+                        {% elif entry.completion_status == 'in_progress' %}
+                        <span class="px-2 py-0.5 bg-gold-500 text-white text-[10px] font-medium rounded-full shadow">📖</span>
+                        {% endif %}
+                        <span x-show="isDownloaded || downloads[bookId]?.status === 'complete'" x-cloak
+                            class="px-2 py-0.5 bg-white/90 dark:bg-dark-100/90 text-forest-500 text-[10px] font-medium rounded-full shadow">📱</span>
                     </div>
-                    <p class="font-semibold text-lg" x-text="downloads[bookId]?.percent + '%'">0%</p>
-                    <p class="text-sm text-white/80" x-text="formatBytes(downloads[bookId]?.loaded) + ' / ' + formatBytes(downloads[bookId]?.total)">{% trans "Downloading..." %}</p>
-                    <button @click="cancelDownload(bookId)" class="mt-3 px-4 py-1 text-xs bg-white/20 rounded-full hover:bg-white/30">
-                        {% trans "Cancel" %}
-                    </button>
+                    
+                    <!-- Format Badges -->
+                    <div class="absolute top-2 right-2 flex flex-col gap-1">
+                        <span class="w-6 h-6 flex items-center justify-center text-xs bg-white/90 dark:bg-dark-100/90 rounded shadow-sm">📖</span>
+                        {% if entry.book.has_audiobook %}
+                        <span class="w-6 h-6 flex items-center justify-center text-xs bg-white/90 dark:bg-dark-100/90 rounded shadow-sm">🎧</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Download Progress Overlay -->
+                    <div x-show="downloads[bookId]?.status === 'downloading'" x-cloak
+                        class="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white">
+                        <div class="w-12 h-12 mb-2">
+                            <svg class="animate-spin" viewBox="0 0 24 24" fill="none">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                            </svg>
+                        </div>
+                        <p class="font-semibold text-sm" x-text="downloads[bookId]?.percent + '%'">0%</p>
+                    </div>
                 </div>
-                
-                <!-- Format Badge -->
-                <div class="absolute bottom-3 right-3 flex gap-1">
-                    <span class="px-2 py-1 bg-white/90 dark:bg-dark-100/90 text-forest-500 text-xs font-medium rounded backdrop-blur-sm">📖</span>
-                    {% if entry.book.has_audiobook %}
-                    <span class="px-2 py-1 bg-white/90 dark:bg-dark-100/90 text-burgundy-500 text-xs font-medium rounded backdrop-blur-sm">🎧</span>
-                    {% endif %}
-                </div>
-            </div>
+            </a>
             
-            <!-- Book Info -->
-            <div class="p-4">
-                <h3 class="font-display font-semibold text-gray-900 dark:text-white mb-1 line-clamp-1">
+            <!-- Info Below Card -->
+            <div class="mt-3">
+                <!-- Title -->
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2 group-hover:text-burgundy-500 transition-colors">
                     {{ entry.book.title }}
                 </h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                
+                <!-- Author -->
+                <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
                     {{ entry.book.author.get_display_name }}
                 </p>
                 
-                <!-- Progress Bar -->
-                {% if entry.reading_progress > 0 or entry.listening_progress > 0 %}
-                <div class="mb-4">
-                    <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-                        <span>{% trans "Progress" %}</span>
-                        <span>
-                            {% if entry.reading_progress > 0 %}
-                            {% blocktrans with page=entry.reading_progress %}Page {{ page }}{% endblocktrans %}
-                            {% else %}
-                            {{ entry.listening_progress|floatformat:0 }}s {% trans "listened" %}
-                            {% endif %}
-                        </span>
-                    </div>
-                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                        <div class="bg-burgundy-500 h-1.5 rounded-full transition-all" 
-                            style="width: {% if entry.reading_progress > 0 %}{{ entry.reading_progress|default:0 }}{% else %}25{% endif %}%"></div>
-                    </div>
+                <!-- Progress + Last Read -->
+                <div class="flex items-center justify-between mt-2 text-[10px] text-gray-500 dark:text-gray-400">
+                    {% if entry.reading_progress > 0 or entry.listening_progress > 0 %}
+                    <span>
+                        {% if entry.reading_progress > 0 %}📖 {{ entry.reading_progress }}%{% else %}🎧 {{ entry.listening_progress|floatformat:0 }}s{% endif %}
+                    </span>
+                    {% else %}
+                    <span></span>
+                    {% endif %}
+                    {% if entry.last_accessed %}
+                    <span>{{ entry.last_accessed|timesince|slice:":6" }} {% trans "ago" %}</span>
+                    {% endif %}
                 </div>
-                {% endif %}
                 
-                <!-- Last Accessed -->
-                {% if entry.last_accessed %}
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                    {% blocktrans with time=entry.last_accessed|timesince %}Last read {{ time }} ago{% endblocktrans %}
-                </p>
-                {% endif %}
-                
-                <!-- Action Buttons -->
-                <div class="space-y-2">
-                    <!-- Primary Read Button -->
+                <!-- Read/Listen + Tip Buttons -->
+                <div class="flex gap-1.5 mt-2">
                     <a href="{% url 'core:book_reader' slug=entry.book.slug %}" 
-                        class="btn btn-primary btn-block">
-                        {% if entry.reading_progress > 0 %}
-                        {% trans "Continue Reading" %}
-                        {% else %}
-                        {% trans "Start Reading" %}
-                        {% endif %}
+                        class="flex-1 py-1.5 px-2 bg-burgundy-500 text-white text-center text-[10px] font-medium rounded hover:bg-burgundy-600 transition-colors">
+                        {% if entry.reading_progress > 0 %}{% trans "Continue" %}{% else %}{% trans "Read" %}{% endif %}
                     </a>
-                    
-                    <!-- Listen Button -->
                     {% if entry.book.has_audiobook %}
                     <a href="{% url 'core:audiobook_player' slug=entry.book.slug %}" 
-                        class="btn bg-burgundy-100 dark:bg-burgundy-900/30 text-burgundy-600 dark:text-burgundy-400 hover:bg-burgundy-200 dark:hover:bg-burgundy-900/50 btn-block">
-                        {% if entry.listening_progress > 0 %}
-                        {% trans "Continue Listening" %}
-                        {% else %}
+                        class="flex-1 py-1.5 px-2 bg-burgundy-100 dark:bg-burgundy-900/30 text-burgundy-600 dark:text-burgundy-400 text-center text-[10px] font-medium rounded hover:bg-burgundy-200 transition-colors">
                         🎧 {% trans "Listen" %}
-                        {% endif %}
                     </a>
                     {% endif %}
-                    
-                    <!-- Secondary Actions -->
-                    <div class="flex gap-2">
-                        <!-- Download Button with Progress -->
-                        <button 
-                            @click="isDownloaded || downloads[bookId]?.status === 'complete' ? removeDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId) : startDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId)"
-                            :disabled="downloads[bookId]?.status === 'downloading'"
-                            class="btn btn-secondary flex-1 text-xs"
-                            :class="{ 'opacity-50 cursor-not-allowed': downloads[bookId]?.status === 'downloading' }">
-                            <span x-show="!(isDownloaded || downloads[bookId]?.status === 'complete') && downloads[bookId]?.status !== 'downloading'">↓ {% trans "Save" %}</span>
-                            <span x-show="isDownloaded || downloads[bookId]?.status === 'complete'" x-cloak>✓ {% trans "Saved" %}</span>
-                            <span x-show="downloads[bookId]?.status === 'downloading'" x-cloak>
-                                <span x-text="downloads[bookId]?.percent + '%'"></span>
-                            </span>
-                        </button>
-                        
-                        <!-- Request Hard Copy -->
-                        <a href="{% url 'core:request_hard_copy' book_id=entry.book.id %}" 
-                            class="btn btn-secondary flex-1 text-xs">
-                            📦 {% trans "Print" %}
-                        </a>
-                        
-                        <!-- Support Author -->
-                        {% if entry.book.author != request.user %}
-                        <a href="{% url 'core:support_author_book' author_id=entry.book.author.id book_id=entry.book.id %}" 
-                            class="btn bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 hover:bg-pink-100 dark:hover:bg-pink-900/50 flex-1 text-xs" title="{% trans 'Support Author' %}">
-                            ❤️ {% trans "Tip" %}
-                        </a>
-                        {% endif %}
-                    </div>
+                    {% if entry.book.author != request.user %}
+                    <a href="{% url 'core:support_author_book' author_id=entry.book.author.id book_id=entry.book.id %}" 
+                        class="flex-1 py-1.5 px-2 bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-center text-[10px] font-medium rounded hover:bg-pink-100 transition-colors" title="{% trans 'Tip' %}">
+                        ❤️ {% trans "Tip" %}
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Save / Review Buttons -->
+                <div class="flex gap-1.5 mt-1.5">
+                    <button 
+                        @click="isDownloaded || downloads[bookId]?.status === 'complete' ? removeDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId) : startDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId)"
+                        :disabled="downloads[bookId]?.status === 'downloading'"
+                        class="flex-1 py-1.5 px-2 bg-gray-100 dark:bg-dark-50 text-gray-700 dark:text-gray-300 text-center text-[10px] font-medium rounded hover:bg-gray-200 transition-colors"
+                        :class="{ 'opacity-50': downloads[bookId]?.status === 'downloading' }">
+                        <span x-show="!(isDownloaded || downloads[bookId]?.status === 'complete') && downloads[bookId]?.status !== 'downloading'">↓ {% trans "Save" %}</span>
+                        <span x-show="isDownloaded || downloads[bookId]?.status === 'complete'" x-cloak>✓ {% trans "Saved" %}</span>
+                        <span x-show="downloads[bookId]?.status === 'downloading'" x-cloak x-text="downloads[bookId]?.percent + '%'"></span>
+                    </button>
+                    <a href="{% url 'core:book_detail' slug=entry.book.slug %}#reviews" 
+                        class="flex-1 py-1.5 px-2 bg-gray-100 dark:bg-dark-50 text-gray-700 dark:text-gray-300 text-center text-[10px] font-medium rounded hover:bg-gray-200 transition-colors">
+                        ⭐ {% trans "Review" %}
+                    </a>
                 </div>
             </div>
         </div>

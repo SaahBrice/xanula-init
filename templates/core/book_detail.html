@@ -94,10 +94,21 @@
             </h1>
             
             <!-- Author -->
-            <p class="text-lg text-gray-600 dark:text-gray-400 mb-4">
+            <p class="text-lg text-gray-600 dark:text-gray-400 mb-2">
                 {% trans "by" %} <a href="{% url 'core:author_profile' user_id=book.author.id %}" 
                     class="text-burgundy-500 hover:text-burgundy-600 font-medium">{{ book.author.get_display_name }}</a>
             </p>
+            
+            <!-- Publication Date -->
+            {% if book.completion_date %}
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                📅 {% trans "Published" %} {{ book.completion_date|date:"F j, Y" }}
+            </p>
+            {% elif book.approval_date %}
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                📅 {% trans "Published" %} {{ book.approval_date|date:"F j, Y" }}
+            </p>
+            {% endif %}
 
             <!-- Rating -->
             {% if book.average_rating > 0 %}
