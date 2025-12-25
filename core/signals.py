@@ -244,7 +244,7 @@ def donation_pre_save(sender, instance, **kwargs):
     if instance.pk:
         try:
             old_donation = sender.objects.get(pk=instance.pk)
-            _donation_previous_status[instance.pk] = old_donation.status
+            _donation_previous_status[instance.pk] = old_donation.payment_status
         except sender.DoesNotExist:
             pass
 
@@ -259,11 +259,11 @@ def notify_admin_on_large_donation(sender, instance, created, **kwargs):
     previous_status = _donation_previous_status.pop(instance.pk, None)
     
     # Only notify when donation status changes to COMPLETED
-    if instance.status != Donation.Status.COMPLETED:
+    if instance.payment_status != Donation.PaymentStatus.COMPLETED:
         return
     
     # Skip if it was already completed
-    if previous_status == Donation.Status.COMPLETED:
+    if previous_status == Donation.PaymentStatus.COMPLETED:
         return
     
     if instance.amount and instance.amount >= LARGE_DONATION_THRESHOLD:
@@ -426,11 +426,11 @@ def notify_author_of_donation(sender, instance, created, **kwargs):
     previous_status = _donation_previous_status.get(instance.pk)
     
     # Only notify when donation status changes to COMPLETED
-    if instance.status != Donation.Status.COMPLETED:
+    if instance.payment_status != Donation.PaymentStatus.COMPLETED:
         return
     
     # Skip if it was already completed
-    if previous_status == Donation.Status.COMPLETED:
+    if previous_status == Donation.PaymentStatus.COMPLETED:
         return
     
     logger.info(f"Donation {instance.id} completed, notifying author")
