@@ -191,7 +191,7 @@
                                     </a>
                                     {% if entry.book.author != request.user %}
                                     <a href="{% url 'core:support_author_book' author_id=entry.book.author.id book_id=entry.book.id %}" @click.stop
-                                        class="w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white text-sm rounded-full transition-colors">
+                                        class="w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white text-sm rounded-full transition-colors heartbeat">
                                         ❤️
                                     </a>
                                     {% endif %}
@@ -415,6 +415,19 @@ function libraryManager() {
 }
 .scrollbar-hide::-webkit-scrollbar {
     display: none;
+}
+
+/* Heartbeat Animation */
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    15% { transform: scale(1.15); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.1); }
+    60% { transform: scale(1); }
+}
+
+.heartbeat {
+    animation: heartbeat 1.5s ease-in-out infinite;
 }
 
 /* 3D Book Cover for Library Cards */
