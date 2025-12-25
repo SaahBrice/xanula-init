@@ -292,8 +292,15 @@
                     this.duration = this.audio.duration;
                     this.loading = false;
                     const local = parseFloat(localStorage.getItem(`audiobook-${this.bookId}-progress`)) || 0;
-                    const resume = Math.max(local, this.initialProgress);
-                    if (resume > 0 && resume < this.duration) { this.audio.currentTime = resume; this.currentTime = resume; }
+                    const dbProgress = this.initialProgress || 0;
+                    const resume = Math.max(local, dbProgress);
+                    
+                    console.log('[Audiobook] Resume check - Local:', local, 'DB:', dbProgress, 'Using:', resume);
+                    
+                    if (resume > 0 && resume < this.duration) { 
+                        this.audio.currentTime = resume; 
+                        this.currentTime = resume; 
+                    }
                     this.updateProgressPercent();
                 },
                 
@@ -335,7 +342,7 @@
                 
                 async syncProgress() {
                     try {
-                        await fetch('{% url "core:update_listening_progress_api" %}', {
+                        const response = await fetch('{% url "core:update_listening_progress_api" %}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -344,7 +351,9 @@
                             },
                             body: JSON.stringify({ book_id: this.bookId, current_time: this.currentTime, total_duration: this.duration })
                         });
-                    } catch (e) { console.log('Sync failed - saved locally'); }
+                        const data = await response.json();
+                        console.log('[Audiobook] API sync result:', data);
+                    } catch (e) { console.log('[Audiobook] Sync failed - saved locally'); }
                 }
             }
         }

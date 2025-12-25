@@ -297,8 +297,21 @@
                     this.applyTheme();
                     await this.loadBook();
                     this.startControlsTimer();
+                    // Sync progress to server every 30 seconds
                     setInterval(() => this.syncProgress(), 30000);
-                    window.addEventListener('beforeunload', () => this.syncProgress());
+                    // Backup progress to localStorage every 10 seconds
+                    setInterval(() => {
+                        if (this.progressPercent > 0) {
+                            localStorage.setItem(`ebook-${this.bookId}-progress`, this.progressPercent);
+                            console.log('[Reader] Saved to localStorage:', this.progressPercent);
+                        }
+                    }, 10000);
+                    window.addEventListener('beforeunload', () => {
+                        this.syncProgress();
+                        if (this.progressPercent > 0) {
+                            localStorage.setItem(`ebook-${this.bookId}-progress`, this.progressPercent);
+                        }
+                    });
                 },
                 
                 async loadBook() {
@@ -328,8 +341,15 @@
                             this.chapterText = tocItem?.label || '';
                         });
                         
-                        if (this.initialProgress > 0) {
-                            view.goToFraction(this.initialProgress / 100);
+                        // Resume: use max of localStorage and DB progress
+                        const localProgress = parseFloat(localStorage.getItem(`ebook-${this.bookId}-progress`)) || 0;
+                        const dbProgress = this.initialProgress || 0;
+                        const resumeProgress = Math.max(localProgress, dbProgress);
+                        
+                        console.log('[Reader] Resume check - Local:', localProgress, 'DB:', dbProgress, 'Using:', resumeProgress);
+                        
+                        if (resumeProgress > 0 && resumeProgress < 100) {
+                            view.goToFraction(resumeProgress / 100);
                         } else {
                             view.renderer.next();
                         }
@@ -472,7 +492,7 @@
                 
                 async syncProgress() {
                     try {
-                        await fetch('{% url "core:update_reading_progress_api" %}', {
+                        const response = await fetch('{% url "core:update_reading_progress_api" %}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -485,7 +505,9 @@
                                 total_pages: 100
                             })
                         });
-                    } catch (e) { console.error('Failed to sync progress:', e); }
+                        const data = await response.json();
+                        console.log('[Reader] API sync result:', data);
+                    } catch (e) { console.error('[Reader] Failed to sync progress:', e); }
                 }
             };
         }
