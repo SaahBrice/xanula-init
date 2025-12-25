@@ -10,6 +10,8 @@ from django.urls import reverse
 from decimal import Decimal
 import uuid
 
+# Storage is handled by django-storages S3 backend (Backblaze B2)
+
 
 def manuscript_upload_path(instance, filename):
     """Upload path for manuscript files: media/manuscripts/YEAR/MONTH/"""

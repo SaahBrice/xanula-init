@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    "storages",  # For Backblaze B2 (S3-compatible) storage
     "tailwind",
     "theme",  # Tailwind theme app
     "pwa",
@@ -179,6 +180,43 @@ AUTH_USER_MODEL = "users.User"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+# =============================================================================
+# BACKBLAZE B2 CLOUD STORAGE CONFIGURATION
+# Cloud storage for all uploads (manuscripts, ebooks, audiobooks, covers, etc.)
+# Uses S3-compatible API via django-storages
+# =============================================================================
+
+# Backblaze B2 credentials (from .env)
+AWS_ACCESS_KEY_ID = config('BACKBLAZE_APPLICATION_ID', default='')
+AWS_SECRET_ACCESS_KEY = config('BACKBLAZE_APPLICATION_KEY', default='')
+AWS_STORAGE_BUCKET_NAME = config('BACKBLAZE_BUCKET_NAME', default='XANULA')
+
+# Backblaze B2 S3-compatible endpoint
+# Format: s3.{region}.backblazeb2.com
+AWS_S3_ENDPOINT_URL = config('BACKBLAZE_ENDPOINT_URL', default='https://s3.eu-central-003.backblazeb2.com')
+AWS_S3_REGION_NAME = config('BACKBLAZE_REGION', default='eu-central-003')
+
+# S3 settings for Backblaze B2
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = 'public-read'  # Files are publicly readable
+AWS_QUERYSTRING_AUTH = False  # Don't add auth params to URLs (public bucket)
+
+# Custom domain for serving files (optional, uses B2 URL by default)
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.eu-central-003.backblazeb2.com'
+
+# Use Django 4.2+ STORAGES configuration
+# This sets Backblaze B2 as the default storage for all FileField/ImageField uploads
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 
 # =============================================================================
