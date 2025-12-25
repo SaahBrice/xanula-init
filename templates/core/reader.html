@@ -365,7 +365,19 @@
                     } else {
                         // For EPUB: apply full CSS including font-size
                         if (view.renderer.setStyles) {
-                            view.renderer.setStyles('html { background: ' + t.bg + '; color: ' + t.fg + '; } body { background: ' + t.bg + '; color: ' + t.fg + '; font-size: ' + this.fontSize + '%; }');
+                            // Use !important and target multiple elements to ensure font-size is applied
+                            const fontSizeCSS = `
+                                html {
+                                    background: ${t.bg} !important;
+                                    color: ${t.fg} !important;
+                                    font-size: ${this.fontSize}% !important;
+                                }
+                                body {
+                                    background: ${t.bg} !important;
+                                    color: ${t.fg} !important;
+                                }
+                            `;
+                            view.renderer.setStyles(fontSizeCSS);
                         }
                         // Apply layout setting for EPUB
                         if (view.renderer.setAttribute) {
