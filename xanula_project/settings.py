@@ -11,9 +11,14 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import mimetypes
 from pathlib import Path
 from decouple import config, Csv
 from django.utils.translation import gettext_lazy as _
+
+# Fix MIME type for JavaScript modules (required for ES module imports)
+mimetypes.add_type("application/javascript", ".js", True)
+mimetypes.add_type("application/javascript", ".mjs", True)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -67,6 +72,7 @@ SITE_ID = 1
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Serve static files with correct MIME types
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -166,6 +172,22 @@ LOCALE_PATHS = [
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Whitenoise settings for static files (proper MIME types for ES modules)
+WHITENOISE_USE_FINDERS = True  # Use finders in DEBUG mode
+WHITENOISE_MIMETYPES = {
+    '.js': 'application/javascript',
+    '.mjs': 'application/javascript',
+}
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

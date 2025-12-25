@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" x-data="ebookReader()" :class="readerTheme === 'dark' ? 'dark' : ''">
+{% load static %}
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <meta name="theme-color" :content="readerTheme === 'dark' ? '#1A1915' : '#FAF7F2'">
+    <meta name="theme-color" content="#FAF7F2">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>{{ book.title }} - Xanula Reader</title>
     
     <!-- Fonts -->
@@ -24,6 +25,7 @@
                         forest: { 50: '#f0f5f1', 400: '#5A8B6F', 500: '#2D4739' },
                         gold: { 400: '#E8C59E', 500: '#D4A574' },
                         cream: '#FAF7F2',
+                        sepia: '#F4ECD8',
                         dark: { 50: '#252420', 100: '#1A1915', 200: '#141310' }
                     },
                     fontFamily: {
@@ -35,14 +37,6 @@
         }
     </script>
     
-    <!-- PDF.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
-    
-    <!-- epub.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
-    
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
@@ -51,34 +45,16 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { font-family: 'Source Sans Pro', sans-serif; overscroll-behavior: none; margin: 0; padding: 0; }
         
-        /* PDF Container - Mobile optimized */
-        #pdf-viewer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100%;
-            padding: 16px;
-            overflow: auto;
-            -webkit-overflow-scrolling: touch;
+        /* Foliate View Styling */
+        foliate-view {
+            width: 100%;
+            height: 100%;
         }
-        
-        #pdf-canvas {
-            display: block;
-            max-width: 100%;
-            height: auto;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            border-radius: 4px;
-        }
-        .dark #pdf-canvas {
-            box-shadow: 0 8px 40px rgba(0,0,0,0.4);
-        }
-        
-        /* EPUB Reader */
-        #epub-viewer { width: 100%; height: 100%; }
         
         /* Progress Slider */
         input[type="range"] {
             -webkit-appearance: none;
+            appearance: none;
             height: 6px;
             border-radius: 3px;
             outline: none;
@@ -97,15 +73,11 @@
             background: #FAF7F2;
         }
         
-        /* Hide scrollbar */
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
         /* Safe areas */
         .safe-area-top { padding-top: max(12px, env(safe-area-inset-top)); }
         .safe-area-bottom { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
         
-        /* Mobile touch-friendly buttons */
+        /* Touch-friendly buttons */
         .touch-btn {
             min-width: 44px;
             min-height: 44px;
@@ -113,15 +85,22 @@
             align-items: center;
             justify-content: center;
         }
+        
+        /* Theme backgrounds */
+        .theme-light { background: #ffffff; color: #1a1a1a; }
+        .theme-dark { background: #1A1915; color: #e5e5e5; }
+        .theme-sepia { background: #F4ECD8; color: #5b4636; }
     </style>
 </head>
-<body class="bg-cream dark:bg-dark-100 text-gray-900 dark:text-white overflow-hidden h-screen transition-colors"
+<body x-data="ebookReader()" 
+    :class="theme === 'dark' ? 'dark' : ''" 
+    class="overflow-hidden h-screen"
     @keydown.escape="goBack()"
-    @keydown.arrow-left="prevPage()"
-    @keydown.arrow-right="nextPage()"
-    @keydown.space.prevent="nextPage()">
+    @keydown.arrow-left="goLeft()"
+    @keydown.arrow-right="goRight()"
+    @keydown.space.prevent="goRight()">
     
-    <!-- Loading -->
+    <!-- Loading State -->
     <div x-show="loading" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-cream dark:bg-dark-100">
         <div class="text-center">
             <div class="w-12 h-12 mx-auto mb-4 border-2 border-burgundy-500/30 border-t-burgundy-500 rounded-full animate-spin"></div>
@@ -129,7 +108,7 @@
         </div>
     </div>
     
-    <!-- Error -->
+    <!-- Error State -->
     <div x-show="error" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-cream dark:bg-dark-100 p-6">
         <div class="text-center max-w-sm">
             <div class="w-16 h-16 mx-auto mb-4 rounded-xl bg-burgundy-500/10 flex items-center justify-center">
@@ -142,7 +121,7 @@
     </div>
     
     <!-- Main Reader -->
-    <div class="h-screen flex flex-col">
+    <div class="h-screen flex flex-col" :class="'theme-' + theme">
         
         <!-- Header -->
         <header x-show="showControls" x-cloak
@@ -162,6 +141,7 @@
                 <!-- Title -->
                 <div class="flex-1 text-center px-2 min-w-0">
                     <h1 class="font-display font-semibold text-gray-900 dark:text-cream truncate text-sm">{{ book.title }}</h1>
+                    <p class="text-xs text-gray-400" x-text="locationText"></p>
                 </div>
                 
                 <!-- Settings -->
@@ -184,51 +164,67 @@
             <!-- Theme Toggle -->
             <div class="mb-4">
                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Theme</p>
-                <div class="grid grid-cols-2 gap-2">
-                    <button @click="setReaderTheme('light')" 
-                        :class="readerTheme === 'light' ? 'ring-2 ring-burgundy-500 bg-white' : 'bg-gray-100 dark:bg-dark-100'" 
-                        class="py-3 rounded-lg text-sm font-medium text-gray-700 flex items-center justify-center gap-2">
+                <div class="grid grid-cols-3 gap-2">
+                    <button @click="setTheme('light')" 
+                        :class="theme === 'light' ? 'ring-2 ring-burgundy-500' : ''" 
+                        class="py-3 rounded-lg text-xs font-medium bg-white border border-gray-200 text-gray-700 flex flex-col items-center gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                         Light
                     </button>
-                    <button @click="setReaderTheme('dark')" 
-                        :class="readerTheme === 'dark' ? 'ring-2 ring-burgundy-500 bg-dark-100' : 'bg-gray-100 dark:bg-dark-100'" 
-                        class="py-3 rounded-lg text-sm font-medium text-cream flex items-center justify-center gap-2">
+                    <button @click="setTheme('sepia')" 
+                        :class="theme === 'sepia' ? 'ring-2 ring-burgundy-500' : ''" 
+                        class="py-3 rounded-lg text-xs font-medium bg-sepia border border-gold-400/50 text-amber-800 flex flex-col items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                        Sepia
+                    </button>
+                    <button @click="setTheme('dark')" 
+                        :class="theme === 'dark' ? 'ring-2 ring-burgundy-500' : ''" 
+                        class="py-3 rounded-lg text-xs font-medium bg-dark-100 text-cream flex flex-col items-center gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
                         Dark
                     </button>
                 </div>
             </div>
             
-            <!-- Font Size (EPUB only) -->
-            <div x-show="fileType === 'epub'">
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Font Size</p>
-                <div class="grid grid-cols-4 gap-1">
-                    <template x-for="size in ['s', 'm', 'l', 'xl']" :key="size">
-                        <button @click="setFontSize(size)" 
-                            :class="fontSize === size ? 'bg-burgundy-500 text-white' : 'bg-gray-100 dark:bg-dark-100 text-gray-600 dark:text-cream/70'" 
-                            class="py-2.5 rounded-lg text-xs font-semibold uppercase" x-text="size"></button>
-                    </template>
+            <!-- Font Size / Zoom -->
+            <div class="mb-4">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2" x-text="isBookPDF() ? 'Zoom' : 'Font Size'">Font Size</p>
+                <div class="flex items-center gap-2">
+                    <button @click="decreaseFontSize()" class="touch-btn rounded-lg bg-gray-100 dark:bg-dark-100 text-gray-600 dark:text-cream">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                    </button>
+                    <span class="flex-1 text-center text-sm font-medium text-gray-700 dark:text-cream" x-text="getSizeDisplayText()"></span>
+                    <button @click="increaseFontSize()" class="touch-btn rounded-lg bg-gray-100 dark:bg-dark-100 text-gray-600 dark:text-cream">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Layout (Paginated/Scrolled) -->
+            <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Layout</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button @click="setLayout('paginated')" 
+                        :class="layout === 'paginated' ? 'bg-burgundy-500 text-white' : 'bg-gray-100 dark:bg-dark-100 text-gray-600 dark:text-cream/70'" 
+                        class="py-2.5 rounded-lg text-xs font-semibold">Paginated</button>
+                    <button @click="setLayout('scrolled')" 
+                        :class="layout === 'scrolled' ? 'bg-burgundy-500 text-white' : 'bg-gray-100 dark:bg-dark-100 text-gray-600 dark:text-cream/70'" 
+                        class="py-2.5 rounded-lg text-xs font-semibold">Scrolled</button>
                 </div>
             </div>
         </div>
         
         <!-- Reader Content -->
         <main class="flex-1 overflow-hidden relative" @click="toggleControls()">
-            <!-- PDF Viewer -->
-            <div x-show="fileType === 'pdf'" id="pdf-viewer" class="absolute inset-0 overflow-auto hide-scrollbar pt-14 pb-28 bg-gray-100 dark:bg-dark-200">
-                <canvas id="pdf-canvas"></canvas>
-            </div>
-            
-            <!-- EPUB Viewer -->
-            <div x-show="fileType === 'epub'" id="epub-viewer" class="absolute inset-0 pt-14 pb-28 bg-white dark:bg-dark-100"></div>
+            <!-- Foliate View Container -->
+            <div id="reader-container" class="absolute inset-0 pt-14 pb-24"></div>
             
             <!-- Touch Zones (mobile navigation) -->
-            <div class="absolute top-14 bottom-28 left-0 w-1/4 z-10" @click.stop="handleLeftTap()"></div>
-            <div class="absolute top-14 bottom-28 right-0 w-1/4 z-10" @click.stop="handleRightTap()"></div>
+            <div class="absolute top-14 bottom-24 left-0 w-1/4 z-10" @click.stop="handleLeftTap()"></div>
+            <div class="absolute top-14 bottom-24 right-0 w-1/4 z-10" @click.stop="handleRightTap()"></div>
         </main>
         
-        <!-- Bottom Controls - Compact for mobile -->
+        <!-- Bottom Controls -->
         <footer x-show="showControls" x-cloak
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 translate-y-4"
@@ -237,193 +233,249 @@
             class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-dark-100/95 backdrop-blur-lg border-t border-gray-200 dark:border-white/5 safe-area-bottom">
             <div class="max-w-lg mx-auto px-3 py-2">
                 
-                <!-- Zoom Controls (PDF only) - Horizontal scrollable on mobile -->
-                <div x-show="fileType === 'pdf'" class="flex items-center justify-center gap-1 mb-2">
-                    <button @click.stop="zoomOut()" class="touch-btn rounded-lg bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-cream/70 active:scale-95">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
-                    </button>
-                    <span class="px-3 py-1 text-sm font-semibold text-gray-700 dark:text-cream min-w-[56px] text-center" x-text="Math.round(zoomLevel * 100) + '%'"></span>
-                    <button @click.stop="zoomIn()" class="touch-btn rounded-lg bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-cream/70 active:scale-95">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    </button>
-                    <button @click.stop="fitToWidth()" class="touch-btn rounded-lg bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-cream/70 active:scale-95 ml-1" title="Fit width">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-                    </button>
-                </div>
-                
                 <!-- Page Navigation -->
                 <div class="flex items-center gap-2">
-                    <button @click.stop="prevPage()" class="touch-btn rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-cream/60 active:scale-95">
+                    <button @click.stop="goLeft()" class="touch-btn rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-cream/60 active:scale-95">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     </button>
                     
                     <div class="flex-1">
-                        <input type="range" min="1" :max="totalPages" x-model="currentPage" @input.stop="goToPage(currentPage)" 
+                        <input type="range" min="0" max="1" step="0.001" x-model="progressFraction" @input.stop="goToFraction($event.target.value)" 
                             class="bg-gray-200 dark:bg-white/10"
                             :style="'background: linear-gradient(to right, #8B2635 ' + progressPercent + '%, transparent ' + progressPercent + '%)'">
                     </div>
                     
-                    <button @click.stop="nextPage()" class="touch-btn rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-cream/60 active:scale-95">
+                    <button @click.stop="goRight()" class="touch-btn rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-cream/60 active:scale-95">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </button>
                 </div>
                 
-                <!-- Page Info -->
+                <!-- Progress Info -->
                 <div class="flex items-center justify-between mt-1.5 text-xs">
-                    <span class="text-gray-500 dark:text-cream/50">
-                        <span class="font-semibold text-gray-700 dark:text-cream" x-text="currentPage"></span> / <span x-text="totalPages"></span>
-                    </span>
+                    <span class="text-gray-500 dark:text-cream/50" x-text="chapterText"></span>
                     <span class="px-2 py-0.5 rounded-full bg-burgundy-50 dark:bg-burgundy-500/20 text-burgundy-500 dark:text-burgundy-400 font-semibold" x-text="progressPercent + '%'"></span>
                 </div>
             </div>
         </footer>
     </div>
     
+    <!-- Foliate.js loaded as ES module -->
+    <script type="module">
+        import '{% static "js/foliate-js/view.js" %}';
+    </script>
+    
+    <!-- Alpine data defined BEFORE Alpine.js loads (deferred) -->
     <script>
-        let _pdfDoc = null, _epubBook = null, _epubRendition = null;
+        // Global foliate view reference
+        window.foliateView = null;
         
+        // Define ebookReader for Alpine
         function ebookReader() {
             return {
-                loading: true, error: false, errorMessage: '', showControls: true, showSettings: false, controlsTimeout: null,
-                bookId: {{ book.id }}, ebookUrl: '{{ ebook_url|default:"" }}', initialProgress: {{ reading_progress|default:0 }}, fileType: 'pdf',
-                currentPage: 1, totalPages: 1, progressPercent: 0, zoomLevel: 1,
-                readerTheme: localStorage.getItem('reader-theme') || (localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'),
-                fontSize: localStorage.getItem('reader-fontsize') || 'm',
+                loading: true,
+                error: false,
+                errorMessage: '',
+                showControls: true,
+                showSettings: false,
+                controlsTimeout: null,
                 
-                init() {
-                    // Apply initial theme
-                    document.documentElement.classList.toggle('dark', this.readerTheme === 'dark');
-                    
-                    this.fileType = this.ebookUrl.toLowerCase().endsWith('.pdf') ? 'pdf' : 'epub';
-                    this.loadBook();
-                    setInterval(() => this.syncProgress(), 30000);
+                bookId: {{ book.id }},
+                ebookUrl: '{{ ebook_url|escapejs }}',
+                initialProgress: {{ reading_progress|default:0 }},
+                
+                theme: localStorage.getItem('reader-theme') || 'light',
+                fontSize: parseInt(localStorage.getItem('reader-fontsize')) || 100,
+                zoomLevel: parseFloat(localStorage.getItem('reader-zoom')) || 1.0,
+                layout: localStorage.getItem('reader-layout') || 'paginated',
+                
+                progressFraction: 0,
+                progressPercent: 0,
+                locationText: '',
+                chapterText: '',
+                
+                async init() {
+                    this.applyTheme();
+                    await this.loadBook();
                     this.startControlsTimer();
+                    setInterval(() => this.syncProgress(), 30000);
                     window.addEventListener('beforeunload', () => this.syncProgress());
-                    window.addEventListener('resize', () => { if (this.fileType === 'pdf' && _pdfDoc) this.fitToWidth(); });
                 },
                 
                 async loadBook() {
-                    if (!this.ebookUrl) { this.error = true; this.errorMessage = 'No ebook file found.'; this.loading = false; return; }
+                    if (!this.ebookUrl) {
+                        this.error = true;
+                        this.errorMessage = 'No ebook file found.';
+                        this.loading = false;
+                        return;
+                    }
+                    
                     try {
-                        if (this.fileType === 'pdf') await this.loadPdf();
-                        else await this.loadEpub();
-                    } catch (err) { console.error(err); this.error = true; this.errorMessage = 'Failed to load the book.'; this.loading = false; }
-                },
-                
-                async loadPdf() {
-                    _pdfDoc = await pdfjsLib.getDocument(this.ebookUrl).promise;
-                    this.totalPages = _pdfDoc.numPages;
-                    if (this.initialProgress > 0 && this.initialProgress <= this.totalPages) this.currentPage = this.initialProgress;
-                    await this.fitToWidth();
-                    this.loading = false;
-                },
-                
-                async renderPdfPage() {
-                    if (!_pdfDoc) return;
-                    const page = await _pdfDoc.getPage(this.currentPage);
-                    const canvas = document.getElementById('pdf-canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    // Use device pixel ratio for sharp rendering
-                    const dpr = window.devicePixelRatio || 1;
-                    const viewport = page.getViewport({ scale: this.zoomLevel * dpr });
-                    
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    canvas.style.width = (viewport.width / dpr) + 'px';
-                    canvas.style.height = (viewport.height / dpr) + 'px';
-                    
-                    await page.render({ canvasContext: ctx, viewport }).promise;
-                    this.updateProgress();
-                },
-                
-                async fitToWidth() {
-                    if (!_pdfDoc) return;
-                    const page = await _pdfDoc.getPage(this.currentPage);
-                    const container = document.getElementById('pdf-viewer');
-                    const containerWidth = container.clientWidth - 32; // padding
-                    const unscaledViewport = page.getViewport({ scale: 1 });
-                    this.zoomLevel = Math.max(0.5, Math.min(2.5, containerWidth / unscaledViewport.width));
-                    await this.renderPdfPage();
-                },
-                
-                zoomIn() { this.zoomLevel = Math.min(2.5, this.zoomLevel + 0.2); this.renderPdfPage(); },
-                zoomOut() { this.zoomLevel = Math.max(0.5, this.zoomLevel - 0.2); this.renderPdfPage(); },
-                
-                async loadEpub() {
-                    _epubBook = ePub(this.ebookUrl);
-                    _epubRendition = _epubBook.renderTo('epub-viewer', { width: '100%', height: '100%', spread: 'none', flow: 'paginated' });
-                    this.applyTheme(); this.applyFontSize();
-                    _epubRendition.on('relocated', (loc) => {
-                        if (loc?.start) { this.currentPage = (_epubBook.locations.locationFromCfi(loc.start.cfi) || 0) + 1; this.updateProgress(); }
-                    });
-                    await _epubBook.ready;
-                    await _epubBook.locations.generate(1024);
-                    this.totalPages = _epubBook.locations.length();
-                    if (this.initialProgress > 0 && this.initialProgress < this.totalPages) {
-                        await _epubRendition.display(_epubBook.locations.cfiFromLocation(this.initialProgress));
-                    } else { await _epubRendition.display(); }
-                    this.loading = false;
-                },
-                
-                nextPage() {
-                    if (this.fileType === 'pdf') {
-                        if (this.currentPage < this.totalPages) { this.currentPage++; this.renderPdfPage(); document.getElementById('pdf-viewer').scrollTo({ top: 0, behavior: 'smooth' }); }
-                    } else if (_epubRendition) { _epubRendition.next(); }
-                },
-                
-                prevPage() {
-                    if (this.fileType === 'pdf') {
-                        if (this.currentPage > 1) { this.currentPage--; this.renderPdfPage(); document.getElementById('pdf-viewer').scrollTo({ top: 0, behavior: 'smooth' }); }
-                    } else if (_epubRendition) { _epubRendition.prev(); }
-                },
-                
-                goToPage(page) {
-                    page = parseInt(page);
-                    if (this.fileType === 'pdf') { this.currentPage = page; this.renderPdfPage(); document.getElementById('pdf-viewer').scrollTo({ top: 0, behavior: 'smooth' }); }
-                    else if (_epubBook?.locations) { const cfi = _epubBook.locations.cfiFromLocation(page - 1); if (cfi) _epubRendition.display(cfi); }
-                },
-                
-                updateProgress() { this.progressPercent = Math.round((this.currentPage / this.totalPages) * 100); },
-                
-                setReaderTheme(t) {
-                    this.readerTheme = t;
-                    localStorage.setItem('reader-theme', t);
-                    // Apply theme to document
-                    document.documentElement.classList.toggle('dark', t === 'dark');
-                    this.applyTheme();
-                },
-                
-                applyTheme() {
-                    if (!_epubRendition) return;
-                    if (this.readerTheme === 'light') {
-                        _epubRendition.themes.override('background', '#ffffff');
-                        _epubRendition.themes.override('color', '#1a1a1a');
-                    } else {
-                        _epubRendition.themes.override('background', '#1A1915');
-                        _epubRendition.themes.override('color', '#e5e5e5');
+                        // Wait for foliate-view custom element to be defined
+                        await customElements.whenDefined('foliate-view');
+                        
+                        const view = document.createElement('foliate-view');
+                        window.foliateView = view;
+                        document.getElementById('reader-container').appendChild(view);
+                        
+                        await view.open(this.ebookUrl);
+                        this.applyReaderSettings();
+                        
+                        view.addEventListener('relocate', (e) => {
+                            const { fraction, location, tocItem } = e.detail;
+                            this.progressFraction = fraction;
+                            this.progressPercent = Math.round(fraction * 100);
+                            this.locationText = location ? 'Loc ' + location.current : '';
+                            this.chapterText = tocItem?.label || '';
+                        });
+                        
+                        if (this.initialProgress > 0) {
+                            view.goToFraction(this.initialProgress / 100);
+                        } else {
+                            view.renderer.next();
+                        }
+                        
+                        this.loading = false;
+                    } catch (err) {
+                        console.error('Failed to load book:', err);
+                        this.error = true;
+                        this.errorMessage = err.message || 'Failed to load the book.';
+                        this.loading = false;
                     }
                 },
                 
-                setFontSize(s) { this.fontSize = s; localStorage.setItem('reader-fontsize', s); this.applyFontSize(); },
-                applyFontSize() { if (!_epubRendition) return; const sizes = { s: '85%', m: '100%', l: '120%', xl: '140%' }; _epubRendition.themes.fontSize(sizes[this.fontSize] || '100%'); },
+                applyReaderSettings() {
+                    const view = window.foliateView;
+                    if (!view?.renderer) return;
+                    
+                    const themes = {
+                        light: { bg: '#ffffff', fg: '#1a1a1a' },
+                        sepia: { bg: '#F4ECD8', fg: '#5b4636' },
+                        dark: { bg: '#1A1915', fg: '#e5e5e5' }
+                    };
+                    const t = themes[this.theme] || themes.light;
+                    
+                    // Check if it's a fixed layout (PDF) - font-size doesn't apply
+                    const isFixedLayout = view.isFixedLayout;
+                    
+                    if (isFixedLayout) {
+                        // For PDFs: apply zoom and theme colors to container
+                        document.getElementById('reader-container').style.background = t.bg;
+                        // Apply zoom level to the fixed-layout renderer
+                        view.renderer.setAttribute('zoom', this.zoomLevel.toString());
+                    } else {
+                        // For EPUB: apply full CSS including font-size
+                        if (view.renderer.setStyles) {
+                            view.renderer.setStyles('html { background: ' + t.bg + '; color: ' + t.fg + '; } body { background: ' + t.bg + '; color: ' + t.fg + '; font-size: ' + this.fontSize + '%; }');
+                        }
+                        // Apply layout setting for EPUB
+                        if (view.renderer.setAttribute) {
+                            view.renderer.setAttribute('flow', this.layout);
+                        }
+                    }
+                },
                 
-                toggleControls() { this.showControls = !this.showControls; if (this.showControls) this.startControlsTimer(); },
-                handleLeftTap() { if (!this.showControls) { this.showControls = true; this.startControlsTimer(); } else { this.prevPage(); } },
-                handleRightTap() { if (!this.showControls) { this.showControls = true; this.startControlsTimer(); } else { this.nextPage(); } },
-                startControlsTimer() { if (this.controlsTimeout) clearTimeout(this.controlsTimeout); this.controlsTimeout = setTimeout(() => { if (!this.showSettings) this.showControls = false; }, 5000); },
+                // Helper to check if current book is a PDF/fixed layout
+                isBookPDF() {
+                    return window.foliateView?.isFixedLayout ?? false;
+                },
+                
+                setTheme(t) {
+                    this.theme = t;
+                    localStorage.setItem('reader-theme', t);
+                    document.documentElement.classList.toggle('dark', t === 'dark');
+                    this.applyReaderSettings();
+                },
+                
+                applyTheme() {
+                    document.documentElement.classList.toggle('dark', this.theme === 'dark');
+                },
+                
+                increaseFontSize() {
+                    if (this.isBookPDF()) {
+                        // For PDFs: adjust zoom level (0.5 to 3.0)
+                        this.zoomLevel = Math.min(3.0, Math.round((this.zoomLevel + 0.1) * 10) / 10);
+                        localStorage.setItem('reader-zoom', this.zoomLevel);
+                    } else {
+                        // For EPUB: adjust font size (60% to 200%)
+                        this.fontSize = Math.min(200, this.fontSize + 10);
+                        localStorage.setItem('reader-fontsize', this.fontSize);
+                    }
+                    this.applyReaderSettings();
+                },
+                
+                decreaseFontSize() {
+                    if (this.isBookPDF()) {
+                        // For PDFs: adjust zoom level (0.5 to 3.0)
+                        this.zoomLevel = Math.max(0.5, Math.round((this.zoomLevel - 0.1) * 10) / 10);
+                        localStorage.setItem('reader-zoom', this.zoomLevel);
+                    } else {
+                        // For EPUB: adjust font size (60% to 200%)
+                        this.fontSize = Math.max(60, this.fontSize - 10);
+                        localStorage.setItem('reader-fontsize', this.fontSize);
+                    }
+                    this.applyReaderSettings();
+                },
+                
+                // Get the display text for font size or zoom level
+                getSizeDisplayText() {
+                    if (this.isBookPDF()) {
+                        return Math.round(this.zoomLevel * 100) + '%';
+                    }
+                    return this.fontSize + '%';
+                },
+                
+                setLayout(l) {
+                    this.layout = l;
+                    localStorage.setItem('reader-layout', l);
+                    this.applyReaderSettings();
+                },
+                
+                goLeft() { window.foliateView?.goLeft(); },
+                goRight() { window.foliateView?.goRight(); },
+                goToFraction(fraction) { window.foliateView?.goToFraction(parseFloat(fraction)); },
+                
+                toggleControls() {
+                    this.showControls = !this.showControls;
+                    if (this.showControls) this.startControlsTimer();
+                },
+                
+                handleLeftTap() {
+                    if (!this.showControls) { this.showControls = true; this.startControlsTimer(); }
+                    else { this.goLeft(); }
+                },
+                
+                handleRightTap() {
+                    if (!this.showControls) { this.showControls = true; this.startControlsTimer(); }
+                    else { this.goRight(); }
+                },
+                
+                startControlsTimer() {
+                    if (this.controlsTimeout) clearTimeout(this.controlsTimeout);
+                    this.controlsTimeout = setTimeout(() => {
+                        if (!this.showSettings) this.showControls = false;
+                    }, 5000);
+                },
+                
                 goBack() { window.location.href = '{% url "core:library" %}'; },
                 
                 async syncProgress() {
                     try {
                         await fetch('{% url "core:update_reading_progress_api" %}', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': '{{ csrf_token }}' },
-                            body: JSON.stringify({ book_id: this.bookId, current_page: this.currentPage, total_pages: this.totalPages })
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({
+                                book_id: this.bookId,
+                                current_page: this.progressPercent,
+                                total_pages: 100
+                            })
                         });
-                    } catch (e) {}
+                    } catch (e) { console.error('Failed to sync progress:', e); }
                 }
-            }
+            };
         }
     </script>
 </body>
