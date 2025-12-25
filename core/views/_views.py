@@ -2064,6 +2064,40 @@ def book_preview(request, slug):
 
 
 # =============================================================================
+# Book Embed Widget (for external websites)
+# =============================================================================
+
+from django.views.decorators.clickjacking import xframe_options_exempt
+
+@xframe_options_exempt
+def book_embed(request, slug):
+    """
+    Embeddable widget for external websites.
+    Returns a minimal page with book cover, title, price, and buy button.
+    """
+    book = get_object_or_404(
+        Book.objects.select_related('author'),
+        slug=slug,
+        status__in=[
+            Book.Status.EBOOK_READY,
+            Book.Status.AUDIOBOOK_GENERATED,
+            Book.Status.COMPLETED
+        ]
+    )
+    
+    # Build the absolute URL for the book detail page and site base
+    book_url = request.build_absolute_uri(book.get_absolute_url())
+    base_url = request.build_absolute_uri('/').rstrip('/')
+    
+    context = {
+        'book': book,
+        'book_url': book_url,
+        'base_url': base_url,
+    }
+    return render(request, 'core/book_embed.html', context)
+
+
+# =============================================================================
 # Author Analytics Dashboard
 # =============================================================================
 

@@ -66,8 +66,9 @@ from ._views import (
     user_settings,
     notification_settings,
     
-    # Preview view
+    # Preview and Embed views
     book_preview,
+    book_embed,
     
     # Analytics views
     author_analytics,

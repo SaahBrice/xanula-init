@@ -68,7 +68,8 @@ urlpatterns = [
     path('settings/', views.user_settings, name='user_settings'),
     path('settings/notifications/', views.notification_settings, name='notification_settings'),
     
-    # Book Preview
+    # Book Preview & Embed
+    path('embed/<slug:slug>/', views.book_embed, name='book_embed'),
     path('preview/<slug:slug>/', views.book_preview, name='book_preview'),
     
     # Author Analytics

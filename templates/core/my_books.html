@@ -100,6 +100,32 @@
                                     {% trans "QR" %}
                                 </a>
                                 {% endif %}
+                                <!-- Share Button -->
+                                <button onclick="shareBook('{{ book.title }}', '{{ request.scheme }}://{{ request.get_host }}{{ book.get_absolute_url }}')" 
+                                    class="btn btn-sm btn-secondary flex items-center gap-1" title="{% trans 'Share this book' %}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"/>
+                                    </svg>
+                                    {% trans "Share" %}
+                                </button>
+                                <!-- Embed Button with Tooltip -->
+                                <div class="relative" x-data="{ showEmbed: false }">
+                                    <button @click="copyEmbed('{{ request.scheme }}://{{ request.get_host }}{% url 'core:book_embed' slug=book.slug %}', $event)" 
+                                        @mouseenter="showEmbed = true" @mouseleave="showEmbed = false"
+                                        class="btn btn-sm btn-secondary flex items-center gap-1" title="{% trans 'Get embed code' %}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"/>
+                                        </svg>
+                                        {% trans "Embed" %}
+                                    </button>
+                                    <!-- Embed Tooltip -->
+                                    <div x-show="showEmbed" x-cloak x-transition
+                                        class="absolute bottom-full left-0 mb-2 w-72 p-3 bg-dark-100 text-white text-xs rounded-lg shadow-xl z-50">
+                                        <p class="font-semibold mb-2">{% trans "Embed this book on your website:" %}</p>
+                                        <code class="block p-2 bg-dark-50 rounded text-green-400 break-all text-[10px] leading-relaxed">&lt;iframe src="{{ request.scheme }}://{{ request.get_host }}{% url 'core:book_embed' slug=book.slug %}" width="300" height="420" frameborder="0"&gt;&lt;/iframe&gt;</code>
+                                        <p class="mt-2 text-gray-400">{% trans "Click to copy embed code" %}</p>
+                                    </div>
+                                </div>
                                 {% endif %}
                             </div>
                         </div>
@@ -201,4 +227,81 @@
 </div>
 
 <style>.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; } .scrollbar-hide::-webkit-scrollbar { display: none; }</style>
+
+<script>
+// Share book using Web Share API or fallback to clipboard
+async function shareBook(title, url) {
+    const shareData = {
+        title: title + ' - Xanula',
+        text: '{% trans "Check out this book on Xanula:" %} ' + title,
+        url: url
+    };
+    
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        try {
+            await navigator.share(shareData);
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                copyToClipboard(url, '{% trans "Link copied to clipboard!" %}');
+            }
+        }
+    } else {
+        copyToClipboard(url, '{% trans "Link copied to clipboard!" %}');
+    }
+}
+
+// Copy embed code to clipboard
+function copyEmbed(embedUrl, event) {
+    const embedCode = `<iframe src="${embedUrl}" width="300" height="420" frameborder="0"></iframe>`;
+    copyToClipboard(embedCode, '{% trans "Embed code copied!" %}');
+    
+    // Visual feedback on button
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '✓ {% trans "Copied!" %}';
+    btn.classList.add('bg-forest-500', 'text-white');
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.remove('bg-forest-500', 'text-white');
+    }, 2000);
+}
+
+// Helper to copy text to clipboard
+function copyToClipboard(text, successMessage) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Show toast notification
+        showToast(successMessage);
+    }).catch(() => {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast(successMessage);
+    });
+}
+
+// Simple toast notification
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg z-50 animate-fade-in';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
+</script>
+
+<style>
+@keyframes fade-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.animate-fade-in { animation: fade-in 0.3s ease-out; }
+</style>
 {% endblock %}

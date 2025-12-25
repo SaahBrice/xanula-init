@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ book.title }} - Xanula</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: transparent;
+            margin: 0;
+            padding: 0;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e5e5e5;
+            overflow: hidden;
+            width: 280px;
+        }
+        .cover {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #8B2635 0%, #2D4739 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .cover-placeholder {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.3);
+        }
+        .content {
+            padding: 16px;
+        }
+        .title {
+            font-family: 'Playfair Display', serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+        .author {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        .price-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .price {
+            font-weight: 700;
+            color: #8B2635;
+            font-size: 16px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: #8B2635;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .btn:hover {
+            background: #7A2130;
+            transform: scale(1.02);
+        }
+        .btn svg {
+            width: 14px;
+            height: 14px;
+        }
+        .branding {
+            text-align: center;
+            padding: 8px;
+            background: #f8f8f8;
+            font-size: 10px;
+            color: #999;
+        }
+        .branding a {
+            color: #8B2635;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="cover">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}">
+            {% else %}
+            <span class="cover-placeholder">{{ book.title|first|upper }}</span>
+            {% endif %}
+        </div>
+        <div class="content">
+            <h2 class="title">{{ book.title }}</h2>
+            <p class="author">by {{ book.author.get_display_name }}</p>
+            <div class="price-row">
+                <span class="price">{{ book.formatted_price }}</span>
+                <a href="{{ book_url }}" target="_blank" rel="noopener" class="btn">
+                    Buy Now
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        <div class="branding">
+            Powered by <a href="https://xanula.com" target="_blank">Xanula</a>
+        </div>
+    </div>
+</body>
+</html>
