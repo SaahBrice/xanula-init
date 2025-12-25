@@ -412,12 +412,18 @@
 
 /* Simple 3D Book Card */
 .book-3d-featured {
-    position: relative;
+    perspective: 1000px;
 }
 
 .book-wrapper-featured {
     position: relative;
+    transform: rotateY(-12deg);
+    transition: transform 0.3s ease;
     filter: drop-shadow(4px 4px 10px rgba(0,0,0,0.25));
+}
+
+.book-wrapper-featured:hover {
+    transform: rotateY(-6deg);
 }
 
 /* Front Cover - clean */
@@ -444,8 +450,8 @@
     width: 18px;
     height: 100%;
     background: linear-gradient(90deg,
-        rgba(255, 255, 255, 0.45) 0%,
-        rgba(255, 255, 255, 0.25) 30%,
+        rgba(255, 255, 255, 0.5) 0%,
+        rgba(255, 255, 255, 0.3) 30%,
         rgba(255, 255, 255, 0.1) 60%,
         rgba(255, 255, 255, 0) 100%);
     border-radius: 2px 0 0 2px;
@@ -453,13 +459,36 @@
     pointer-events: none;
 }
 
-/* Dark mode - subtle glow instead */
+/* Hardcover binding crease - thinner strip further in */
+.book-front-featured::after {
+    content: '';
+    position: absolute;
+    left: 22px;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(90deg,
+        rgba(0, 0, 0, 0.08) 0%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(0, 0, 0, 0.05) 100%);
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Dark mode adjustments */
 .dark .book-front-featured::before {
     background: linear-gradient(90deg,
-        rgba(255, 255, 255, 0.15) 0%,
-        rgba(255, 255, 255, 0.08) 30%,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0.1) 30%,
         rgba(255, 255, 255, 0.03) 60%,
         rgba(255, 255, 255, 0) 100%);
+}
+
+.dark .book-front-featured::after {
+    background: linear-gradient(90deg,
+        rgba(0, 0, 0, 0.15) 0%,
+        rgba(255, 255, 255, 0.08) 50%,
+        rgba(0, 0, 0, 0.1) 100%);
 }
 
 /* Hide unused elements */
