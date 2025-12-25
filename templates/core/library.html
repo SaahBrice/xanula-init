@@ -162,36 +162,36 @@
                                 
                                 <!-- Read Button -->
                                 <a href="{% url 'core:book_reader' slug=entry.book.slug %}" 
-                                    class="w-full py-1.5 bg-burgundy-500 text-white text-center text-[10px] font-medium rounded hover:bg-burgundy-600 transition-colors shadow">
+                                    class="w-full py-2 bg-burgundy-500 text-white text-center text-xs font-medium rounded hover:bg-burgundy-600 transition-colors shadow">
                                     {% if entry.reading_progress > 0 %}{% trans "Continue" %}{% else %}{% trans "Read" %}{% endif %}
                                 </a>
                                 
                                 {% if entry.book.has_audiobook %}
                                 <!-- Listen Button -->
                                 <a href="{% url 'core:audiobook_player' slug=entry.book.slug %}" 
-                                    class="w-full py-1.5 bg-white/90 text-burgundy-600 text-center text-[10px] font-medium rounded hover:bg-white transition-colors shadow">
+                                    class="w-full py-2 bg-white/90 text-burgundy-600 text-center text-xs font-medium rounded hover:bg-white transition-colors shadow">
                                     🎧 {% trans "Listen" %}
                                 </a>
                                 {% endif %}
                                 
                                 <!-- Action Icons Row -->
-                                <div class="flex gap-1.5 mt-0.5">
+                                <div class="flex gap-2 mt-1">
                                     <button 
                                         @click.stop="isDownloaded || downloads[bookId]?.status === 'complete' ? removeDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId) : startDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId)"
                                         :disabled="downloads[bookId]?.status === 'downloading'"
-                                        class="w-7 h-7 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white text-xs rounded-full transition-colors"
+                                        class="w-6 h-6 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white text-sm rounded-full transition-colors"
                                         :class="{ 'opacity-50': downloads[bookId]?.status === 'downloading' }">
                                         <span x-show="!(isDownloaded || downloads[bookId]?.status === 'complete') && downloads[bookId]?.status !== 'downloading'">↓</span>
                                         <span x-show="isDownloaded || downloads[bookId]?.status === 'complete'" x-cloak>✓</span>
-                                        <span x-show="downloads[bookId]?.status === 'downloading'" x-cloak class="text-[8px]" x-text="downloads[bookId]?.percent + '%'"></span>
+                                        <span x-show="downloads[bookId]?.status === 'downloading'" x-cloak class="text-[9px]" x-text="downloads[bookId]?.percent + '%'"></span>
                                     </button>
                                     <a href="{% url 'core:book_detail' slug=entry.book.slug %}#reviews" @click.stop
-                                        class="w-7 h-7 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white text-xs rounded-full transition-colors">
+                                        class="w-6 h-6 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white text-sm rounded-full transition-colors">
                                         ⭐
                                     </a>
                                     {% if entry.book.author != request.user %}
                                     <a href="{% url 'core:support_author_book' author_id=entry.book.author.id book_id=entry.book.id %}" @click.stop
-                                        class="w-7 h-7 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white text-xs rounded-full transition-colors">
+                                        class="w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white text-sm rounded-full transition-colors">
                                         ❤️
                                     </a>
                                     {% endif %}
