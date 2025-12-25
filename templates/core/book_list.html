@@ -161,25 +161,34 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 md:gap-6">
                 {% for book in page_obj %}
                 <a href="{% url 'core:book_detail' slug=book.slug %}" class="group">
-                    <!-- Cover Card -->
-                    <div class="aspect-[2/3] rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow bg-gray-100 dark:bg-dark-50 relative">
-                        {% if book.cover_image %}
-                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" loading="lazy" 
-                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                        {% else %}
-                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-burgundy-500 to-forest-500">
-                            <span class="text-3xl font-display font-bold text-white/40">{{ book.title|first }}</span>
-                        </div>
-                        {% endif %}
-                        
-                        <!-- Format Badges -->
-                        <div class="absolute top-2 right-2 flex flex-col gap-1">
-                            {% if book.has_ebook %}
-                            <span class="w-6 h-6 flex items-center justify-center text-xs bg-white/90 dark:bg-dark-100/90 rounded shadow-sm">📖</span>
-                            {% endif %}
-                            {% if book.has_audiobook %}
-                            <span class="w-6 h-6 flex items-center justify-center text-xs bg-white/90 dark:bg-dark-100/90 rounded shadow-sm">🎧</span>
-                            {% endif %}
+                    <!-- 3D Book Cover -->
+                    <div class="book-3d-browse">
+                        <div class="book-wrapper-browse aspect-[2/3]">
+                            <!-- Back Cover -->
+                            <div class="book-back-browse"></div>
+                            <!-- Page Edge (left strip) -->
+                            <div class="book-pages-browse"></div>
+                            <!-- Front Cover -->
+                            <div class="book-front-browse">
+                                {% if book.cover_image %}
+                                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" loading="lazy" 
+                                    class="w-full h-full object-cover">
+                                {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-burgundy-500 to-forest-500">
+                                    <span class="text-3xl font-display font-bold text-white/40">{{ book.title|first }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Format Badges -->
+                                <div class="absolute top-2 right-2 flex flex-col gap-1 z-10">
+                                    {% if book.has_ebook %}
+                                    <span class="w-6 h-6 flex items-center justify-center text-xs bg-white/90 dark:bg-dark-100/90 rounded shadow-sm">📖</span>
+                                    {% endif %}
+                                    {% if book.has_audiobook %}
+                                    <span class="w-6 h-6 flex items-center justify-center text-xs bg-white/90 dark:bg-dark-100/90 rounded shadow-sm">🎧</span>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -268,4 +277,64 @@
         </main>
     </div>
 </div>
+
+<style>
+/* Simple 3D Book Card */
+.book-3d-browse {
+    position: relative;
+}
+
+.book-wrapper-browse {
+    position: relative;
+    filter: drop-shadow(4px 4px 10px rgba(0,0,0,0.25));
+}
+
+/* Front Cover - clean */
+.book-front-browse {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 2px 4px 4px 2px;
+    overflow: hidden;
+}
+
+.book-front-browse img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Page edge reflection - overlays left side of cover */
+.book-front-browse::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 18px;
+    height: 100%;
+    background: linear-gradient(90deg,
+        rgba(255, 255, 255, 0.45) 0%,
+        rgba(255, 255, 255, 0.25) 30%,
+        rgba(255, 255, 255, 0.1) 60%,
+        rgba(255, 255, 255, 0) 100%);
+    border-radius: 2px 0 0 2px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Dark mode - subtle glow instead */
+.dark .book-front-browse::before {
+    background: linear-gradient(90deg,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0.08) 30%,
+        rgba(255, 255, 255, 0.03) 60%,
+        rgba(255, 255, 255, 0) 100%);
+}
+
+/* Hide unused elements */
+.book-pages-browse,
+.book-back-browse {
+    display: none;
+}
+</style>
 {% endblock %}
