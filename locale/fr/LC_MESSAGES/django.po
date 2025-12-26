@@ -1874,3 +1874,20 @@ msgstr "Notifications de ventes, gains et avis"
 msgid "Track payout status and history"
 msgstr "Suivez le statut et l'historique des paiements"
 
+#: Categories Section
+msgid "Explore by Genre"
+msgstr "Explorer par genre"
+
+#: Hero Section
+msgid "Discover Stories from"
+msgstr "Découvrez des histoires d'"
+
+msgid "Africa"
+msgstr "Afrique"
+
+msgid "Read, listen, and explore books from African voices. Every story deserves to be heard."
+msgstr "Lisez, écoutez et explorez des livres de voix africaines. Chaque histoire mérite d'être entendue."
+
+msgid "Search books, authors, genres..."
+msgstr "Rechercher des livres, auteurs, genres..."
+
