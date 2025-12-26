@@ -1891,3 +1891,131 @@ msgstr "Lisez, écoutez et explorez des livres de voix africaines. Chaque histoi
 msgid "Search books, authors, genres..."
 msgstr "Rechercher des livres, auteurs, genres..."
 
+#: Testimonials Section
+msgid "What Our Community Says"
+msgstr "Ce que dit notre communauté"
+
+msgid "Hear from authors and readers who love Xanula"
+msgstr "Découvrez les témoignages d'auteurs et de lecteurs qui adorent Xanula"
+
+msgid "Xanula made publishing my first novel so easy. The audiobook conversion was a game-changer!"
+msgstr "Xanula a tellement facilité la publication de mon premier roman. La conversion en livre audio a tout changé !"
+
+msgid "Finally, a platform that celebrates African literature! I've discovered so many amazing authors."
+msgstr "Enfin, une plateforme qui célèbre la littérature africaine ! J'ai découvert tellement d'auteurs incroyables."
+
+msgid "The royalty rate is unbeatable. I've earned more here in 6 months than 2 years elsewhere."
+msgstr "Le taux de royalties est imbattable. J'ai gagné plus ici en 6 mois qu'en 2 ans ailleurs."
+
+msgid "The Mobile Money payout is perfect for me. No more waiting weeks for international transfers!"
+msgstr "Le paiement Mobile Money est parfait pour moi. Fini d'attendre des semaines pour les virements internationaux !"
+
+msgid "I love reading African stories on my phone. The offline mode means I can read anywhere, anytime."
+msgstr "J'adore lire des histoires africaines sur mon téléphone. Le mode hors ligne me permet de lire n'importe où, n'importe quand."
+
+msgid "The tip feature is amazing! My readers can support me directly. It feels so personal."
+msgstr "La fonction de don est incroyable ! Mes lecteurs peuvent me soutenir directement. C'est tellement personnel."
+
+msgid "Reader"
+msgstr "Lecteur"
+
+#: FAQ Section
+msgid "Frequently Asked Questions"
+msgstr "Questions fréquemment posées"
+
+msgid "How do I publish a book on Xanula?"
+msgstr "Comment publier un livre sur Xanula ?"
+
+msgid "Simply create an account, go to \"Publish\", upload your PDF manuscript, add your book details (title, description, price, cover image), and submit for review. Once approved, your book will be live and available for purchase."
+msgstr "Créez simplement un compte, allez dans «Publier», téléchargez votre manuscrit PDF, ajoutez les détails de votre livre (titre, description, prix, image de couverture), et soumettez pour examen. Une fois approuvé, votre livre sera en ligne et disponible à l'achat."
+
+msgid "What formats do you support?"
+msgstr "Quels formats acceptez-vous ?"
+
+msgid "Upload your manuscript in any format. When you upload, we automatically generate a professional epub and audiobook version using AI narration at no extra cost."
+msgstr "Téléchargez votre manuscrit dans n'importe quel format. Lors du téléchargement, nous générons automatiquement une version epub professionnelle et un livre audio grâce à la narration IA, sans frais supplémentaires."
+
+msgid "How do I get paid for my book sales?"
+msgstr "Comment suis-je payé pour mes ventes de livres ?"
+
+msgid "Authors earn for each sale. You can request a payout anytime from your dashboard. We support mobile money (MTN, Orange) and bank transfers across Africa. You can specially request for upfront payment too"
+msgstr "Les auteurs gagnent pour chaque vente. Vous pouvez demander un paiement à tout moment depuis votre tableau de bord. Nous acceptons le Mobile Money (MTN, Orange) et les virements bancaires à travers l'Afrique. Vous pouvez aussi demander un paiement anticipé."
+
+msgid "Can I read books offline?"
+msgstr "Puis-je lire des livres hors ligne ?"
+
+msgid "Yes! Xanula works as a Progressive Web App (PWA). You can install it on your phone and download books for offline reading and listening."
+msgstr "Oui ! Xanula fonctionne comme une Application Web Progressive (PWA). Vous pouvez l'installer sur votre téléphone et télécharger des livres pour les lire et écouter hors ligne."
+
+msgid "What payment methods do you accept?"
+msgstr "Quels moyens de paiement acceptez-vous ?"
+
+msgid "We accept mobile money (MTN Mobile Money, Orange Money), credit/debit cards, and more. Our goal is to make buying books accessible across Africa."
+msgstr "Nous acceptons le Mobile Money (MTN Mobile Money, Orange Money), les cartes de crédit/débit, et plus encore. Notre objectif est de rendre l'achat de livres accessible à travers l'Afrique."
+
+#: CTA Section
+msgid "Ready to Share Your Story?"
+msgstr "Prêt à partager votre histoire ?"
+
+msgid "Join thousands of African authors publishing on Xanula. Your voice matters."
+msgstr "Rejoignez des milliers d'auteurs africains qui publient sur Xanula. Votre voix compte."
+
+msgid "Get Started Free"
+msgstr "Commencez gratuitement"
+
+msgid "Contact Us"
+msgstr "Contactez-nous"
+
+#: Powered by REEPLS Section
+msgid "Built with ❤️ for African Literature"
+msgstr "Créé avec ❤️ pour la littérature africaine"
+
+msgid "Powered by"
+msgstr "Développé par"
+
+msgid "Empowering African creators through technology"
+msgstr "Donner du pouvoir aux créateurs africains grâce à la technologie"
+
+#: Footer
+msgid "The premier marketplace for African literature. Discover, read, and listen to stories from Africa."
+msgstr "Le marché de référence pour la littérature africaine. Découvrez, lisez et écoutez des histoires d'Afrique."
+
+msgid "Explore"
+msgstr "Explorer"
+
+msgid "Browse Books"
+msgstr "Parcourir les livres"
+
+msgid "Audiobooks"
+msgstr "Livres audio"
+
+msgid "Publish a Book"
+msgstr "Publier un livre"
+
+msgid "Author Dashboard"
+msgstr "Tableau de bord auteur"
+
+msgid "Analytics"
+msgstr "Statistiques"
+
+msgid "Legal"
+msgstr "Mentions légales"
+
+msgid "Terms & Conditions"
+msgstr "Conditions générales"
+
+msgid "Privacy Policy"
+msgstr "Politique de confidentialité"
+
+msgid "Legal Notice"
+msgstr "Mentions légales"
+
+msgid "All rights reserved."
+msgstr "Tous droits réservés."
+
+msgid "A"
+msgstr "Un"
+
+msgid "Product"
+msgstr "produit"
+
