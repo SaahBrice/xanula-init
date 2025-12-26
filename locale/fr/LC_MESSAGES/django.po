@@ -494,7 +494,7 @@ msgid "Preview"
 msgstr "Aperçu"
 
 msgid "Add to Wishlist"
-msgstr "Ajouter à la liste de souhaits"
+msgstr "Ajouter aux souhaits"
 
 msgid "About This Book"
 msgstr "À propos de ce livre"
@@ -673,16 +673,16 @@ msgstr "Essayez de rechercher avec d'autres mots-clés"
 
 #: Wishlist
 msgid "My Wishlist"
-msgstr "Ma liste de souhaits"
+msgstr "Mes souhaits"
 
 msgid "Your wishlist is empty"
-msgstr "Votre liste de souhaits est vide"
+msgstr "Vos souhaits sont vides"
 
 msgid "Start adding books you'd like to read!"
 msgstr "Commencez à ajouter des livres que vous aimeriez lire !"
 
 msgid "In Wishlist"
-msgstr "Dans la liste de souhaits"
+msgstr "Dans les souhaits"
 
 #: Purchase
 msgid "Complete Purchase"
@@ -1780,10 +1780,10 @@ msgid "Download QR Code"
 msgstr "Télécharger le QR Code"
 
 msgid "Wishlist"
-msgstr "Liste de Souhaits"
+msgstr "Souhaits"
 
 msgid "My Wishlist"
-msgstr "Ma Liste de Souhaits"
+msgstr "Mes Souhaits"
 
 msgid "Publish a Book"
 msgstr "Publier un Livre"
