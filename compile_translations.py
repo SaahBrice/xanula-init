@@ -115,8 +115,9 @@ def generate_mo(po_file, mo_file):
     return len(keys)
 
 if __name__ == '__main__':
-    po_file = r'locale\fr\LC_MESSAGES\django.po'
-    mo_file = r'locale\fr\LC_MESSAGES\django.mo'
+    po_file = os.path.join('locale', 'fr', 'LC_MESSAGES', 'django.po')
+    mo_file = os.path.join('locale', 'fr', 'LC_MESSAGES', 'django.mo')
     
     count = generate_mo(po_file, mo_file)
     print(f'Compiled {count} translations to {mo_file}')
+
