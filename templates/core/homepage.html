@@ -131,50 +131,174 @@
 </section>
 {% endif %}
 
-<!-- For Authors Section -->
-<section class="py-12 md:py-20 bg-gradient-to-br from-forest-500 to-forest-600 dark:from-forest-600 dark:to-forest-700">
+<!-- For Authors Section - Journey Timeline -->
+<section class="py-12 md:py-20 bg-gradient-to-br from-forest-500 to-forest-600 dark:from-forest-600 dark:to-forest-700 overflow-hidden">
     <div class="container">
-        <div class="text-center mb-10 md:mb-14">
+        <div class="text-center mb-10 md:mb-16">
             <span class="inline-block px-4 py-1.5 bg-white/20 text-white text-sm font-semibold rounded-full mb-4">{% trans "For Authors" %}</span>
             <h2 class="font-display text-2xl md:text-4xl font-bold text-white mb-3">{% trans "Publish Your Book with Xanula" %}</h2>
             <p class="text-forest-100 text-lg max-w-xl mx-auto">{% trans "Join a community of African authors reaching readers worldwide." %}</p>
         </div>
         
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
-                <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-                    <span class="text-2xl">💰</span>
+        <!-- Journey Timeline -->
+        <div class="relative max-w-5xl mx-auto">
+            <!-- Center Line -->
+            <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/30 transform -translate-x-1/2"></div>
+            
+            <!-- Step 1: Upload (Left) -->
+            <div class="timeline-step md:flex md:items-center mb-8 md:mb-12 relative">
+                <div class="md:w-1/2 md:pr-12 md:text-right">
+                    <div class="p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                        <div class="flex items-center gap-3 mb-3 md:flex-row-reverse">
+                            <div class="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                </svg>
+                            </div>
+                            <h3 class="font-display text-lg font-bold text-white">{% trans "Upload" %}</h3>
+                        </div>
+                        <ul class="text-forest-100 text-sm space-y-1 md:text-right">
+                            <li>{% trans "Submit your manuscript (PDF, EPUB, DOCX)" %}</li>
+                            <li>{% trans "Simple 3-step submission process" %}</li>
+                            <li>{% trans "Set your own price and description" %}</li>
+                        </ul>
+                    </div>
                 </div>
-                <h3 class="font-display text-xl font-bold text-white mb-2">{% trans "70% Royalties" %}</h3>
-                <p class="text-forest-100 text-sm">{% trans "Keep the majority of your earnings. One of the highest royalty rates in the industry." %}</p>
+                <!-- Node -->
+                <div class="hidden md:flex w-8 h-8 rounded-full bg-white border-4 border-forest-400 z-10 items-center justify-center absolute left-1/2 transform -translate-x-1/2">
+                    <span class="text-forest-600 font-bold text-xs">1</span>
+                </div>
+                <div class="md:w-1/2"></div>
             </div>
             
-            <div class="p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
-                <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-                    <span class="text-2xl">🎧</span>
+            <!-- Step 2: Convert (Right) -->
+            <div class="timeline-step md:flex md:items-center mb-8 md:mb-12 relative">
+                <div class="md:w-1/2"></div>
+                <!-- Node -->
+                <div class="hidden md:flex w-8 h-8 rounded-full bg-white border-4 border-forest-400 z-10 items-center justify-center absolute left-1/2 transform -translate-x-1/2">
+                    <span class="text-forest-600 font-bold text-xs">2</span>
                 </div>
-                <h3 class="font-display text-xl font-bold text-white mb-2">{% trans "Auto Audiobook" %}</h3>
-                <p class="text-forest-100 text-sm">{% trans "We convert your book to a professional audiobook automatically, at no extra cost." %}</p>
+                <div class="md:w-1/2 md:pl-12">
+                    <div class="p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                            </div>
+                            <h3 class="font-display text-lg font-bold text-white">{% trans "Convert" %}</h3>
+                        </div>
+                        <ul class="text-forest-100 text-sm space-y-1">
+                            <li>{% trans "Auto-converted to premium ebook format" %}</li>
+                            <li>{% trans "AI-generated audiobook at no extra cost" %}</li>
+                            <li>{% trans "Hard copy printing available on demand" %}</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
             
-            <div class="p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
-                <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-                    <span class="text-2xl">🌍</span>
+            <!-- Step 3: Reach (Left) -->
+            <div class="timeline-step md:flex md:items-center mb-8 md:mb-12 relative">
+                <div class="md:w-1/2 md:pr-12 md:text-right">
+                    <div class="p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                        <div class="flex items-center gap-3 mb-3 md:flex-row-reverse">
+                            <div class="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h3 class="font-display text-lg font-bold text-white">{% trans "Reach" %}</h3>
+                        </div>
+                        <ul class="text-forest-100 text-sm space-y-1 md:text-right">
+                            <li>{% trans "Global discovery with category browsing" %}</li>
+                            <li>{% trans "QR codes auto-generated for marketing" %}</li>
+                            <li>{% trans "Referral program to boost sales" %}</li>
+                        </ul>
+                    </div>
                 </div>
-                <h3 class="font-display text-xl font-bold text-white mb-2">{% trans "Global Reach" %}</h3>
-                <p class="text-forest-100 text-sm">{% trans "Reach readers across Africa and the diaspora. Multiple payment options for buyers." %}</p>
+                <div class="hidden md:flex w-8 h-8 rounded-full bg-white border-4 border-forest-400 z-10 items-center justify-center absolute left-1/2 transform -translate-x-1/2">
+                    <span class="text-forest-600 font-bold text-xs">3</span>
+                </div>
+                <div class="md:w-1/2"></div>
             </div>
             
-            <div class="p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
-                <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-                    <span class="text-2xl">📊</span>
+            <!-- Step 4: Earn (Right) -->
+            <div class="timeline-step md:flex md:items-center mb-8 md:mb-12 relative">
+                <div class="md:w-1/2"></div>
+                <div class="hidden md:flex w-8 h-8 rounded-full bg-white border-4 border-forest-400 z-10 items-center justify-center absolute left-1/2 transform -translate-x-1/2">
+                    <span class="text-forest-600 font-bold text-xs">4</span>
                 </div>
-                <h3 class="font-display text-xl font-bold text-white mb-2">{% trans "Analytics Dashboard" %}</h3>
-                <p class="text-forest-100 text-sm">{% trans "Track sales, earnings, and reader engagement with detailed analytics." %}</p>
+                <div class="md:w-1/2 md:pl-12">
+                    <div class="p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h3 class="font-display text-lg font-bold text-white">{% trans "Earn" %}</h3>
+                        </div>
+                        <ul class="text-forest-100 text-sm space-y-1">
+                            <li>{% trans "Ebook, audiobook & hard copy sales" %}</li>
+                            <li>{% trans "Direct tips from fans with messages" %}</li>
+                            <li>{% trans "Up to 90% royalties on your earnings" %}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 5: Cash Out (Left) -->
+            <div class="timeline-step md:flex md:items-center mb-8 md:mb-12 relative">
+                <div class="md:w-1/2 md:pr-12 md:text-right">
+                    <div class="p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                        <div class="flex items-center gap-3 mb-3 md:flex-row-reverse">
+                            <div class="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                </svg>
+                            </div>
+                            <h3 class="font-display text-lg font-bold text-white">{% trans "Cash Out" %}</h3>
+                        </div>
+                        <ul class="text-forest-100 text-sm space-y-1 md:text-right">
+                            <li>{% trans "Low threshold: 5,000 XAF (~$8) minimum" %}</li>
+                            <li>{% trans "Mobile Money & Bank Transfer options" %}</li>
+                            <li>{% trans "Upfront advances available for authors" %}</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="hidden md:flex w-8 h-8 rounded-full bg-white border-4 border-forest-400 z-10 items-center justify-center absolute left-1/2 transform -translate-x-1/2">
+                    <span class="text-forest-600 font-bold text-xs">5</span>
+                </div>
+                <div class="md:w-1/2"></div>
+            </div>
+            
+            <!-- Step 6: Track (Right - Final) -->
+            <div class="timeline-step md:flex md:items-center relative">
+                <div class="md:w-1/2"></div>
+                <div class="hidden md:flex w-8 h-8 rounded-full bg-white border-4 border-forest-400 z-10 items-center justify-center absolute left-1/2 transform -translate-x-1/2">
+                    <span class="text-forest-600 font-bold text-xs">6</span>
+                </div>
+                <div class="md:w-1/2 md:pl-12">
+                    <div class="p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                            </div>
+                            <h3 class="font-display text-lg font-bold text-white">{% trans "Track" %}</h3>
+                        </div>
+                        <ul class="text-forest-100 text-sm space-y-1">
+                            <li>{% trans "Real-time dashboard for all your books" %}</li>
+                            <li>{% trans "Sales, earnings & review notifications" %}</li>
+                            <li>{% trans "Track payout status and history" %}</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <div class="text-center mt-10">
+        <div class="text-center mt-12">
             {% if user.is_authenticated %}
             <a href="{% url 'core:publish_book' %}" class="btn btn-lg bg-white text-forest-600 hover:bg-gray-100 shadow-lg">{% trans "Start Publishing" %}</a>
             {% else %}

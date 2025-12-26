@@ -1791,3 +1791,86 @@ msgstr "Publier un Livre"
 msgid "Share your story with the world"
 msgstr "Partagez votre histoire avec le monde"
 
+#: Author Section Header
+msgid "For Authors"
+msgstr "Pour les auteurs"
+
+msgid "Publish Your Book with Xanula"
+msgstr "Publiez votre livre avec Xanula"
+
+msgid "Join a community of African authors reaching readers worldwide."
+msgstr "Rejoignez une communauté d'auteurs africains qui touchent des lecteurs du monde entier."
+
+#: Author Journey Timeline
+msgid "Upload"
+msgstr "Soumettez"
+
+msgid "Submit your manuscript (PDF, EPUB, DOCX)"
+msgstr "Soumettez votre manuscrit (PDF, EPUB, DOCX)"
+
+msgid "Simple 3-step submission process"
+msgstr "Processus de soumission simple en 3 étapes"
+
+msgid "Set your own price and description"
+msgstr "Définissez votre prix et description"
+
+msgid "Convert"
+msgstr "Conversion"
+
+msgid "Auto-converted to premium ebook format"
+msgstr "Conversion automatique en format ebook premium"
+
+msgid "AI-generated audiobook at no extra cost"
+msgstr "Livre audio généré par IA sans frais supplémentaires"
+
+msgid "Hard copy printing available on demand"
+msgstr "Impression papier disponible à la demande"
+
+msgid "Reach"
+msgstr "Visibilité"
+
+msgid "Global discovery with category browsing"
+msgstr "Découverte mondiale via les catégories"
+
+msgid "QR codes auto-generated for marketing"
+msgstr "Codes QR générés automatiquement pour le marketing"
+
+msgid "Referral program to boost sales"
+msgstr "Programme de parrainage pour booster les ventes"
+
+msgid "Earn"
+msgstr "Revenus"
+
+msgid "Ebook, audiobook & hard copy sales"
+msgstr "Ventes ebook, livre audio et copie papier"
+
+msgid "Direct tips from fans with messages"
+msgstr "Dons directs des fans avec messages"
+
+msgid "Up to 90% royalties on your earnings"
+msgstr "Jusqu'à 90% de royalties sur vos revenus"
+
+msgid "Cash Out"
+msgstr "Retrait"
+
+msgid "Low threshold: 5,000 XAF (~$8) minimum"
+msgstr "Seuil bas : minimum 5 000 XAF (~8 $)"
+
+msgid "Mobile Money & Bank Transfer options"
+msgstr "Options Mobile Money et virement bancaire"
+
+msgid "Upfront advances available for authors"
+msgstr "Avances sur paiement disponibles pour les auteurs"
+
+msgid "Track"
+msgstr "Suivi"
+
+msgid "Real-time dashboard for all your books"
+msgstr "Tableau de bord en temps réel pour tous vos livres"
+
+msgid "Sales, earnings & review notifications"
+msgstr "Notifications de ventes, gains et avis"
+
+msgid "Track payout status and history"
+msgstr "Suivez le statut et l'historique des paiements"
+
