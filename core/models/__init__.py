@@ -33,6 +33,8 @@ from .featured import FeaturedBook
 
 from .notification import Notification
 
+from .article import Article
+
 __all__ = [
     # Book
     'Book',
@@ -56,5 +58,7 @@ __all__ = [
     'FeaturedBook',
     # Notification
     'Notification',
+    # Blog
+    'Article',
 ]
 

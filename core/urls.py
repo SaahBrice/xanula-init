@@ -106,6 +106,11 @@ urlpatterns = [
     path('notifications/', views.notifications_page, name='notifications'),
     path('api/notifications/mark-read/', views.mark_notifications_read, name='mark_notifications_read'),
     path('api/notifications/count/', views.notifications_count_api, name='notifications_count'),
+    
+    # Blog
+    path('blog/', views.blog_list, name='blog_list'),
+    path('blog/<slug:slug>/', views.article_detail, name='article_detail'),
+    path('api/blog/<int:article_id>/like/', views.like_article, name='like_article'),
 ]
 
 

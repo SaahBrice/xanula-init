@@ -1,0 +1,57 @@
+{% extends "emails/base_email.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "New Article" %} - Xanula{% endblock %}
+
+{% block content %}
+<!-- Icon -->
+
+<!-- Article Card -->
+<div style="background: #faf8f5; padding: 0; margin: 0 0 32px; border: 1px solid rgba(114, 47, 55, 0.12); overflow: hidden;">
+    {% if article.thumbnail %}
+    <img src="{{ article.thumbnail.url }}" alt="{{ article.title }}" style="width: 100%; height: 200px; object-fit: cover; display: block;">
+    {% endif %}
+    <div style="padding: 24px;">
+        <h2 style="font-family: Georgia, 'Times New Roman', serif; color: #2a2a2a; font-size: 22px; margin: 0 0 8px; font-weight: 600;">{{ article.title }}</h2>
+        {% if article.subtitle %}
+        <p style="color: #5a5a5a; font-size: 15px; margin: 0 0 12px; line-height: 1.6; font-family: Georgia, 'Times New Roman', serif;">{{ article.subtitle }}</p>
+        {% endif %}
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <td style="color: #722F37; font-size: 13px; font-family: 'Segoe UI', Arial, sans-serif;">
+                    {{ article.created_at|date:"F j, Y" }}
+                    {% if article.reading_time %}
+                    &nbsp;·&nbsp; {{ article.reading_time }} min read
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+{% if article.french_audio or article.english_audio %}
+<div style="background: #faf8f5; border-left: 4px solid #2D4739; padding: 16px 24px; margin: 0 0 32px;">
+    <p style="margin: 0; font-size: 15px; color: #2a2a2a; font-family: Georgia, 'Times New Roman', serif;">
+        🎧 <strong>{% trans "Audio available!" %}</strong>
+        {% if article.french_audio and article.english_audio %}{% trans "Listen in French or English." %}{% elif article.french_audio %}{% trans "Listen in French." %}{% else %}{% trans "Listen in English." %}{% endif %}
+    </p>
+</div>
+{% endif %}
+
+<!-- CTA -->
+<div style="text-align: center; margin: 32px 0 16px;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+        <tr>
+            <td style="background-color: #722F37;">
+                <a href="{{ article_url }}" style="display: inline-block; padding: 16px 45px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; color: #ffffff; text-decoration: none;">
+                    {% trans "Read the Article" %}
+                </a>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<p style="font-size: 13px; color: #5a5a5a; text-align: center; margin-top: 24px; font-family: Georgia, 'Times New Roman', serif; font-style: italic;">
+    {% trans "Discover stories, insights, and updates from the Xanula community." %}
+</p>
+{% endblock %}

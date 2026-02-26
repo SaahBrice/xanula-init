@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% trans "Blog" %} — Xanula{% endblock %}
+
+{% block extra_head %}
+<meta property="og:title" content="{% trans 'Xanula Blog' %}">
+<meta property="og:description" content="{% trans 'Stories, insights, and updates from the Xanula community.' %}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8 md:py-16">
+
+    <!-- Hero -->
+    <div class="text-center mb-12 md:mb-16">
+        <h1 class="font-display text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+            {% trans "Stories & Insights" %}
+        </h1>
+        <p class="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto font-sans">
+            {% trans "Discover articles, updates, and stories from the Xanula community — African literature, author spotlights, and more." %}
+        </p>
+    </div>
+
+    {% if articles %}
+    <!-- Article Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-12">
+        {% for article in articles %}
+        <a href="{% url 'core:article_detail' slug=article.slug %}" 
+           class="group bg-white dark:bg-dark-100 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 hover:border-burgundy-200 dark:hover:border-burgundy-700 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+            
+            <!-- Thumbnail -->
+            <div class="aspect-[16/10] overflow-hidden bg-cream dark:bg-dark-50">
+                {% if article.thumbnail %}
+                <img src="{{ article.thumbnail.url }}" 
+                     alt="{{ article.title }}" 
+                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                     loading="lazy"
+                     width="400" height="250">
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-burgundy-500/10 to-forest-500/10">
+                    <svg class="w-12 h-12 text-burgundy-300 dark:text-burgundy-600" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                    </svg>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Content -->
+            <div class="p-5 md:p-6">
+                <!-- Meta -->
+                <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500 mb-3 font-sans">
+                    <span>{{ article.created_at|date:"M j, Y" }}</span>
+                    <span>·</span>
+                    <span>{{ article.reading_time }} {% trans "min read" %}</span>
+                    {% if article.french_audio or article.english_audio %}
+                    <span>·</span>
+                    <span class="flex items-center gap-1">
+                        🎧 {% trans "Audio" %}
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <h2 class="font-display text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-burgundy-500 transition-colors line-clamp-2">
+                    {% if LANGUAGE_CODE == 'fr' and article.title_fr %}
+                        {{ article.title_fr }}
+                    {% else %}
+                        {{ article.title }}
+                    {% endif %}
+                </h2>
+                
+                {% if LANGUAGE_CODE == 'fr' and article.subtitle_fr %}
+                <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 font-sans">
+                    {{ article.subtitle_fr }}
+                </p>
+                {% elif article.subtitle %}
+                <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 font-sans">
+                    {{ article.subtitle }}
+                </p>
+                {% endif %}
+                
+                <!-- Footer -->
+                <div class="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
+                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                        <svg class="w-4 h-4 text-burgundy-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                        </svg>
+                        <span>{{ article.likes_count }}</span>
+                    </div>
+                    <span class="text-xs font-semibold text-burgundy-500 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                        {% trans "Read" %}
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-center items-center gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" 
+           class="px-4 py-2 rounded-xl bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:border-burgundy-500 transition-colors">
+            {% trans "Previous" %}
+        </a>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <span class="px-4 py-2 rounded-xl bg-burgundy-500 text-white text-sm font-medium">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a href="?page={{ num }}" class="px-4 py-2 rounded-xl bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:border-burgundy-500 transition-colors">
+                {{ num }}
+            </a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" 
+           class="px-4 py-2 rounded-xl bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:border-burgundy-500 transition-colors">
+            {% trans "Next" %}
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-20">
+        <div class="w-20 h-20 mx-auto mb-6 bg-burgundy-50 dark:bg-burgundy-900/20 rounded-full flex items-center justify-center">
+            <svg class="w-10 h-10 text-burgundy-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z"/>
+            </svg>
+        </div>
+        <h3 class="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">{% trans "No articles yet" %}</h3>
+        <p class="text-gray-500 dark:text-gray-400">{% trans "Check back soon — we're working on great content for you!" %}</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

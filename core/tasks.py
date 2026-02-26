@@ -1195,3 +1195,77 @@ def notify_reader_hard_copy_status(request_id, new_status):
         )
     except Exception as e:
         logger.error(f"Failed to notify reader of hard copy status {request_id}: {e}")
+
+
+def notify_all_users_new_article(article):
+    """
+    Send non-blocking email + in-app notification to all users when a new blog article is published.
+    Runs in a background thread so admin doesn't wait.
+    """
+    import threading
+    
+    def _send():
+        try:
+            from django.contrib.auth import get_user_model
+            from core.models import Notification
+            
+            User = get_user_model()
+            users = User.objects.filter(is_active=True).exclude(email='')
+            
+            site_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'https://xanula.reepls.com'
+            article_url = f"{site_url}/blog/{article.slug}/"
+            
+            context = get_email_context()
+            context.update({
+                'article': article,
+                'article_url': article_url,
+            })
+            
+            html_content = render_to_string('emails/new_article.html', context)
+            text_content = strip_tags(html_content)
+            
+            # Force SMTP backend
+            from django.core.mail import get_connection
+            connection = get_connection(
+                backend='django.core.mail.backends.smtp.EmailBackend',
+                fail_silently=True
+            )
+            
+            sent_count = 0
+            for user in users:
+                try:
+                    # In-app notification
+                    Notification.create_notification(
+                        user=user,
+                        notification_type=Notification.NotificationType.SYSTEM,
+                        title=f"{article.title}",
+                        message=article.subtitle or f"Check out our latest article: {article.title}",
+                        icon="📰",
+                        related_url=f"/blog/{article.slug}/"
+                    )
+                    
+                    # Email
+                    if user.email:
+                        msg = EmailMultiAlternatives(
+                            subject=f"{article.title}",
+                            body=text_content,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            to=[user.email],
+                            connection=connection,
+                        )
+                        msg.attach_alternative(html_content, "text/html")
+                        msg.send()
+                        sent_count += 1
+                        
+                except Exception as e:
+                    logger.error(f"Failed to notify user {user.id} about article {article.id}: {e}")
+                    continue
+            
+            logger.info(f"Sent new article notifications: {sent_count} emails for article '{article.title}'")
+            
+        except Exception as e:
+            logger.error(f"Failed to send new article notifications for article {article.id}: {e}")
+    
+    thread = threading.Thread(target=_send, daemon=True)
+    thread.start()
+

@@ -135,29 +135,19 @@
                 inset -2px 0 8px rgba(0,0,0,0.2);
         }
         
-        /* Progress Slider */
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            height: 4px;
-            border-radius: 2px;
-            outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
-            background: #8B2635;
-            border-radius: 50%;
+        /* Wave Progress */
+        .wave-progress-wrap {
+            width: 100%;
+            height: 36px;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            transition: transform 0.15s;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
         }
-        .dark input[type="range"]::-webkit-slider-thumb {
-            background: #FAF7F2;
-        }
-        input[type="range"]:active::-webkit-slider-thumb {
-            transform: scale(1.2);
+        .wave-progress-wrap canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
         }
         
         /* Playing indicator */
@@ -296,12 +286,9 @@
         <footer class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-dark-200/95 backdrop-blur-lg border-t border-gray-200 dark:border-white/5 safe-area-bottom">
             <div class="max-w-lg mx-auto px-5 py-4">
                 
-                <!-- Progress -->
+                <!-- Progress (Sine Wave) -->
                 <div class="mb-4">
-                    <input type="range" min="0" :max="duration" x-model="currentTime" 
-                        @input="seekTo($event.target.value)" @change="seekTo($event.target.value)"
-                        class="w-full cursor-pointer bg-gray-200 dark:bg-white/10" 
-                        :style="'background: linear-gradient(to right, #8B2635 ' + progressPercent + '%, transparent ' + progressPercent + '%)'">
+                    <div class="wave-progress-wrap" id="audiobook-wave" @click="waveSeek($event)"></div>
                     <div class="flex justify-between mt-1.5 text-xs text-gray-400 dark:text-cream/40 font-medium">
                         <span x-text="formatTime(currentTime)"></span>
                         <span x-text="formatTime(duration)"></span>
@@ -372,6 +359,7 @@
                 showSpeedMenu: false, showSleepMenu: false,
                 sleepTimerActive: false, sleepTimerEndTime: null, sleepTimerDisplay: '', sleepTimerInterval: null,
                 bookId: {{ book.id }}, initialProgress: {{ listening_progress|default:0 }},
+                wavePhase: 0, waveAmplitude: 0,
                 
                 init() {
                     this.audio = this.$refs.audio;
@@ -381,6 +369,104 @@
                     setInterval(() => localStorage.setItem(`audiobook-${this.bookId}-progress`, this.currentTime), 10000);
                     this.setupMediaSession();
                     window.addEventListener('beforeunload', () => this.syncProgress());
+                    this.initWave();
+                },
+                
+                initWave() {
+                    const wrap = document.getElementById('audiobook-wave');
+                    if (!wrap) return;
+                    const canvas = document.createElement('canvas');
+                    wrap.appendChild(canvas);
+                    const ctx = canvas.getContext('2d');
+                    const self = this;
+                    
+                    function resize() {
+                        const dpr = window.devicePixelRatio || 1;
+                        const rect = wrap.getBoundingClientRect();
+                        canvas.width = rect.width * dpr;
+                        canvas.height = rect.height * dpr;
+                        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    }
+                    resize();
+                    window.addEventListener('resize', resize);
+                    
+                    const BURGUNDY = '#8B2635';
+                    const GRAY = '#d1d5db';
+                    const DARK_GRAY = '#4b5563';
+                    
+                    function draw() {
+                        const w = wrap.clientWidth;
+                        const h = wrap.clientHeight;
+                        const mid = h / 2;
+                        
+                        // Smooth amplitude
+                        const target = self.isPlaying ? 1 : 0;
+                        self.waveAmplitude += (target - self.waveAmplitude) * 0.06;
+                        
+                        ctx.clearRect(0, 0, w, h);
+                        
+                        const progress = self.duration > 0 ? self.currentTime / self.duration : 0;
+                        const playedX = w * progress;
+                        const lineW = 2.5;
+                        const amp = 3 * self.waveAmplitude;
+                        const freq = 0.25;
+                        
+                        // Played: sine wave
+                        ctx.beginPath();
+                        ctx.moveTo(0, mid);
+                        for (let x = 0; x <= playedX; x += 1) {
+                            ctx.lineTo(x, mid + Math.sin(x * freq + self.wavePhase) * amp);
+                        }
+                        ctx.strokeStyle = BURGUNDY;
+                        ctx.lineWidth = lineW;
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
+                        ctx.stroke();
+                        
+                        // Unplayed: flat line with lerp
+                        if (playedX < w) {
+                            const isDark = document.documentElement.classList.contains('dark');
+                            ctx.beginPath();
+                            const startY = playedX > 0 ? mid + Math.sin(playedX * freq + self.wavePhase) * amp : mid;
+                            ctx.moveTo(playedX, startY);
+                            const lerpEnd = Math.min(playedX + 20, w);
+                            for (let x = playedX; x <= lerpEnd; x += 1) {
+                                const t = (x - playedX) / 20;
+                                ctx.lineTo(x, startY + (mid - startY) * t);
+                            }
+                            ctx.lineTo(w, mid);
+                            ctx.strokeStyle = isDark ? DARK_GRAY : GRAY;
+                            ctx.lineWidth = lineW;
+                            ctx.lineCap = 'round';
+                            ctx.stroke();
+                        }
+                        
+                        // Position dot
+                        if (progress > 0 && progress < 1) {
+                            const dotY = mid + Math.sin(playedX * freq + self.wavePhase) * amp;
+                            ctx.beginPath();
+                            ctx.arc(playedX, dotY, 5, 0, Math.PI * 2);
+                            ctx.fillStyle = BURGUNDY;
+                            ctx.fill();
+                            ctx.beginPath();
+                            ctx.arc(playedX, dotY, 2, 0, Math.PI * 2);
+                            ctx.fillStyle = '#fff';
+                            ctx.fill();
+                        }
+                        
+                        if (self.isPlaying) self.wavePhase += 0.1;
+                        requestAnimationFrame(draw);
+                    }
+                    draw();
+                },
+                
+                waveSeek(e) {
+                    if (this.duration > 0) {
+                        const wrap = document.getElementById('audiobook-wave');
+                        const rect = wrap.getBoundingClientRect();
+                        const ratio = (e.clientX - rect.left) / rect.width;
+                        this.audio.currentTime = ratio * this.duration;
+                    }
                 },
                 
                 onMetadataLoaded() {

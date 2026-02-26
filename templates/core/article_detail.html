@@ -1,0 +1,869 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{{ article.get_title|default:article.title }} — Xanula Blog{% endblock %}
+
+{% block extra_head %}
+<!-- OG Tags -->
+<meta property="og:title" content="{{ article.get_title|default:article.title }}">
+<meta property="og:description" content="{{ article.get_subtitle|default:article.title }}">
+<meta property="og:type" content="article">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% if article.thumbnail %}
+<meta property="og:image" content="{{ article.thumbnail.url }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+{% endif %}
+<meta property="article:published_time" content="{{ article.created_at|date:'c' }}">
+<meta property="article:modified_time" content="{{ article.updated_at|date:'c' }}">
+<meta property="article:author" content="{{ article.author.get_display_name }}">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ article.get_title|default:article.title }}">
+<meta name="twitter:description" content="{{ article.get_subtitle|default:article.title }}">
+{% if article.thumbnail %}
+<meta name="twitter:image" content="{{ article.thumbnail.url }}">
+{% endif %}
+
+<!-- Google Font: Lora (Medium.com-style serif for reading) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<style>
+    /* ─── Article Typography (Medium-style) ─── */
+    .article-content {
+        font-family: 'Lora', Georgia, 'Times New Roman', serif;
+    }
+    .article-content h2 {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 2.5rem 0 1rem;
+        line-height: 1.3;
+        letter-spacing: -0.01em;
+    }
+    .article-content h3 {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 1.375rem;
+        font-weight: 600;
+        color: #2a2a2a;
+        margin: 2rem 0 0.75rem;
+    }
+    .article-content h4 {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #2a2a2a;
+        margin: 1.75rem 0 0.5rem;
+    }
+    .article-content p {
+        font-size: 1.2rem;
+        line-height: 1.9;
+        color: #292929;
+        margin-bottom: 1.5rem;
+        letter-spacing: -0.003em;
+        word-break: break-word;
+    }
+    .article-content > figure,
+    .article-content > .image,
+    .article-content > p > img,
+    .article-content img {
+        display: block;
+        max-width: 100%;
+        width: 100%;
+        height: auto;
+        border-radius: 0.5rem;
+        margin: 2rem auto;
+    }
+    .article-content figure {
+        margin: 2rem 0;
+        text-align: center;
+    }
+    .article-content figure img {
+        display: block;
+        max-width: 100%;
+        width: 100%;
+        height: auto;
+        border-radius: 0.5rem;
+        margin: 0 auto;
+    }
+    .article-content figcaption {
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.75rem;
+        text-align: center;
+        font-style: italic;
+    }
+    .article-content blockquote {
+        border-left: 3px solid #722F37;
+        padding: 0.5rem 0 0.5rem 1.5rem;
+        margin: 2rem 0;
+        font-style: italic;
+        color: #4b5563;
+        font-size: 1.25rem;
+        line-height: 1.7;
+    }
+    .article-content blockquote p {
+        margin-bottom: 0;
+    }
+    .article-content ul, .article-content ol {
+        padding-left: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .article-content li {
+        font-size: 1.2rem;
+        line-height: 1.9;
+        color: #292929;
+        margin-bottom: 0.5rem;
+    }
+    .article-content a {
+        color: #722F37;
+        text-decoration: underline;
+        text-decoration-color: rgba(114, 47, 55, 0.4);
+        text-underline-offset: 3px;
+        transition: text-decoration-color 0.2s;
+    }
+    .article-content a:hover {
+        text-decoration-color: #722F37;
+    }
+    .article-content hr {
+        border: none;
+        text-align: center;
+        margin: 2.5rem 0;
+    }
+    .article-content hr::before {
+        content: '• • •';
+        color: #d1d5db;
+        letter-spacing: 1em;
+        font-size: 1.2rem;
+    }
+
+    /* Subtitle styling */
+    .article-subtitle {
+        font-family: 'Lora', Georgia, 'Times New Roman', serif;
+        font-style: italic;
+    }
+
+    /* Dark mode */
+    [data-theme="dark"] .article-content h2,
+    [data-theme="dark"] .article-content h3,
+    [data-theme="dark"] .article-content h4 { color: #f3f4f6; }
+    [data-theme="dark"] .article-content p,
+    [data-theme="dark"] .article-content li { color: #d1d5db; }
+    [data-theme="dark"] .article-content blockquote {
+        border-left-color: #c9a66b;
+        color: #9ca3af;
+    }
+    [data-theme="dark"] .article-content figcaption { color: #9ca3af; }
+
+    /* ─── Like animation ─── */
+    @keyframes likePopIn {
+        0% { transform: scale(1); }
+        30% { transform: scale(1.35); }
+        60% { transform: scale(0.9); }
+        100% { transform: scale(1); }
+    }
+    @keyframes heartFloat {
+        0% { opacity: 1; transform: translateY(0) scale(1); }
+        100% { opacity: 0; transform: translateY(-40px) scale(1.3); }
+    }
+    .like-animate {
+        animation: likePopIn 0.4s ease-out;
+    }
+    .heart-particle {
+        position: absolute;
+        pointer-events: none;
+        animation: heartFloat 0.7s ease-out forwards;
+    }
+
+    /* ─── Sticky action bar ─── */
+    .sticky-action-bar {
+        position: fixed;
+        bottom: 72px;
+        left: 0;
+        right: 0;
+        z-index: 40;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    @media (min-width: 768px) {
+        .sticky-action-bar {
+            bottom: 24px;
+        }
+    }
+
+    /* ─── Audio player tabs ─── */
+    .audio-tab.active {
+        background: #722F37;
+        color: white;
+    }
+    .audio-tab:not(.active) {
+        background: transparent;
+        color: #6b7280;
+    }
+
+    /* ─── Custom wave player ─── */
+    .wave-player {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+    }
+    .wave-play-btn {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        border-radius: 50%;
+        background: #722F37;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, transform 0.1s;
+        color: white;
+    }
+    .wave-play-btn:hover { background: #5C1A27; }
+    .wave-play-btn:active { transform: scale(0.93); }
+    .wave-canvas-wrap {
+        flex: 1;
+        height: 40px;
+        cursor: pointer;
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .wave-canvas-wrap canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+    .wave-time {
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+        color: #6b7280;
+        min-width: 72px;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    /* ─── Text selection share tooltip ─── */
+    .share-tooltip {
+        position: absolute;
+        z-index: 50;
+        background: #1a1a1a;
+        color: white;
+        border-radius: 8px;
+        padding: 6px 4px;
+        display: flex;
+        gap: 2px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        animation: tooltipFadeIn 0.15s ease-out;
+        pointer-events: auto;
+    }
+    .share-tooltip::after {
+        content: '';
+        position: absolute;
+        bottom: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0; height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid #1a1a1a;
+    }
+    .share-tooltip button,
+    .share-tooltip a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        border: none;
+        background: transparent;
+        color: white;
+        cursor: pointer;
+        transition: background 0.15s;
+        text-decoration: none;
+    }
+    .share-tooltip button:hover,
+    .share-tooltip a:hover {
+        background: rgba(255,255,255,0.15);
+    }
+    @keyframes tooltipFadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<article class="max-w-3xl mx-auto px-4 py-8 md:py-16 pb-32">
+
+    <!-- Back -->
+    <a href="{% url 'core:blog_list' %}" class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-burgundy-500 transition-colors mb-8">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+        </svg>
+        {% trans "Back to Blog" %}
+    </a>
+
+    <!-- Header -->
+    <header class="mb-8 md:mb-12">
+        <h1 class="font-display text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-gray-900 dark:text-white mb-4 leading-[1.2] tracking-tight">
+            {% if LANGUAGE_CODE == 'fr' and article.title_fr %}
+                {{ article.title_fr }}
+            {% else %}
+                {{ article.title }}
+            {% endif %}
+        </h1>
+
+        {% if LANGUAGE_CODE == 'fr' and article.subtitle_fr %}
+        <p class="article-subtitle text-xl md:text-2xl text-gray-500 dark:text-gray-400 leading-relaxed mb-6">
+            {{ article.subtitle_fr }}
+        </p>
+        {% elif article.subtitle %}
+        <p class="article-subtitle text-xl md:text-2xl text-gray-500 dark:text-gray-400 leading-relaxed mb-6">
+            {{ article.subtitle }}
+        </p>
+        {% endif %}
+
+        <!-- Author + Date row -->
+        <div class="flex items-center gap-3 pt-6 border-t border-gray-100 dark:border-gray-800">
+            {% if article.author.profile_picture %}
+            <img src="{{ article.author.profile_picture.url }}" alt="{{ article.author.get_display_name }}" class="w-11 h-11 rounded-full object-cover" width="44" height="44">
+            {% else %}
+            <div class="w-11 h-11 rounded-full bg-burgundy-500 flex items-center justify-center">
+                <span class="text-white text-sm font-semibold">{{ article.author.get_display_name|first|upper }}</span>
+            </div>
+            {% endif %}
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ article.author.get_display_name }}</p>
+                <div class="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                    <span>{{ article.created_at|date:"M j, Y" }}</span>
+                    {% if article.updated_at and article.updated_at != article.created_at %}
+                    <span>·</span>
+                    <span>{% trans "Updated" %} {{ article.updated_at|date:"M j, Y" }}</span>
+                    {% endif %}
+                    <span>·</span>
+                    <span>{{ article.reading_time }} {% trans "min read" %}</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Thumbnail -->
+    {% if article.thumbnail %}
+    <div class="mb-10 md:mb-14 rounded-2xl overflow-hidden">
+        <img src="{{ article.thumbnail.url }}"
+             alt="{{ article.title }}"
+             class="w-full h-auto max-h-[500px] object-cover"
+             width="800" height="450">
+    </div>
+    {% endif %}
+
+    <!-- Audio Player (unified with language toggle) -->
+    {% if article.french_audio or article.english_audio %}
+    <div class="mb-10 md:mb-14 bg-cream dark:bg-dark-100 rounded-2xl p-5 border border-gray-100 dark:border-gray-800">
+        <div class="flex items-center justify-between mb-4">
+            <p class="text-xs font-semibold tracking-widest uppercase text-burgundy-500 flex items-center gap-2">
+                {% trans "Listen to this article" %}
+            </p>
+
+            <!-- Language Toggle -->
+            {% if article.french_audio and article.english_audio %}
+            <div class="flex bg-gray-100 dark:bg-dark-50 rounded-full p-0.5">
+                <button onclick="switchAudioLang('fr')" id="audio-tab-fr" class="audio-tab px-4 py-1.5 rounded-full text-xs font-semibold transition-all active">
+                    Français
+                </button>
+                <button onclick="switchAudioLang('en')" id="audio-tab-en" class="audio-tab px-4 py-1.5 rounded-full text-xs font-semibold transition-all">
+                    English
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if article.french_audio %}
+        <div id="audio-player-fr" class="audio-player-wrapper">
+            <div class="wave-player" data-src="{{ article.french_audio.url }}">
+                <button class="wave-play-btn" type="button" aria-label="Play">
+                    <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    <svg class="pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+                </button>
+                <div class="wave-canvas-wrap"><canvas></canvas></div>
+                <span class="wave-time">0:00 / 0:00</span>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if article.english_audio %}
+        <div id="audio-player-en" class="audio-player-wrapper" style="display: {% if article.french_audio %}none{% else %}block{% endif %};">
+            <div class="wave-player" data-src="{{ article.english_audio.url }}">
+                <button class="wave-play-btn" type="button" aria-label="Play">
+                    <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    <svg class="pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+                </button>
+                <div class="wave-canvas-wrap"><canvas></canvas></div>
+                <span class="wave-time">0:00 / 0:00</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Article Content (selectable for sharing) -->
+    <div class="article-content mb-12 md:mb-16" id="article-body">
+        {% if LANGUAGE_CODE == 'fr' and article.content_fr %}
+            {{ article.content_fr|safe }}
+        {% else %}
+            {{ article.content|safe }}
+        {% endif %}
+    </div>
+
+    <!-- You May Also Like -->
+    {% if related_articles %}
+    <div class="border-t border-gray-100 dark:border-gray-800 pt-10 mb-16">
+        <h3 class="font-display text-2xl font-semibold text-gray-900 dark:text-white mb-6">{% trans "You May Also Like" %}</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for related in related_articles %}
+            <a href="{% url 'core:article_detail' slug=related.slug %}"
+               class="group bg-white dark:bg-dark-100 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 hover:border-burgundy-200 dark:hover:border-burgundy-700 transition-all">
+                <div class="aspect-[16/10] overflow-hidden bg-cream dark:bg-dark-50">
+                    {% if related.thumbnail %}
+                    <img src="{{ related.thumbnail.url }}" alt="{{ related.title }}"
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                         loading="lazy" width="300" height="188">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-burgundy-500/10 to-forest-500/10">
+                        <span class="text-3xl">📰</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="p-4">
+                    <p class="text-xs text-gray-400 mb-1">{{ related.created_at|date:"M j, Y" }}</p>
+                    <h4 class="font-display font-semibold text-gray-900 dark:text-white group-hover:text-burgundy-500 transition-colors line-clamp-2">
+                        {% if LANGUAGE_CODE == 'fr' and related.title_fr %}{{ related.title_fr }}{% else %}{{ related.title }}{% endif %}
+                    </h4>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</article>
+
+<!-- Sticky Action Bar -->
+<div class="sticky-action-bar" id="sticky-bar">
+    <div class="max-w-lg mx-auto px-4">
+        <div class="flex items-center justify-between py-3 px-5 bg-white/90 dark:bg-dark-100/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50">
+
+            <!-- Like Button -->
+            {% if user.is_authenticated %}
+            <button id="like-btn" onclick="likeArticle({{ article.id }})"
+                    class="flex items-center gap-2 group cursor-pointer">
+                <div id="like-icon" class="w-10 h-10 rounded-full bg-burgundy-50 dark:bg-burgundy-900/30 flex items-center justify-center group-hover:bg-burgundy-100 dark:group-hover:bg-burgundy-900/50 transition-all relative">
+                    <svg class="w-5 h-5 text-burgundy-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                    </svg>
+                </div>
+                <span id="like-count" class="text-sm font-bold text-gray-900 dark:text-white">{{ article.likes_count }}</span>
+            </button>
+            {% else %}
+            <a href="{% url 'account_login' %}?next={{ request.path }}" class="flex items-center gap-2 group">
+                <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-dark-50 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/>
+                    </svg>
+                </div>
+                <span class="text-sm font-bold text-gray-900 dark:text-white">{{ article.likes_count }}</span>
+            </a>
+            {% endif %}
+
+            <!-- Share Buttons -->
+            <div class="flex items-center gap-1.5">
+                <!-- WhatsApp -->
+                <a href="https://wa.me/?text={{ article.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}"
+                   target="_blank" rel="noopener"
+                   class="w-9 h-9 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors"
+                   title="WhatsApp">
+                    <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                </a>
+                <!-- X -->
+                <a href="https://twitter.com/intent/tweet?text={{ article.title|urlencode }}&url={{ request.build_absolute_uri|urlencode }}"
+                   target="_blank" rel="noopener"
+                   class="w-9 h-9 rounded-full bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
+                   title="X (Twitter)">
+                    <svg class="w-3.5 h-3.5 text-sky-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <!-- Facebook -->
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}"
+                   target="_blank" rel="noopener"
+                   class="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                   title="Facebook">
+                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                </a>
+                <!-- Copy Link -->
+                <button onclick="copyArticleLink()" id="copy-link-btn"
+                        class="w-9 h-9 rounded-full bg-gray-100 dark:bg-dark-50 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative"
+                        title="{% trans 'Copy Link' %}">
+                    <svg id="copy-icon" class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.874a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364L5.25 9.75"/>
+                    </svg>
+                    <svg id="check-icon" class="w-4 h-4 text-green-500 hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Text Selection Share Tooltip (hidden by default) -->
+<div id="share-tooltip" class="share-tooltip" style="display: none;">
+    <a id="sel-twitter" href="#" target="_blank" rel="noopener" title="X (Twitter)">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    </a>
+    <a id="sel-whatsapp" href="#" target="_blank" rel="noopener" title="WhatsApp">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    </a>
+    <button id="sel-copy" title="{% trans 'Copy' %}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/></svg>
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ─── Like article with animation ───
+function likeArticle(articleId) {
+    const countEl = document.getElementById('like-count');
+    const iconEl = document.getElementById('like-icon');
+
+    const currentCount = parseInt(countEl.textContent);
+    countEl.textContent = currentCount + 1;
+
+    // Pop animation
+    iconEl.classList.remove('like-animate');
+    void iconEl.offsetWidth;
+    iconEl.classList.add('like-animate');
+
+    // Floating heart particle
+    const particle = document.createElement('span');
+    particle.className = 'heart-particle';
+    particle.textContent = '❤️';
+    particle.style.left = '50%';
+    particle.style.top = '-8px';
+    particle.style.fontSize = '16px';
+    iconEl.appendChild(particle);
+    setTimeout(() => particle.remove(), 700);
+
+    fetch(`/api/blog/${articleId}/like/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(r => r.json())
+    .then(data => { if (data.success) countEl.textContent = data.likes; })
+    .catch(() => { countEl.textContent = currentCount; });
+}
+
+// ─── Copy link ───
+function copyArticleLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        document.getElementById('copy-icon').classList.add('hidden');
+        document.getElementById('check-icon').classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('copy-icon').classList.remove('hidden');
+            document.getElementById('check-icon').classList.add('hidden');
+        }, 2000);
+    });
+}
+
+// ─── Audio language switch ───
+function switchAudioLang(lang) {
+    // Pause all wave players
+    document.querySelectorAll('.wave-player').forEach(wp => {
+        if (wp._audio) wp._audio.pause();
+    });
+    document.querySelectorAll('.audio-player-wrapper').forEach(el => el.style.display = 'none');
+    const target = document.getElementById('audio-player-' + lang);
+    if (target) target.style.display = 'block';
+    document.querySelectorAll('.audio-tab').forEach(t => t.classList.remove('active'));
+    const tab = document.getElementById('audio-tab-' + lang);
+    if (tab) tab.classList.add('active');
+}
+
+// ─── Wave Player ───
+(function() {
+    const BURGUNDY = '#722F37';
+    const GRAY = '#d1d5db';
+    const DARK_GRAY = '#4b5563';
+
+    function fmt(s) {
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return m + ':' + (sec < 10 ? '0' : '') + sec;
+    }
+
+    document.querySelectorAll('.wave-player').forEach(function(player) {
+        const src = player.dataset.src;
+        const btn = player.querySelector('.wave-play-btn');
+        const playIcon = player.querySelector('.play-icon');
+        const pauseIcon = player.querySelector('.pause-icon');
+        const canvasWrap = player.querySelector('.wave-canvas-wrap');
+        const canvas = canvasWrap.querySelector('canvas');
+        const timeEl = player.querySelector('.wave-time');
+        const ctx = canvas.getContext('2d');
+
+        const audio = new Audio();
+        audio.preload = 'metadata';
+        audio.src = src;
+        player._audio = audio;
+
+        let isPlaying = false;
+        let progress = 0;
+        let wavePhase = 0;
+        let rafId = null;
+        let targetAmplitude = 0;
+        let currentAmplitude = 0;
+
+        function resize() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvasWrap.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        function draw() {
+            const w = canvasWrap.clientWidth;
+            const h = canvasWrap.clientHeight;
+            const mid = h / 2;
+
+            // Smooth amplitude transition
+            targetAmplitude = isPlaying ? 1 : 0;
+            currentAmplitude += (targetAmplitude - currentAmplitude) * 0.06;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const playedX = w * progress;
+            const lineWidth = 2.5;
+            const amplitude = 3 * currentAmplitude; // max wave height
+            const frequency = 0.25; // sine wave frequency
+
+            // ─ Played portion: sine wave line ─
+            ctx.beginPath();
+            ctx.moveTo(0, mid);
+            for (let x = 0; x <= playedX; x += 1) {
+                const y = mid + Math.sin(x * frequency + wavePhase) * amplitude;
+                ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = BURGUNDY;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.stroke();
+
+            // ─ Unplayed portion: flat line ─
+            if (playedX < w) {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                ctx.beginPath();
+                // Start from where the wave ended
+                const startY = playedX > 0
+                    ? mid + Math.sin(playedX * frequency + wavePhase) * amplitude
+                    : mid;
+                ctx.moveTo(playedX, startY);
+                // Quick lerp back to center over ~20px, then flat
+                const lerpEnd = Math.min(playedX + 20, w);
+                for (let x = playedX; x <= lerpEnd; x += 1) {
+                    const t = (x - playedX) / 20;
+                    const y = startY + (mid - startY) * t;
+                    ctx.lineTo(x, y);
+                }
+                ctx.lineTo(w, mid);
+                ctx.strokeStyle = isDark ? DARK_GRAY : GRAY;
+                ctx.lineWidth = lineWidth;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            }
+
+            // ─ Position dot ─
+            if (progress > 0 && progress < 1) {
+                const dotY = mid + Math.sin(playedX * frequency + wavePhase) * amplitude;
+                ctx.beginPath();
+                ctx.arc(playedX, dotY, 5, 0, Math.PI * 2);
+                ctx.fillStyle = BURGUNDY;
+                ctx.fill();
+                // White inner dot
+                ctx.beginPath();
+                ctx.arc(playedX, dotY, 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+            }
+
+            if (isPlaying) {
+                wavePhase += 0.1;
+            }
+
+            rafId = requestAnimationFrame(draw);
+        }
+
+        // Start render loop
+        draw();
+
+        // Play / Pause
+        btn.addEventListener('click', function() {
+            if (audio.paused) {
+                // Pause all other players first
+                document.querySelectorAll('.wave-player').forEach(wp => {
+                    if (wp !== player && wp._audio && !wp._audio.paused) {
+                        wp._audio.pause();
+                    }
+                });
+                audio.play();
+            } else {
+                audio.pause();
+            }
+        });
+
+        audio.addEventListener('play', function() {
+            isPlaying = true;
+            playIcon.style.display = 'none';
+            pauseIcon.style.display = 'block';
+            // Update other players' icons
+            document.querySelectorAll('.wave-player').forEach(wp => {
+                if (wp !== player && wp._audio && wp._audio.paused) {
+                    wp.querySelector('.play-icon').style.display = 'block';
+                    wp.querySelector('.pause-icon').style.display = 'none';
+                }
+            });
+        });
+
+        audio.addEventListener('pause', function() {
+            isPlaying = false;
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        });
+
+        audio.addEventListener('ended', function() {
+            isPlaying = false;
+            progress = 0;
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        });
+
+        audio.addEventListener('timeupdate', function() {
+            if (audio.duration) {
+                progress = audio.currentTime / audio.duration;
+                timeEl.textContent = fmt(audio.currentTime) + ' / ' + fmt(audio.duration);
+            }
+        });
+
+        audio.addEventListener('loadedmetadata', function() {
+            timeEl.textContent = '0:00 / ' + fmt(audio.duration);
+        });
+
+        // Seek on click
+        canvasWrap.addEventListener('click', function(e) {
+            if (audio.duration) {
+                const rect = canvasWrap.getBoundingClientRect();
+                const ratio = (e.clientX - rect.left) / rect.width;
+                audio.currentTime = ratio * audio.duration;
+                progress = ratio;
+            }
+        });
+    });
+})();
+
+// ─── Text Selection Share ───
+(function() {
+    const tooltip = document.getElementById('share-tooltip');
+    const articleBody = document.getElementById('article-body');
+    const articleUrl = window.location.href;
+    let selectedText = '';
+
+    function hideTooltip() {
+        tooltip.style.display = 'none';
+    }
+
+    function showTooltip(x, y, text) {
+        selectedText = text;
+        const quoteText = `"${text}"`;
+        const shareText = encodeURIComponent(quoteText + '\n\n— ' + document.title);
+
+        // Update share links
+        document.getElementById('sel-twitter').href =
+            `https://twitter.com/intent/tweet?text=${shareText}&url=${encodeURIComponent(articleUrl)}`;
+        document.getElementById('sel-whatsapp').href =
+            `https://wa.me/?text=${shareText}%20${encodeURIComponent(articleUrl)}`;
+
+        // Position tooltip above selection
+        const tooltipWidth = 110;
+        const left = Math.max(8, Math.min(x - tooltipWidth / 2, window.innerWidth - tooltipWidth - 8));
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = (y - 48 + window.scrollY) + 'px';
+        tooltip.style.display = 'flex';
+    }
+
+    // Listen for selection within article content
+    document.addEventListener('mouseup', function(e) {
+        setTimeout(() => {
+            const sel = window.getSelection();
+            const text = sel.toString().trim();
+            if (text.length > 3 && articleBody.contains(sel.anchorNode)) {
+                const range = sel.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                showTooltip(rect.left + rect.width / 2, rect.top, text);
+            } else if (!tooltip.contains(e.target)) {
+                hideTooltip();
+            }
+        }, 10);
+    });
+
+    // Touch support
+    document.addEventListener('touchend', function(e) {
+        setTimeout(() => {
+            const sel = window.getSelection();
+            const text = sel.toString().trim();
+            if (text.length > 3 && articleBody.contains(sel.anchorNode)) {
+                const range = sel.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                showTooltip(rect.left + rect.width / 2, rect.top, text);
+            }
+        }, 300);
+    });
+
+    // Copy selected text + link
+    document.getElementById('sel-copy').addEventListener('click', function() {
+        const copyText = `"${selectedText}"\n\n${articleUrl}`;
+        navigator.clipboard.writeText(copyText).then(() => {
+            this.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
+            setTimeout(() => {
+                this.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/></svg>';
+                hideTooltip();
+            }, 1500);
+        });
+    });
+
+    // Hide on scroll
+    document.addEventListener('scroll', hideTooltip);
+})();
+</script>
+{% endblock %}

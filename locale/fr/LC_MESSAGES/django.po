@@ -2019,3 +2019,86 @@ msgstr "Un"
 msgid "Product"
 msgstr "produit"
 
+#: Blog Section
+msgid "Blog"
+msgstr "Blog"
+
+msgid "Stories & Insights"
+msgstr "Histoires & Perspectives"
+
+msgid "Discover articles, updates, and stories from the Xanula community — African literature, author spotlights, and more."
+msgstr "Découvrez des articles, des mises à jour et des histoires de la communauté Xanula — littérature africaine, auteurs en vedette, et plus encore."
+
+msgid "Xanula Blog"
+msgstr "Blog Xanula"
+
+msgid "Stories, insights, and updates from the Xanula community."
+msgstr "Histoires, perspectives et mises à jour de la communauté Xanula."
+
+msgid "min read"
+msgstr "min de lecture"
+
+msgid "Audio"
+msgstr "Audio"
+
+msgid "Read"
+msgstr "Lire"
+
+msgid "No articles yet"
+msgstr "Pas encore d'articles"
+
+msgid "Check back soon — we're working on great content for you!"
+msgstr "Revenez bientôt — nous préparons du contenu passionnant pour vous !"
+
+msgid "Back to Blog"
+msgstr "Retour au Blog"
+
+msgid "Listen to this article"
+msgstr "Écouter cet article"
+
+msgid "Your browser does not support the audio element."
+msgstr "Votre navigateur ne prend pas en charge l'élément audio."
+
+msgid "likes"
+msgstr "j'aime"
+
+msgid "Copy Link"
+msgstr "Copier le lien"
+
+msgid "You May Also Like"
+msgstr "Vous aimerez aussi"
+
+#: Blog Email
+msgid "New Article"
+msgstr "Nouvel article"
+
+msgid "New Article Published!"
+msgstr "Nouvel article publié !"
+
+msgid "We just published something new for you on our blog."
+msgstr "Nous venons de publier un nouvel article sur notre blog."
+
+msgid "Audio available!"
+msgstr "Audio disponible !"
+
+msgid "Listen in French or English."
+msgstr "Écoutez en français ou en anglais."
+
+msgid "Listen in French."
+msgstr "Écoutez en français."
+
+msgid "Listen in English."
+msgstr "Écoutez en anglais."
+
+msgid "Read the Article"
+msgstr "Lire l'article"
+
+msgid "Discover stories, insights, and updates from the Xanula community."
+msgstr "Découvrez des histoires, perspectives et mises à jour de la communauté Xanula."
+
+msgid "Updated"
+msgstr "Mis à jour le"
+
+msgid "Copy"
+msgstr "Copier"
+

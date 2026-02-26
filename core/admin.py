@@ -842,3 +842,75 @@ class NotificationAdmin(admin.ModelAdmin):
         return obj.user.email
     user_display.short_description = _('User')
     user_display.admin_order_field = 'user__email'
+
+
+from .models import Article
+
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for Blog Articles.
+    CKEditor5 for content, triggers email notification on publish.
+    """
+    
+    list_display = (
+        'title',
+        'author',
+        'is_published',
+        'likes_count',
+        'created_at',
+        'updated_at',
+    )
+    
+    list_filter = ('is_published', 'created_at')
+    search_fields = ('title', 'subtitle', 'content')
+    readonly_fields = ('slug',)
+    
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'subtitle', 'slug', 'author', 'is_published')
+        }),
+        (_('Content'), {
+            'fields': ('content', 'thumbnail')
+        }),
+        (_('French Translation'), {
+            'fields': ('title_fr', 'subtitle_fr', 'content_fr'),
+            'description': _('French versions of title, subtitle, and content. Leave blank to use English.')
+        }),
+        (_('Audio'), {
+            'fields': ('french_audio', 'english_audio'),
+            'description': _('Upload audio versions of the article.')
+        }),
+        (_('Stats'), {
+            'fields': ('likes_count',),
+            'classes': ('collapse',)
+        }),
+        (_('Dates'), {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    ordering = ['-created_at']
+    
+    class Media:
+        js = ('js/admin_upload.js',)
+    
+    def save_model(self, request, obj, form, change):
+        """
+        On first publish, trigger non-blocking email notification to all users.
+        """
+        is_new = not change
+        super().save_model(request, obj, form, change)
+        
+        # Send notifications only on first creation when published
+        if is_new and obj.is_published:
+            from .tasks import notify_all_users_new_article
+            notify_all_users_new_article(obj)
+            self.message_user(
+                request,
+                f'Article "{obj.title}" published — notifications being sent in the background.',
+                messages.SUCCESS
+            )
+
