@@ -869,7 +869,7 @@ class ArticleAdmin(admin.ModelAdmin):
     
     fieldsets = (
         (None, {
-            'fields': ('title', 'subtitle', 'slug', 'author', 'is_published')
+            'fields': ('title', 'subtitle', 'slug', 'author', 'is_published', 'send_notifications')
         }),
         (_('Content'), {
             'fields': ('content', 'thumbnail')
@@ -899,18 +899,26 @@ class ArticleAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         """
-        On first publish, trigger non-blocking email notification to all users.
+        Send email & in-app notifications only when send_notifications is checked.
+        Auto-unchecks after sending to prevent re-sending on subsequent saves.
         """
-        is_new = not change
+        should_notify = obj.is_published and obj.send_notifications
         super().save_model(request, obj, form, change)
         
-        # Send notifications only on first creation when published
-        if is_new and obj.is_published:
+        if should_notify:
             from .tasks import notify_all_users_new_article
             notify_all_users_new_article(obj)
+            # Auto-uncheck to prevent re-sending
+            Article.objects.filter(pk=obj.pk).update(send_notifications=False)
             self.message_user(
                 request,
                 f'Article "{obj.title}" published — notifications being sent in the background.',
                 messages.SUCCESS
+            )
+        elif obj.is_published:
+            self.message_user(
+                request,
+                f'Article "{obj.title}" published silently (no notifications sent).',
+                messages.INFO
             )
 

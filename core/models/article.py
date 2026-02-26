@@ -58,6 +58,10 @@ class Article(models.Model):
         related_name='articles'
     )
     is_published = models.BooleanField(default=False)
+    send_notifications = models.BooleanField(
+        default=False,
+        help_text="Check this to send email & in-app notifications when publishing. Uncheck to publish silently."
+    )
     
     # Timestamps
     created_at = models.DateTimeField(default=timezone.now)
