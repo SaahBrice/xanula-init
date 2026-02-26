@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "theme",  # Tailwind theme app
     "pwa",
     "django_q",
+    "django_ckeditor_5",
 
     # Local apps
     "core",
@@ -522,4 +523,53 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='reepls.project@gmail.
 # EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 # EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 # EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+
+# =============================================================================
+# CKEDITOR 5 CONFIGURATION
+# =============================================================================
+
+customColorPalette = [
+    {'color': 'hsl(4, 90%, 58%)', 'label': 'Red'},
+    {'color': 'hsl(340, 82%, 52%)', 'label': 'Pink'},
+    {'color': 'hsl(291, 64%, 42%)', 'label': 'Purple'},
+    {'color': 'hsl(262, 52%, 47%)', 'label': 'Deep Purple'},
+    {'color': 'hsl(231, 48%, 48%)', 'label': 'Indigo'},
+    {'color': 'hsl(207, 90%, 54%)', 'label': 'Blue'},
+    {'color': '#722F37', 'label': 'Burgundy'},
+    {'color': '#2D4739', 'label': 'Forest'},
+]
+
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', 'strikethrough', '|',
+            'fontSize', 'fontColor', '|',
+            'bulletedList', 'numberedList', 'blockQuote', '|',
+            'link', 'insertImage', 'mediaEmbed', '|',
+            'undo', 'redo',
+        ],
+        'image': {
+            'toolbar': [
+                'imageTextAlternative', 'imageStyle:alignLeft',
+                'imageStyle:alignRight', 'imageStyle:alignCenter',
+                'imageStyle:side',
+            ],
+        },
+        'table': {
+            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells'],
+        },
+        'heading': {
+            'options': [
+                {'model': 'paragraph', 'title': 'Paragraph', 'class': 'ck-heading_paragraph'},
+                {'model': 'heading2', 'view': 'h2', 'title': 'Heading 2', 'class': 'ck-heading_heading2'},
+                {'model': 'heading3', 'view': 'h3', 'title': 'Heading 3', 'class': 'ck-heading_heading3'},
+                {'model': 'heading4', 'view': 'h4', 'title': 'Heading 4', 'class': 'ck-heading_heading4'},
+            ]
+        },
+    },
+}
+
+CKEDITOR_5_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 

@@ -661,12 +661,12 @@ def notify_author_new_review(review_id):
     """Notify author when they receive a new review."""
     from core.models import Review
     try:
-        review = Review.objects.select_related('book', 'book__author', 'reviewer').get(id=review_id)
+        review = Review.objects.select_related('book', 'book__author', 'user').get(id=review_id)
         book = review.book
         author = book.author
         
         # Don't notify if author reviews their own book
-        if review.reviewer == author:
+        if review.user == author:
             return
         
         stars = "⭐" * review.rating
@@ -679,9 +679,9 @@ def notify_author_new_review(review_id):
             icon="⭐",
             book=book,
             details={
-                "Reviewer": review.reviewer.get_display_name(),
+                "Reviewer": review.user.get_display_name(),
                 "Rating": stars,
-                "Comment": (review.content[:100] + "...") if len(review.content) > 100 else review.content,
+                "Comment": (review.review_text[:100] + "...") if len(review.review_text) > 100 else review.review_text,
             },
             cta_url=f"{settings.SITE_URL}/books/{book.slug}/",
             cta_text="View Review"
