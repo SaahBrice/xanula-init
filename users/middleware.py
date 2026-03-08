@@ -19,7 +19,7 @@ class UserLanguageMiddleware:
                 request.LANGUAGE_CODE = preferred
                 # Persist in session so LocaleMiddleware picks it up next time
                 if hasattr(request, 'session'):
-                    request.session[translation.LANGUAGE_SESSION_KEY] = preferred
+                    request.session['_language'] = preferred
 
         response = self.get_response(request)
         return response

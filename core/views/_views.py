@@ -2023,7 +2023,7 @@ def user_settings(request):
             # Activate immediately in session
             from django.utils import translation
             translation.activate(lang)
-            request.session[translation.LANGUAGE_SESSION_KEY] = lang
+            request.session['_language'] = lang
         
         # Handle profile picture
         if 'profile_picture' in request.FILES:
@@ -2073,7 +2073,7 @@ def complete_onboarding(request):
     
     # Activate language in session
     translation.activate(lang)
-    request.session[translation.LANGUAGE_SESSION_KEY] = lang
+    request.session['_language'] = lang
     
     return JsonResponse({'success': True})
 

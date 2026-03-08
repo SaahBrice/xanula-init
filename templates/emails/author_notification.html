@@ -4,31 +4,32 @@
 {% block title %}{{ title }} - Xanula{% endblock %}
 
 {% block content %}
-<div style="text-align: center; margin-bottom: 24px;">
+<div style="text-align: center; margin-bottom: 30px;">
     <span style="font-size: 48px;">{{ icon|default:"📚" }}</span>
 </div>
 
-<h1 style="text-align: center; color: #2D4739;">{{ title }}</h1>
+<h1 style="text-align: center; font-family: Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 500; color: #2D4739; margin: 0 0 12px;">{{ title }}</h1>
 
-<p style="font-size: 16px; color: #333; text-align: center; margin-bottom: 24px;">
+<p style="font-size: 16px; color: #2a2a2a; text-align: center; margin: 0 0 32px; line-height: 1.8; font-family: Georgia, 'Times New Roman', serif;">
     {{ message }}
 </p>
 
 {% if book %}
-<div class="book-card">
+<!-- Book Card -->
+<div style="background: #faf8f5; padding: 24px; margin: 0 0 32px; border: 1px solid rgba(114, 47, 55, 0.12);">
     <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
             {% if book.cover_image %}
             <td width="100" style="vertical-align: top;">
-                <img src="{{ site_url }}{{ book.cover_image.url }}" alt="{{ book.title }}" 
-                     style="width: 80px; height: 120px; border-radius: 8px; object-fit: cover;">
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" 
+                     style="width: 80px; height: 120px; border-radius: 4px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             </td>
             {% endif %}
             <td style="vertical-align: top; padding-left: 16px;">
-                <p class="book-title">{{ book.title }}</p>
-                <p class="book-author">{% trans "by" %} {{ book.author.get_display_name }}</p>
+                <p style="font-family: Georgia, 'Times New Roman', serif; color: #2a2a2a; font-size: 18px; margin: 0 0 4px; font-weight: 600;">{{ book.title }}</p>
+                <p style="color: #5a5a5a; font-size: 14px; margin: 0; font-family: Georgia, 'Times New Roman', serif;">{% trans "by" %} {{ book.author.get_display_name }}</p>
                 {% if book.formatted_price %}
-                <p class="book-price">{{ book.formatted_price }}</p>
+                <p style="color: #722F37; font-weight: 700; font-size: 16px; margin: 8px 0 0; font-family: Georgia, 'Times New Roman', serif;">{{ book.formatted_price }}</p>
                 {% endif %}
             </td>
         </tr>
@@ -37,24 +38,36 @@
 {% endif %}
 
 {% if details %}
-<div class="info-box success" style="margin-top: 24px;">
+<!-- Details -->
+<div style="background: #faf8f5; border-left: 4px solid #2D4739; padding: 20px 24px; margin: 0 0 32px;">
     {% for key, value in details.items %}
-    <div style="display: flex; justify-content: space-between; padding: 8px 0; {% if not forloop.last %}border-bottom: 1px solid rgba(45, 71, 57, 0.2);{% endif %}">
-        <span style="color: #666; font-size: 14px;">{{ key }}</span>
-        <span style="color: #2D4739; font-size: 14px; font-weight: 600;">{{ value }}</span>
-    </div>
+    <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td style="padding: 8px 0; {% if not forloop.last %}border-bottom: 1px solid rgba(45, 71, 57, 0.15);{% endif %}">
+                <span style="color: #5a5a5a; font-size: 14px; font-family: Georgia, 'Times New Roman', serif;">{{ key }}</span>
+            </td>
+            <td style="padding: 8px 0; text-align: right; {% if not forloop.last %}border-bottom: 1px solid rgba(45, 71, 57, 0.15);{% endif %}">
+                <span style="color: #2D4739; font-size: 14px; font-weight: 600; font-family: Georgia, 'Times New Roman', serif;">{{ value }}</span>
+            </td>
+        </tr>
+    </table>
     {% endfor %}
 </div>
 {% endif %}
 
 {% if cta_url and cta_text %}
-<div style="text-align: center; margin-top: 32px;">
-    <a href="{{ cta_url }}" class="btn btn-secondary">{{ cta_text }}</a>
+<div style="text-align: center; margin: 32px 0 16px;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+        <tr>
+            <td style="background-color: #2D4739;">
+                <a href="{{ cta_url }}" style="display: inline-block; padding: 16px 45px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; color: #ffffff; text-decoration: none;">{{ cta_text }}</a>
+            </td>
+        </tr>
+    </table>
 </div>
 {% endif %}
 
-<p style="color: #888; font-size: 12px; text-align: center; margin-top: 32px;">
-    {% trans "This is an automated notification from Xanula." %}<br>
-    {% trans "You can manage your notification preferences in Settings." %}
+<p style="color: #5a5a5a; font-size: 12px; text-align: center; margin-top: 24px; font-family: 'Segoe UI', Arial, sans-serif;">
+    {% trans "This is an automated notification from Xanula." %}
 </p>
 {% endblock %}

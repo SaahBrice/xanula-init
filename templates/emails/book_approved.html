@@ -5,61 +5,79 @@
 
 {% block content %}
 <!-- Success Icon -->
-<div style="text-align: center; margin-bottom: 24px;">
-    <div style="width: 64px; height: 64px; background: rgba(45, 71, 57, 0.1); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
-        <span style="font-size: 32px;">🎉</span>
+<div style="text-align: center; margin-bottom: 30px;">
+    <div style="width: 72px; height: 72px; background: rgba(45, 71, 57, 0.08); border-radius: 50%; display: inline-block; line-height: 72px;">
+        <span style="font-size: 36px;">🎉</span>
     </div>
 </div>
 
-<h1 style="text-align: center;">{% trans "Congratulations!" %}</h1>
-<p style="text-align: center; color: #666666;">{% trans "Your book has been approved and is now live on Xanula." %}</p>
+<h1 style="text-align: center; font-family: Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 500; color: #2a2a2a; margin: 0 0 8px;">{% trans "Congratulations!" %}</h1>
+<p style="text-align: center; color: #5a5a5a; font-size: 16px; margin: 0 0 32px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Your book has been approved and is now live on Xanula." %}</p>
 
 <!-- Book Card -->
-<div class="book-card">
+<div style="background: #faf8f5; padding: 24px; margin: 0 0 32px; border: 1px solid rgba(114, 47, 55, 0.12);">
     <table cellpadding="0" cellspacing="0" width="100%">
         <tr>
             <td style="vertical-align: top; padding-right: 20px; width: 80px;">
                 {% if book.cover_image %}
-                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="width: 80px; height: 120px; border-radius: 4px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                 {% else %}
-                <div style="width: 80px; height: 120px; background: linear-gradient(135deg, #8B2635, #2D4739); border-radius: 8px;"></div>
+                <div style="width: 80px; height: 120px; background: linear-gradient(135deg, #722F37, #2D4739); border-radius: 4px;"></div>
                 {% endif %}
             </td>
             <td style="vertical-align: top;">
-                <h3 class="book-title">{{ book.title }}</h3>
-                <p class="book-author">{% trans "by" %} {{ book.author.get_display_name }}</p>
-                <p class="book-price">{{ book.formatted_price }}</p>
-                <div style="margin-top: 8px;">
-                    <span class="badge badge-success">✓ {% trans "Live" %}</span>
-                </div>
+                <p style="font-family: Georgia, 'Times New Roman', serif; color: #2a2a2a; font-size: 18px; margin: 0 0 4px; font-weight: 600;">{{ book.title }}</p>
+                <p style="color: #5a5a5a; font-size: 14px; margin: 0 0 8px; font-family: Georgia, 'Times New Roman', serif;">{% trans "by" %} {{ book.author.get_display_name }}</p>
+                <p style="color: #722F37; font-weight: 700; font-size: 16px; margin: 0 0 8px; font-family: Georgia, 'Times New Roman', serif;">{{ book.formatted_price }}</p>
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="background: rgba(45, 71, 57, 0.08); padding: 4px 12px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 600; color: #2D4739;">✓ {% trans "Live" %}</td>
+                    </tr>
+                </table>
             </td>
         </tr>
     </table>
 </div>
 
-<div class="info-box success">
-    <strong>{% trans "What happens next?" %}</strong>
-    <ul style="margin: 8px 0 0 0; padding-left: 20px; color: #555555;">
-        <li>{% trans "Your book is now discoverable by readers" %}</li>
-        <li>{% trans "Audiobook generation has begun automatically" %}</li>
-        <li>{% trans "You'll earn 70% of each sale" %}</li>
-        <li>{% trans "Track your sales in the Author Dashboard" %}</li>
-    </ul>
+<!-- What happens next -->
+<div style="background: #faf8f5; border-left: 4px solid #2D4739; padding: 20px 24px; margin: 0 0 32px;">
+    <p style="margin: 0 0 10px; font-family: Georgia, 'Times New Roman', serif; font-size: 16px; font-weight: 600; color: #2D4739;">{% trans "What happens next?" %}</p>
+    <table cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td style="padding: 6px 0; font-size: 15px; color: #2a2a2a; font-family: Georgia, 'Times New Roman', serif;">• {% trans "Your book is now discoverable by readers" %}</td>
+        </tr>
+        <tr>
+            <td style="padding: 6px 0; font-size: 15px; color: #2a2a2a; font-family: Georgia, 'Times New Roman', serif;">• {% trans "Audiobook generation has begun automatically" %}</td>
+        </tr>
+        <tr>
+            <td style="padding: 6px 0; font-size: 15px; color: #2a2a2a; font-family: Georgia, 'Times New Roman', serif;">• {% trans "You'll earn commission on each sale" %}</td>
+        </tr>
+        <tr>
+            <td style="padding: 6px 0; font-size: 15px; color: #2a2a2a; font-family: Georgia, 'Times New Roman', serif;">• {% trans "Track your sales in the Author Dashboard" %}</td>
+        </tr>
+    </table>
 </div>
 
 <!-- CTA Buttons -->
-<div style="text-align: center; margin-top: 32px;">
-    <a href="{{ site_url|default:'https://xanula.com' }}/books/{{ book.slug }}/" class="btn" style="margin-right: 12px;">
-        {% trans "View Your Book" %}
-    </a>
-    <a href="{{ site_url|default:'https://xanula.com' }}/my-books/" class="btn btn-secondary">
-        {% trans "Author Dashboard" %}
-    </a>
+<div style="text-align: center; margin: 32px 0 16px;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+        <tr>
+            <td style="background-color: #722F37;">
+                <a href="{{ site_url|default:'https://xanula.reepls.com' }}/books/{{ book.slug }}/" style="display: inline-block; padding: 16px 40px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; color: #ffffff; text-decoration: none;">
+                    {% trans "View Your Book" %}
+                </a>
+            </td>
+            <td style="width: 12px;"></td>
+            <td style="background-color: #2D4739;">
+                <a href="{{ site_url|default:'https://xanula.reepls.com' }}/my-books/" style="display: inline-block; padding: 16px 40px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; color: #ffffff; text-decoration: none;">
+                    {% trans "Author Dashboard" %}
+                </a>
+            </td>
+        </tr>
+    </table>
 </div>
 
-<div class="divider"></div>
-
-<p style="font-size: 13px; color: #888888; text-align: center;">
+<p style="font-size: 14px; color: #5a5a5a; text-align: center; margin-top: 24px; font-family: Georgia, 'Times New Roman', serif; font-style: italic;">
     {% trans "Share your book on social media to reach more readers!" %}
 </p>
 {% endblock %}

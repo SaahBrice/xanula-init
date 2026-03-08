@@ -43,7 +43,7 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('email', 'password')
         }),
         (_('Personal info'), {
-            'fields': ('display_name', 'bio', 'profile_picture')
+            'fields': ('first_name', 'last_name', 'display_name', 'preferred_language', 'bio', 'profile_picture')
         }),
         (_('Balance & Referral'), {
             'fields': ('earnings_balance', 'referral_code'),

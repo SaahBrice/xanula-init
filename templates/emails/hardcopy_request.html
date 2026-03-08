@@ -4,96 +4,112 @@
 {% block title %}{% trans "Hard Copy Request" %} - Xanula{% endblock %}
 
 {% block content %}
-<h1>{% trans "New Hard Copy Request" %}</h1>
+<div style="text-align: center; margin-bottom: 30px;">
+    <div style="width: 72px; height: 72px; background: rgba(201, 166, 107, 0.15); border-radius: 50%; display: inline-block; line-height: 72px;">
+        <span style="font-size: 36px;">📦</span>
+    </div>
+</div>
 
-<p>{% trans "A reader has requested a printed copy of a book." %}</p>
+<h1 style="text-align: center; font-family: Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 500; color: #2a2a2a; margin: 0 0 8px;">{% trans "New Hard Copy Request" %}</h1>
+<p style="text-align: center; color: #5a5a5a; font-size: 16px; margin: 0 0 32px; font-family: Georgia, 'Times New Roman', serif;">{% trans "A reader has requested a printed copy of a book." %}</p>
 
-<!-- Request Details -->
-<div class="book-card">
+<!-- Book Card -->
+<div style="background: #faf8f5; padding: 24px; margin: 0 0 32px; border: 1px solid rgba(114, 47, 55, 0.12);">
     <table cellpadding="0" cellspacing="0" width="100%">
         <tr>
             <td style="vertical-align: top; padding-right: 20px; width: 80px;">
                 {% if request.book.cover_image %}
-                <img src="{{ request.book.cover_image.url }}" alt="{{ request.book.title }}" class="book-cover">
+                <img src="{{ request.book.cover_image.url }}" alt="{{ request.book.title }}" style="width: 80px; height: 120px; border-radius: 4px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                 {% else %}
-                <div style="width: 80px; height: 120px; background: linear-gradient(135deg, #8B2635, #2D4739); border-radius: 8px;"></div>
+                <div style="width: 80px; height: 120px; background: linear-gradient(135deg, #722F37, #2D4739); border-radius: 4px;"></div>
                 {% endif %}
             </td>
             <td style="vertical-align: top;">
-                <h3 class="book-title">{{ request.book.title }}</h3>
-                <p class="book-author">{% trans "by" %} {{ request.book.author.get_display_name }}</p>
-                <div style="margin-top: 8px;">
-                    <span class="badge badge-pending">📦 {% trans "Hard Copy Request" %}</span>
-                </div>
+                <p style="font-family: Georgia, 'Times New Roman', serif; color: #2a2a2a; font-size: 18px; margin: 0 0 4px; font-weight: 600;">{{ request.book.title }}</p>
+                <p style="color: #5a5a5a; font-size: 14px; margin: 0 0 8px; font-family: Georgia, 'Times New Roman', serif;">{% trans "by" %} {{ request.book.author.get_display_name }}</p>
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="background: rgba(201, 166, 107, 0.15); padding: 4px 12px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 600; color: #8a6d3b;">📦 {% trans "Hard Copy Request" %}</td>
+                    </tr>
+                </table>
             </td>
         </tr>
     </table>
 </div>
 
-<h2>{% trans "Customer Information" %}</h2>
+<!-- Customer Information -->
+<p style="margin: 0 0 12px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #722F37;">
+    {% trans "Customer Information" %}
+</p>
 
-<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 32px;">
     <tr>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC; width: 140px;">
-            <span style="color: #666666; font-size: 14px;">{% trans "Name" %}</span>
+        <td style="padding: 12px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1); width: 120px;">
+            <span style="color: #5a5a5a; font-size: 14px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Name" %}</span>
         </td>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #1a1a1a; font-size: 14px; font-weight: 600;">{{ request.full_name }}</span>
+        <td style="padding: 12px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1);">
+            <span style="color: #2a2a2a; font-size: 14px; font-weight: 600; font-family: Georgia, 'Times New Roman', serif;">{{ request.full_name }}</span>
         </td>
     </tr>
     <tr>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #666666; font-size: 14px;">{% trans "Email" %}</span>
+        <td style="padding: 12px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1);">
+            <span style="color: #5a5a5a; font-size: 14px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Email" %}</span>
         </td>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <a href="mailto:{{ request.email }}" style="color: #8B2635;">{{ request.email }}</a>
-        </td>
-    </tr>
-    <tr>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #666666; font-size: 14px;">{% trans "Phone" %}</span>
-        </td>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #1a1a1a; font-size: 14px;">{{ request.phone_number }}</span>
+        <td style="padding: 12px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1);">
+            <a href="mailto:{{ request.email }}" style="color: #722F37; font-size: 14px; font-family: Georgia, 'Times New Roman', serif;">{{ request.email }}</a>
         </td>
     </tr>
     <tr>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC; vertical-align: top;">
-            <span style="color: #666666; font-size: 14px;">{% trans "Address" %}</span>
+        <td style="padding: 12px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1);">
+            <span style="color: #5a5a5a; font-size: 14px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Phone" %}</span>
         </td>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #1a1a1a; font-size: 14px;">{{ request.delivery_address }}</span>
+        <td style="padding: 12px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1);">
+            <span style="color: #2a2a2a; font-size: 14px; font-family: Georgia, 'Times New Roman', serif;">{{ request.phone_number }}</span>
         </td>
     </tr>
     <tr>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #666666; font-size: 14px;">{% trans "City" %}</span>
+        <td style="padding: 12px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1); vertical-align: top;">
+            <span style="color: #5a5a5a; font-size: 14px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Address" %}</span>
         </td>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #1a1a1a; font-size: 14px;">{{ request.city }}</span>
+        <td style="padding: 12px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1);">
+            <span style="color: #2a2a2a; font-size: 14px; font-family: Georgia, 'Times New Roman', serif;">{{ request.delivery_address }}</span>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 12px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1);">
+            <span style="color: #5a5a5a; font-size: 14px; font-family: Georgia, 'Times New Roman', serif;">{% trans "City" %}</span>
+        </td>
+        <td style="padding: 12px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1);">
+            <span style="color: #2a2a2a; font-size: 14px; font-family: Georgia, 'Times New Roman', serif;">{{ request.city }}</span>
         </td>
     </tr>
     <tr>
         <td style="padding: 12px 0;">
-            <span style="color: #666666; font-size: 14px;">{% trans "Copies" %}</span>
+            <span style="color: #5a5a5a; font-size: 14px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Copies" %}</span>
         </td>
         <td style="padding: 12px 0;">
-            <span style="color: #8B2635; font-size: 18px; font-weight: bold;">{{ request.quantity }}</span>
+            <span style="color: #722F37; font-size: 20px; font-weight: 700; font-family: Georgia, 'Times New Roman', serif;">{{ request.quantity }}</span>
         </td>
     </tr>
 </table>
 
 {% if request.notes %}
-<div class="info-box">
-    <strong>{% trans "Additional Notes:" %}</strong>
-    <p style="margin: 8px 0 0 0; color: #555555;">{{ request.notes }}</p>
+<div style="background: #faf8f5; border-left: 4px solid #c9a66b; padding: 20px 24px; margin: 0 0 32px;">
+    <p style="margin: 0 0 8px; font-family: Georgia, 'Times New Roman', serif; font-size: 16px; font-weight: 600; color: #8a6d3b;">{% trans "Additional Notes:" %}</p>
+    <p style="margin: 0; color: #2a2a2a; font-size: 15px; line-height: 1.8; font-family: Georgia, 'Times New Roman', serif;">{{ request.notes }}</p>
 </div>
 {% endif %}
 
 <!-- CTA -->
-<div style="text-align: center; margin-top: 32px;">
-    <a href="{{ site_url|default:'https://xanula.com' }}/admin/core/hardcopyrequest/" class="btn">
-        {% trans "View in Admin" %}
-    </a>
+<div style="text-align: center; margin: 32px 0 16px;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+        <tr>
+            <td style="background-color: #722F37;">
+                <a href="{{ site_url|default:'https://xanula.reepls.com' }}/admin/core/hardcopyrequest/" style="display: inline-block; padding: 16px 45px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; color: #ffffff; text-decoration: none;">
+                    {% trans "View in Admin" %}
+                </a>
+            </td>
+        </tr>
+    </table>
 </div>
 {% endblock %}

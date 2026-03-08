@@ -4,41 +4,40 @@
 {% block title %}{% trans "Payout Status Update" %} - Xanula{% endblock %}
 
 {% block content %}
-<h1 style="text-align: center;">{% trans "Payout Status Update" %}</h1>
-
 {% if payout.status == 'completed' %}
 <!-- Success -->
-<div style="text-align: center; margin-bottom: 24px;">
-    <div style="width: 64px; height: 64px; background: rgba(45, 71, 57, 0.1); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
-        <span style="font-size: 32px;">💰</span>
+<div style="text-align: center; margin-bottom: 30px;">
+    <div style="width: 72px; height: 72px; background: rgba(45, 71, 57, 0.08); border-radius: 50%; display: inline-block; line-height: 72px;">
+        <span style="font-size: 36px;">💰</span>
     </div>
 </div>
-<p style="text-align: center; color: #2D4739; font-size: 18px; font-weight: bold;">{% trans "Payment Sent Successfully!" %}</p>
+<h1 style="text-align: center; font-family: Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 500; color: #2D4739; margin: 0 0 8px;">{% trans "Payment Sent Successfully!" %}</h1>
+<p style="text-align: center; color: #5a5a5a; font-size: 16px; margin: 0 0 32px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Your payout has been processed and sent to your account." %}</p>
 
-<div class="info-box success">
+<div style="background: #faf8f5; border-left: 4px solid #2D4739; padding: 20px 24px; margin: 0 0 32px;">
     <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-            <td style="padding: 8px 0;">
-                <span style="color: #666666;">{% trans "Amount" %}</span>
+            <td style="padding: 10px 0; border-bottom: 1px solid rgba(45, 71, 57, 0.15);">
+                <span style="color: #5a5a5a; font-size: 15px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Amount" %}</span>
             </td>
-            <td style="text-align: right;">
-                <span style="color: #2D4739; font-size: 20px; font-weight: bold;">{{ payout.amount|floatformat:0 }} XAF</span>
-            </td>
-        </tr>
-        <tr>
-            <td style="padding: 8px 0;">
-                <span style="color: #666666;">{% trans "Payment Method" %}</span>
-            </td>
-            <td style="text-align: right;">
-                <span style="color: #1a1a1a;">{{ payout.get_payment_method_display }}</span>
+            <td style="text-align: right; padding: 10px 0; border-bottom: 1px solid rgba(45, 71, 57, 0.15);">
+                <span style="color: #2D4739; font-size: 22px; font-weight: 700; font-family: Georgia, 'Times New Roman', serif;">{{ payout.amount|floatformat:0 }} XAF</span>
             </td>
         </tr>
         <tr>
-            <td style="padding: 8px 0;">
-                <span style="color: #666666;">{% trans "Reference" %}</span>
+            <td style="padding: 10px 0; border-bottom: 1px solid rgba(45, 71, 57, 0.15);">
+                <span style="color: #5a5a5a; font-size: 15px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Payment Method" %}</span>
             </td>
-            <td style="text-align: right;">
-                <span style="color: #1a1a1a; font-family: monospace; font-size: 12px;">{{ payout.transaction_reference|default:"N/A" }}</span>
+            <td style="text-align: right; padding: 10px 0; border-bottom: 1px solid rgba(45, 71, 57, 0.15);">
+                <span style="color: #2a2a2a; font-size: 15px; font-family: Georgia, 'Times New Roman', serif;">{{ payout.get_payment_method_display }}</span>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 10px 0;">
+                <span style="color: #5a5a5a; font-size: 15px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Reference" %}</span>
+            </td>
+            <td style="text-align: right; padding: 10px 0;">
+                <span style="color: #2a2a2a; font-size: 13px; font-family: 'Segoe UI', monospace;">{{ payout.transaction_reference|default:"N/A" }}</span>
             </td>
         </tr>
     </table>
@@ -46,50 +45,54 @@
 
 {% elif payout.status == 'processing' %}
 <!-- Processing -->
-<div style="text-align: center; margin-bottom: 24px;">
-    <div style="width: 64px; height: 64px; background: rgba(212, 165, 116, 0.2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
-        <span style="font-size: 32px;">⏳</span>
+<div style="text-align: center; margin-bottom: 30px;">
+    <div style="width: 72px; height: 72px; background: rgba(201, 166, 107, 0.15); border-radius: 50%; display: inline-block; line-height: 72px;">
+        <span style="font-size: 36px;">⏳</span>
     </div>
 </div>
-<p style="text-align: center; color: #B8864C; font-size: 18px; font-weight: bold;">{% trans "Payout is Being Processed" %}</p>
+<h1 style="text-align: center; font-family: Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 500; color: #8a6d3b; margin: 0 0 8px;">{% trans "Payout is Being Processed" %}</h1>
 
-<div class="info-box warning">
-    <p style="margin: 0; color: #555555;">
-        {% blocktrans with amount=payout.amount|floatformat:0 %}We're processing your payout of <strong>{{ amount }} XAF</strong>. This typically takes 1-3 business days.{% endblocktrans %}
+<div style="background: #faf8f5; border-left: 4px solid #c9a66b; padding: 20px 24px; margin: 24px 0 32px;">
+    <p style="margin: 0; color: #2a2a2a; font-size: 16px; line-height: 1.8; font-family: Georgia, 'Times New Roman', serif;">
+        {% blocktrans with amount=payout.amount|floatformat:0 %}We're processing your payout of <strong style="color: #722F37;">{{ amount }} XAF</strong>. This typically takes 1-3 business days.{% endblocktrans %}
     </p>
 </div>
 
 {% else %}
 <!-- Failed/Rejected -->
-<div style="text-align: center; margin-bottom: 24px;">
-    <div style="width: 64px; height: 64px; background: rgba(139, 38, 53, 0.1); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
-        <span style="font-size: 32px;">⚠️</span>
+<div style="text-align: center; margin-bottom: 30px;">
+    <div style="width: 72px; height: 72px; background: rgba(139, 38, 53, 0.08); border-radius: 50%; display: inline-block; line-height: 72px;">
+        <span style="font-size: 36px;">⚠️</span>
     </div>
 </div>
-<p style="text-align: center; color: #8B2635; font-size: 18px; font-weight: bold;">{% trans "Payout Issue" %}</p>
+<h1 style="text-align: center; font-family: Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 500; color: #722F37; margin: 0 0 8px;">{% trans "Payout Issue" %}</h1>
 
-<div class="info-box">
-    <p style="margin: 0; color: #555555;">
+<div style="background: #faf8f5; border-left: 4px solid #722F37; padding: 20px 24px; margin: 24px 0 32px;">
+    <p style="margin: 0; color: #2a2a2a; font-size: 16px; line-height: 1.8; font-family: Georgia, 'Times New Roman', serif;">
         {% trans "There was an issue with your payout request. Please verify your payment details and try again." %}
     </p>
     {% if payout.notes %}
-    <p style="margin: 12px 0 0 0; color: #555555;">
-        <strong>{% trans "Details:" %}</strong> {{ payout.notes }}
+    <p style="margin: 12px 0 0 0; color: #2a2a2a; font-size: 15px; line-height: 1.8; font-family: Georgia, 'Times New Roman', serif;">
+        <strong style="color: #722F37;">{% trans "Details:" %}</strong> {{ payout.notes }}
     </p>
     {% endif %}
 </div>
 {% endif %}
 
 <!-- CTA -->
-<div style="text-align: center; margin-top: 32px;">
-    <a href="{{ site_url|default:'https://xanula.com' }}/my-books/payout/" class="btn">
-        {% trans "View Payout History" %}
-    </a>
+<div style="text-align: center; margin: 32px 0 16px;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+        <tr>
+            <td style="background-color: #722F37;">
+                <a href="{{ site_url|default:'https://xanula.reepls.com' }}/my-books/payout/" style="display: inline-block; padding: 16px 45px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; color: #ffffff; text-decoration: none;">
+                    {% trans "View Payout History" %}
+                </a>
+            </td>
+        </tr>
+    </table>
 </div>
 
-<div class="divider"></div>
-
-<p style="font-size: 13px; color: #888888; text-align: center;">
-    {% trans "Questions? Contact us at" %} <a href="mailto:reepls.project@gmail.com">reepls.project@gmail.com</a>
+<p style="font-size: 13px; color: #5a5a5a; text-align: center; margin-top: 24px; font-family: Georgia, 'Times New Roman', serif;">
+    {% trans "Questions? Contact us at" %} <a href="mailto:reepls.project@gmail.com" style="color: #722F37;">reepls.project@gmail.com</a>
 </p>
 {% endblock %}

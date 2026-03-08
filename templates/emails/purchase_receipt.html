@@ -5,74 +5,79 @@
 
 {% block content %}
 <!-- Success Icon -->
-<div style="text-align: center; margin-bottom: 24px;">
-    <div style="width: 64px; height: 64px; background: rgba(45, 71, 57, 0.1); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
-        <span style="font-size: 32px;">✓</span>
+<div style="text-align: center; margin-bottom: 30px;">
+    <div style="width: 72px; height: 72px; background: rgba(45, 71, 57, 0.08); border-radius: 50%; display: inline-block; line-height: 72px;">
+        <span style="font-size: 36px;">✓</span>
     </div>
 </div>
 
-<h1 style="text-align: center;">{% trans "Thank you for your purchase!" %}</h1>
-<p style="text-align: center; color: #666666;">{% trans "Your book is now available in your library." %}</p>
+<h1 style="text-align: center; font-family: Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 500; color: #2a2a2a; margin: 0 0 8px;">{% trans "Thank you for your purchase!" %}</h1>
+<p style="text-align: center; color: #5a5a5a; font-size: 16px; margin: 0 0 32px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Your book is now available in your library." %}</p>
 
 <!-- Book Card -->
-<div class="book-card">
+<div style="background: #faf8f5; padding: 24px; margin: 0 0 32px; border: 1px solid rgba(114, 47, 55, 0.12);">
     <table cellpadding="0" cellspacing="0" width="100%">
         <tr>
             <td style="vertical-align: top; padding-right: 20px; width: 80px;">
                 {% if book.cover_image %}
-                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" style="width: 80px; height: 120px; border-radius: 4px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                 {% else %}
-                <div style="width: 80px; height: 120px; background: linear-gradient(135deg, #8B2635, #2D4739); border-radius: 8px;"></div>
+                <div style="width: 80px; height: 120px; background: linear-gradient(135deg, #722F37, #2D4739); border-radius: 4px;"></div>
                 {% endif %}
             </td>
             <td style="vertical-align: top;">
-                <h3 class="book-title">{{ book.title }}</h3>
-                <p class="book-author">{% trans "by" %} {{ book.author.get_display_name }}</p>
-                <div style="margin-top: 12px;">
-                    <span class="badge badge-success">📖 {% trans "Ebook" %}</span>
-                    {% if book.has_audiobook %}
-                    <span class="badge badge-success" style="margin-left: 6px;">🎧 {% trans "Audiobook" %}</span>
-                    {% endif %}
-                </div>
+                <p style="font-family: Georgia, 'Times New Roman', serif; color: #2a2a2a; font-size: 18px; margin: 0 0 4px; font-weight: 600;">{{ book.title }}</p>
+                <p style="color: #5a5a5a; font-size: 14px; margin: 0 0 12px; font-family: Georgia, 'Times New Roman', serif;">{% trans "by" %} {{ book.author.get_display_name }}</p>
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="background: rgba(45, 71, 57, 0.08); padding: 4px 12px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 600; color: #2D4739;">📖 {% trans "Ebook" %}</td>
+                        {% if book.has_audiobook %}
+                        <td style="width: 8px;"></td>
+                        <td style="background: rgba(45, 71, 57, 0.08); padding: 4px 12px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 600; color: #2D4739;">🎧 {% trans "Audiobook" %}</td>
+                        {% endif %}
+                    </tr>
+                </table>
             </td>
         </tr>
     </table>
 </div>
 
 <!-- Purchase Details -->
-<h2>{% trans "Purchase Details" %}</h2>
+<p style="margin: 0 0 8px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #722F37;">
+    {% trans "Purchase Details" %}
+</p>
 
-<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 32px;">
     <tr>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #666666; font-size: 14px;">{% trans "Purchase Date" %}</span>
+        <td style="padding: 14px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1);">
+            <span style="color: #5a5a5a; font-size: 15px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Purchase Date" %}</span>
         </td>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC; text-align: right;">
-            <span style="color: #1a1a1a; font-size: 14px;">{{ purchase.purchase_date|date:"F j, Y" }}</span>
+        <td style="padding: 14px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1); text-align: right;">
+            <span style="color: #2a2a2a; font-size: 15px; font-family: Georgia, 'Times New Roman', serif;">{{ purchase.purchase_date|date:"F j, Y" }}</span>
         </td>
     </tr>
     <tr>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #666666; font-size: 14px;">{% trans "Payment Method" %}</span>
+        <td style="padding: 14px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1);">
+            <span style="color: #5a5a5a; font-size: 15px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Payment Method" %}</span>
         </td>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC; text-align: right;">
-            <span style="color: #1a1a1a; font-size: 14px;">{{ purchase.get_payment_method_display }}</span>
-        </td>
-    </tr>
-    <tr>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC;">
-            <span style="color: #666666; font-size: 14px;">{% trans "Transaction ID" %}</span>
-        </td>
-        <td style="padding: 12px 0; border-bottom: 1px solid #E8E4DC; text-align: right;">
-            <span style="color: #1a1a1a; font-size: 12px; font-family: monospace;">{{ purchase.payment_transaction_id|truncatechars:20 }}</span>
+        <td style="padding: 14px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1); text-align: right;">
+            <span style="color: #2a2a2a; font-size: 15px; font-family: Georgia, 'Times New Roman', serif;">{{ purchase.get_payment_method_display }}</span>
         </td>
     </tr>
     <tr>
-        <td style="padding: 16px 0;">
-            <span style="color: #1a1a1a; font-size: 16px; font-weight: bold;">{% trans "Total Paid" %}</span>
+        <td style="padding: 14px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1);">
+            <span style="color: #5a5a5a; font-size: 15px; font-family: Georgia, 'Times New Roman', serif;">{% trans "Transaction ID" %}</span>
         </td>
-        <td style="padding: 16px 0; text-align: right;">
-            <span style="color: #2D4739; font-size: 24px; font-weight: bold;">
+        <td style="padding: 14px 0; border-bottom: 1px solid rgba(114, 47, 55, 0.1); text-align: right;">
+            <span style="color: #2a2a2a; font-size: 13px; font-family: 'Segoe UI', monospace;">{{ purchase.payment_transaction_id|truncatechars:20 }}</span>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 18px 0;">
+            <span style="color: #2a2a2a; font-size: 17px; font-weight: 600; font-family: Georgia, 'Times New Roman', serif;">{% trans "Total Paid" %}</span>
+        </td>
+        <td style="padding: 18px 0; text-align: right;">
+            <span style="color: #722F37; font-size: 24px; font-weight: 700; font-family: Georgia, 'Times New Roman', serif;">
                 {% if purchase.amount_paid == 0 %}{% trans "Free" %}{% else %}{{ purchase.amount_paid|floatformat:0 }} XAF{% endif %}
             </span>
         </td>
@@ -80,15 +85,19 @@
 </table>
 
 <!-- CTA -->
-<div style="text-align: center; margin-top: 32px;">
-    <a href="{{ site_url|default:'https://xanula.com' }}/library/" class="btn">
-        📚 {% trans "Access Your Library" %}
-    </a>
+<div style="text-align: center; margin: 32px 0 16px;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+        <tr>
+            <td style="background-color: #722F37;">
+                <a href="{{ site_url|default:'https://xanula.reepls.com' }}/library/" style="display: inline-block; padding: 16px 45px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; color: #ffffff; text-decoration: none;">
+                    {% trans "Access Your Library" %}
+                </a>
+            </td>
+        </tr>
+    </table>
 </div>
 
-<div class="divider"></div>
-
-<p style="font-size: 13px; color: #888888; text-align: center;">
-    {% trans "Questions about your purchase? Contact us at" %} <a href="mailto:reepls.project@gmail.com">reepls.project@gmail.com</a>
+<p style="font-size: 13px; color: #5a5a5a; text-align: center; margin-top: 24px; font-family: Georgia, 'Times New Roman', serif;">
+    {% trans "Questions about your purchase? Contact us at" %} <a href="mailto:reepls.project@gmail.com" style="color: #722F37;">reepls.project@gmail.com</a>
 </p>
 {% endblock %}

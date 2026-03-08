@@ -63,19 +63,29 @@
                         <p class="font-medium text-gray-900 dark:text-white">{% trans "Language" %}</p>
                         <p class="text-sm text-gray-500 dark:text-gray-400">{% trans "Choose your preferred language" %}</p>
                     </div>
-                    <form id="language-form" action="{% url 'set_language' %}" method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.path }}">
-                        <select name="language" 
-                            onchange="document.getElementById('language-form').submit()"
-                            class="px-3 py-2 bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-burgundy-500 focus:border-transparent">
-                            {% get_current_language as LANGUAGE_CODE %}
-                            {% get_available_languages as LANGUAGES %}
-                            {% for lang_code, lang_name in LANGUAGES %}
-                            <option value="{{ lang_code }}" {% if lang_code == LANGUAGE_CODE %}selected{% endif %}>{{ lang_name }}</option>
-                            {% endfor %}
-                        </select>
-                    </form>
+                    <select id="lang-select"
+                        onchange="saveLanguage(this.value)"
+                        class="px-3 py-2 bg-cream dark:bg-dark-50 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-burgundy-500 focus:border-transparent">
+                        {% get_current_language as LANGUAGE_CODE %}
+                        {% get_available_languages as LANGUAGES %}
+                        {% for lang_code, lang_name in LANGUAGES %}
+                        <option value="{{ lang_code }}" {% if lang_code == LANGUAGE_CODE %}selected{% endif %}>{{ lang_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <script>
+                    async function saveLanguage(lang) {
+                        await fetch('{% url "core:complete_onboarding" %}', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+                            body: JSON.stringify({
+                                first_name: '{{ user.first_name|escapejs }}' || 'User',
+                                last_name: '{{ user.last_name|escapejs }}',
+                                preferred_language: lang
+                            })
+                        });
+                        window.location.reload();
+                    }
+                    </script>
                 </div>
                 
                 <!-- Theme Toggle -->

@@ -6,122 +6,133 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Xanula{% endblock %}</title>
     <!--[if mso]>
-    <noscript>
-        <xml>
-            <o:OfficeDocumentSettings>
-                <o:PixelsPerInch>96</o:PixelsPerInch>
-            </o:OfficeDocumentSettings>
-        </xml>
-    </noscript>
+    <style type="text/css">
+        body, table, td {font-family: Georgia, serif !important;}
+    </style>
     <![endif]-->
     <style>
         /* Reset */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
-        body { font-family: 'Georgia', 'Times New Roman', serif; -webkit-font-smoothing: antialiased; }
+        body { font-family: 'Crimson Pro', Georgia, 'Times New Roman', serif; -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.8; color: #2a2a2a; }
         table { border-collapse: collapse; }
         img { border: 0; outline: none; }
-        a { color: #8B2635; text-decoration: none; }
-        
-        /* Email Wrapper */
-        .email-wrapper { background-color: #FAF7F2; padding: 40px 20px; }
-        .email-container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
-        
-        /* Header */
-        .header { background: linear-gradient(135deg, #8B2635 0%, #2D4739 100%); padding: 32px 40px; text-align: center; }
-        .logo { font-family: 'Georgia', serif; font-size: 28px; font-weight: bold; color: #ffffff; text-decoration: none; letter-spacing: 1px; }
-        .tagline { color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 6px; }
-        
-        /* Content */
-        .content { padding: 40px; color: #333333; line-height: 1.8; }
-        .content h1 { font-family: 'Georgia', serif; color: #1a1a1a; margin: 0 0 16px 0; font-size: 24px; font-weight: normal; }
-        .content h2 { font-family: 'Georgia', serif; color: #1a1a1a; margin: 24px 0 12px 0; font-size: 20px; font-weight: normal; }
-        .content p { margin: 0 0 16px 0; font-size: 15px; color: #555555; }
+        a { color: #722F37; text-decoration: none; }
         
         /* Button */
-        .btn { display: inline-block; padding: 14px 32px; background: #8B2635; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; }
-        .btn:hover { background: #722030; }
+        .btn { display: inline-block; padding: 16px 40px; background: #722F37; color: #ffffff !important; text-decoration: none; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; }
         .btn-secondary { background: #2D4739; }
-        .btn-secondary:hover { background: #243A2E; }
         
         /* Book Card */
-        .book-card { background: #FAF7F2; border-radius: 12px; padding: 20px; margin: 24px 0; border: 1px solid #E8E4DC; }
-        .book-cover { width: 80px; height: 120px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .book-title { font-family: 'Georgia', serif; color: #1a1a1a; font-size: 18px; margin: 0 0 4px 0; }
-        .book-author { color: #888888; font-size: 14px; margin: 0; }
-        .book-price { color: #8B2635; font-weight: bold; font-size: 16px; margin-top: 8px; }
+        .book-card { background: #faf8f5; border-radius: 0; padding: 24px; margin: 24px 0; border: 1px solid rgba(114, 47, 55, 0.12); }
+        .book-cover { width: 80px; height: 120px; border-radius: 4px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .book-title { font-family: Georgia, 'Times New Roman', serif; color: #2a2a2a; font-size: 18px; margin: 0 0 4px 0; font-weight: 600; }
+        .book-author { color: #5a5a5a; font-size: 14px; margin: 0; }
+        .book-price { color: #722F37; font-weight: bold; font-size: 16px; margin-top: 8px; }
         
         /* Info Box */
-        .info-box { background: #FAF7F2; border-left: 4px solid #8B2635; padding: 16px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .info-box { background: #faf8f5; border-left: 4px solid #722F37; padding: 20px 24px; margin: 20px 0; }
         .info-box.success { border-left-color: #2D4739; }
-        .info-box.warning { border-left-color: #D4A574; }
+        .info-box.warning { border-left-color: #c9a66b; }
         
-        /* Footer */
-        .footer { padding: 32px 40px; text-align: center; background: #FAF7F2; border-top: 1px solid #E8E4DC; }
-        .footer p { color: #888888; font-size: 12px; margin: 0 0 8px 0; }
-        .footer a { color: #8B2635; }
-        .social-links { margin: 16px 0; }
-        .social-links a { display: inline-block; margin: 0 8px; color: #888888; }
+        /* Badge */
+        .badge { display: inline-block; padding: 6px 14px; font-size: 12px; font-weight: 600; font-family: 'Segoe UI', Arial, sans-serif; letter-spacing: 0.5px; }
+        .badge-success { background: rgba(45, 71, 57, 0.1); color: #2D4739; }
+        .badge-pending { background: rgba(201, 166, 107, 0.2); color: #8a6d3b; }
+        .badge-error { background: rgba(139, 38, 53, 0.1); color: #722F37; }
+        
+        /* Divider */
+        .divider { height: 1px; background: rgba(114, 47, 55, 0.12); margin: 30px 0; }
+        
+        /* Content typography */
+        .content h1 { font-family: Georgia, 'Times New Roman', serif; color: #2a2a2a; margin: 0 0 12px 0; font-size: 26px; font-weight: 500; }
+        .content h2 { font-family: Georgia, 'Times New Roman', serif; color: #2a2a2a; margin: 28px 0 12px 0; font-size: 20px; font-weight: 500; }
+        .content p { margin: 0 0 16px 0; font-size: 16px; color: #2a2a2a; line-height: 1.8; }
         
         /* Utilities */
         .text-center { text-align: center; }
-        .text-muted { color: #888888; }
+        .text-muted { color: #5a5a5a; }
         .text-success { color: #2D4739; }
-        .text-accent { color: #8B2635; }
-        .mt-4 { margin-top: 24px; }
-        .mb-4 { margin-bottom: 24px; }
-        
-        /* Badge */
-        .badge { display: inline-block; padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; }
-        .badge-success { background: rgba(45, 71, 57, 0.1); color: #2D4739; }
-        .badge-pending { background: rgba(212, 165, 116, 0.2); color: #B8864C; }
-        .badge-error { background: rgba(139, 38, 53, 0.1); color: #8B2635; }
-        
-        /* Divider */
-        .divider { height: 1px; background: #E8E4DC; margin: 24px 0; }
-        
-        /* Summary Row */
-        .summary-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #E8E4DC; }
-        .summary-row:last-child { border-bottom: none; font-weight: bold; }
-        .summary-label { color: #666666; font-size: 14px; }
-        .summary-value { color: #1a1a1a; font-size: 14px; }
+        .text-accent { color: #722F37; }
     </style>
 </head>
-<body>
-    <div class="email-wrapper">
-        <table class="email-container" width="100%" cellpadding="0" cellspacing="0">
-            <!-- Header -->
-            <tr>
-                <td class="header">
-                    <a href="{{ site_url|default:'https://xanula.com' }}" class="logo">📚 Xanula</a>
-                    <p class="tagline">{% trans "African Literature Marketplace" %}</p>
-                </td>
-            </tr>
-            
-            <!-- Content -->
-            <tr>
-                <td class="content">
-                    {% block content %}{% endblock %}
-                </td>
-            </tr>
-            
-            <!-- Footer -->
-            <tr>
-                <td class="footer">
-                    <div class="social-links">
-                        <a href="#">Twitter</a> • 
-                        <a href="#">Instagram</a> • 
-                        <a href="#">Facebook</a>
-                    </div>
-                    <p>© {{ current_year|default:"2024" }} Xanula. {% trans "All rights reserved." %}</p>
-                    <p>{% trans "Your gateway to African literature." %}</p>
-                    <p class="mt-4">
-                        <a href="{{ site_url|default:'https://xanula.com' }}">{% trans "Visit Xanula" %}</a> • 
-                        <a href="{{ site_url|default:'https://xanula.com' }}/library/">{% trans "My Library" %}</a> •
-                        <a href="{{ site_url|default:'https://xanula.com' }}/terms/">{% trans "Terms" %}</a>
-                    </p>
-                </td>
-            </tr>
-        </table>
-    </div>
+<body style="margin: 0; padding: 0; background-color: #faf8f5;">
+    <!-- Wrapper Table -->
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #faf8f5;">
+        <tr>
+            <td align="center" style="padding: 0;">
+                
+                <!-- Main Container -->
+                <table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="max-width: 640px; width: 100%;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td align="center" style="padding: 60px 24px 40px;">
+                            <a href="{{ site_url|default:'https://xanula.reepls.com' }}" style="text-decoration: none;">
+                                <h1 style="margin: 0 0 8px; font-family: Georgia, 'Times New Roman', serif; font-size: 42px; font-weight: 700; letter-spacing: 8px; color: #722F37;">
+                                    XANULA
+                                </h1>
+                            </a>
+                            <p style="margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #5a5a5a; font-weight: 500;">
+                                A product of REEPLS
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Thin decorative line -->
+                    <tr>
+                        <td style="padding: 0 24px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                    <td style="border-bottom: 1px solid rgba(114, 47, 55, 0.15); font-size: 1px; line-height: 1px;">&nbsp;</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td class="content" style="padding: 40px 32px;">
+                            {% block content %}{% endblock %}
+                        </td>
+                    </tr>
+                    
+                    <!-- Signature -->
+                    <tr>
+                        <td style="padding: 10px 32px 30px; border-top: 1px solid rgba(114, 47, 55, 0.12);">
+                            <p style="margin: 0 0 20px; font-size: 16px; color: #5a5a5a; line-height: 1.8; font-family: Georgia, 'Times New Roman', serif;">
+                                {% trans "Best regards" %} 🍀
+                            </p>
+                            <p style="margin: 0 0 4px; font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: 500; color: #722F37;">
+                                {% trans "The Xanula Team" %}
+                            </p>
+                            <p style="margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: #5a5a5a;">
+                                {% trans "African Stories to the World" %}
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #722F37; padding: 40px 24px; text-align: center;">
+                            <p style="margin: 0 0 6px; font-family: Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 700; letter-spacing: 6px; color: #ffffff;">
+                                XANULA
+                            </p>
+                            <p style="margin: 0 0 20px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.6);">
+                                {% trans "African Stories to the World" %}
+                            </p>
+                            <p style="margin: 0 0 15px; font-size: 13px; color: rgba(255,255,255,0.5); font-family: Georgia, 'Times New Roman', serif;">
+                                A product of <a href="https://reepls.com" style="color: #c9a66b; text-decoration: none;">REEPLS</a>
+                            </p>
+                            <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.35); font-family: 'Segoe UI', Arial, sans-serif;">
+                                © {{ current_year|default:"2026" }} Xanula. {% trans "All rights reserved." %}
+                            </p>
+                        </td>
+                    </tr>
+                    
+                </table>
+            </td>
+        </tr>
+    </table>
+    
 </body>
 </html>
