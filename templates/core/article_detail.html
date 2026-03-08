@@ -606,6 +606,8 @@ function switchAudioLang(lang) {
     document.querySelectorAll('.audio-tab').forEach(t => t.classList.remove('active'));
     const tab = document.getElementById('audio-tab-' + lang);
     if (tab) tab.classList.add('active');
+    // Trigger resize so canvas in newly visible player gets correct dimensions
+    window.dispatchEvent(new Event('resize'));
 }
 
 // ─── Wave Player ───
@@ -653,6 +655,11 @@ function switchAudioLang(lang) {
         window.addEventListener('resize', resize);
 
         function draw() {
+            // Auto-resize if dimensions changed (e.g. tab switch from hidden)
+            const rect = canvasWrap.getBoundingClientRect();
+            if (rect.width > 0 && (canvas.width === 0 || Math.abs(rect.width * (window.devicePixelRatio || 1) - canvas.width) > 1)) {
+                resize();
+            }
             const w = canvasWrap.clientWidth;
             const h = canvasWrap.clientHeight;
             const mid = h / 2;

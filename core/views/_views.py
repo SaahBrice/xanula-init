@@ -284,11 +284,12 @@ def book_detail(request, slug):
         ]
     )
     
-    # Check if user owns this book
+    # Check if user owns this book (authors always own their books)
     user_owns_book = False
     in_wishlist = False
     if request.user.is_authenticated:
-        user_owns_book = LibraryEntry.objects.filter(
+        is_author = request.user == book.author
+        user_owns_book = is_author or LibraryEntry.objects.filter(
             user=request.user, book=book
         ).exists()
         in_wishlist = request.user.wishlist.filter(id=book.id).exists()
@@ -776,10 +777,15 @@ def initiate_purchase(request, slug):
         messages.error(request, 'This book is not available for purchase yet.')
         return redirect('core:book_detail', slug=slug)
     
+    # Authors don't need to buy their own books
+    if request.user == book.author:
+        messages.info(request, 'This is your book! It\'s already in your library.')
+        return redirect('core:library')
+    
     # Anti-duplicate: Check if user already owns the book
     if LibraryEntry.objects.filter(user=request.user, book=book).exists():
         messages.info(request, 'You already own this book! It\'s in your library.')
-        return redirect('core:my_books')
+        return redirect('core:library')
     
     # Handle free books - skip payment completely
     if book.is_free:
@@ -908,7 +914,13 @@ def purchase_with_balance(request, book_id):
     book.save(update_fields=['total_sales'])
     
     messages.success(request, f'Successfully purchased "{book.title}" using your balance!')
-    return redirect('core:my_books')
+    
+    context = {
+        'purchase': purchase,
+        'book': book,
+        'success': True,
+    }
+    return render(request, 'core/purchase_success.html', context)
 
 
 @login_required
@@ -1343,12 +1355,17 @@ def book_reader(request, slug):
     
     book = get_object_or_404(Book, slug=slug)
     
-    # Check if user owns this book
+    # Check if user owns this book (authors always have access)
+    is_author = request.user == book.author
     try:
         entry = LibraryEntry.objects.get(user=request.user, book=book)
     except LibraryEntry.DoesNotExist:
-        messages.error(request, 'You need to purchase this book first.')
-        return redirect('core:book_detail', slug=slug)
+        if is_author:
+            # Auto-create library entry for the author
+            entry = LibraryEntry.objects.create(user=request.user, book=book)
+        else:
+            messages.error(request, 'You need to purchase this book first.')
+            return redirect('core:book_detail', slug=slug)
     
     # Update last accessed
     entry.last_accessed = timezone.now()
@@ -1441,12 +1458,17 @@ def audiobook_player(request, slug):
     
     book = get_object_or_404(Book, slug=slug)
     
-    # Check if user owns this book
+    # Check if user owns this book (authors always have access)
+    is_author = request.user == book.author
     try:
         entry = LibraryEntry.objects.get(user=request.user, book=book)
     except LibraryEntry.DoesNotExist:
-        messages.error(request, 'You need to purchase this book first.')
-        return redirect('core:book_detail', slug=slug)
+        if is_author:
+            # Auto-create library entry for the author
+            entry = LibraryEntry.objects.create(user=request.user, book=book)
+        else:
+            messages.error(request, 'You need to purchase this book first.')
+            return redirect('core:book_detail', slug=slug)
     
     # Check if audiobook exists
     if not book.audiobook_file:
