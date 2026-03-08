@@ -135,8 +135,13 @@ class User(AbstractUser):
         return self.display_name or self.email
     
     def get_display_name(self):
-        """Returns the display name or email if not set."""
-        return self.display_name or self.email.split('@')[0]
+        """Returns the best available name: display_name > first+last > email prefix."""
+        if self.display_name:
+            return self.display_name
+        full_name = f"{self.first_name} {self.last_name}".strip()
+        if full_name:
+            return full_name
+        return self.email.split('@')[0]
     
     @property
     def is_author(self):
