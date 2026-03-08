@@ -150,9 +150,11 @@ class BookAdmin(admin.ModelAdmin):
     @admin.action(description=_('Mark as Ebook Ready'))
     def mark_as_ebook_ready(self, request, queryset):
         """Mark approved books as ebook ready."""
-        updated = queryset.filter(status=Book.Status.APPROVED).update(
-            status=Book.Status.EBOOK_READY
-        )
+        books = queryset.filter(status=Book.Status.APPROVED)
+        updated = books.update(status=Book.Status.EBOOK_READY)
+        # Auto-add to author's library
+        for book in queryset.filter(status=Book.Status.EBOOK_READY):
+            LibraryEntry.objects.get_or_create(user=book.author, book=book)
         self.message_user(
             request,
             f'{updated} book(s) marked as ebook ready.',
@@ -172,6 +174,8 @@ class BookAdmin(admin.ModelAdmin):
                 except Exception as e:
                     self.message_user(request, f'QR generation failed for {book.title}: {e}', messages.WARNING)
             book.save()
+            # Auto-add to author's library
+            LibraryEntry.objects.get_or_create(user=book.author, book=book)
         self.message_user(
             request,
             f'{queryset.count()} book(s) marked as completed with QR codes.',
@@ -179,7 +183,12 @@ class BookAdmin(admin.ModelAdmin):
         )
     
     def save_model(self, request, obj, form, change):
-        """Override save to generate QR code when status changes to COMPLETED."""
+        """Override save to generate QR code and auto-add to author library."""
+        available_statuses = [
+            Book.Status.EBOOK_READY,
+            Book.Status.AUDIOBOOK_GENERATED,
+            Book.Status.COMPLETED,
+        ]
         if change:
             # Get old status from database
             old_obj = Book.objects.get(pk=obj.pk)
@@ -196,6 +205,10 @@ class BookAdmin(admin.ModelAdmin):
                         self.message_user(request, f'QR generation failed: {e}', messages.WARNING)
         
         super().save_model(request, obj, form, change)
+        
+        # Auto-add to author's library when book becomes available
+        if obj.status in available_statuses:
+            LibraryEntry.objects.get_or_create(user=obj.author, book=obj)
 
 
 @admin.register(Purchase)
