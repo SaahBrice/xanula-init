@@ -65,6 +65,7 @@ from ._views import (
     # Settings views
     user_settings,
     notification_settings,
+    complete_onboarding,
     
     # Preview and Embed views
     book_preview,

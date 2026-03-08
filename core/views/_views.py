@@ -2016,6 +2016,15 @@ def user_settings(request):
         user.last_name = request.POST.get('last_name', '').strip()
         user.bio = request.POST.get('bio', '').strip()[:500]
         
+        # Handle preferred language
+        lang = request.POST.get('preferred_language', '').strip()
+        if lang in ('en', 'fr'):
+            user.preferred_language = lang
+            # Activate immediately in session
+            from django.utils import translation
+            translation.activate(lang)
+            request.session[translation.LANGUAGE_SESSION_KEY] = lang
+        
         # Handle profile picture
         if 'profile_picture' in request.FILES:
             user.profile_picture = request.FILES['profile_picture']
@@ -2029,6 +2038,44 @@ def user_settings(request):
         'referral_percent': ReferralSettings.get_referral_percent(),
     }
     return render(request, 'core/settings.html', context)
+
+
+@login_required
+@require_POST
+def complete_onboarding(request):
+    """
+    AJAX endpoint to save onboarding data (name + language).
+    """
+    import json
+    from django.utils import translation
+    
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    
+    user = request.user
+    
+    first_name = data.get('first_name', '').strip()
+    last_name = data.get('last_name', '').strip()
+    lang = data.get('preferred_language', '').strip()
+    
+    if not first_name:
+        return JsonResponse({'error': 'First name is required'}, status=400)
+    
+    if lang not in ('en', 'fr'):
+        return JsonResponse({'error': 'Invalid language'}, status=400)
+    
+    user.first_name = first_name
+    user.last_name = last_name
+    user.preferred_language = lang
+    user.save(update_fields=['first_name', 'last_name', 'preferred_language'])
+    
+    # Activate language in session
+    translation.activate(lang)
+    request.session[translation.LANGUAGE_SESSION_KEY] = lang
+    
+    return JsonResponse({'success': True})
 
 
 @login_required

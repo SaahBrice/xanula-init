@@ -490,6 +490,134 @@
     }
     </script>
 
+    {% if user.is_authenticated and not user.first_name or user.is_authenticated and not user.preferred_language %}
+    <!-- Onboarding Popup -->
+    <div x-data="onboardingPopup()" x-show="showPopup" x-cloak
+         class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+         style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+        <div @click.away="" x-show="showPopup" x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             class="bg-white dark:bg-dark-100 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-burgundy-600 to-burgundy-500 px-6 py-5 text-center">
+                <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zM19 21a7 7 0 00-14 0"/>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-display font-bold text-white" x-text="t.welcome"></h2>
+                <p class="text-cream/80 text-sm mt-1" x-text="t.subtitle"></p>
+            </div>
+
+            <!-- Form -->
+            <div class="px-6 py-5 space-y-4">
+                <!-- Language Toggle -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" x-text="t.language"></label>
+                    <div class="flex gap-2">
+                        <button @click="setLang('en')" type="button"
+                            :class="lang === 'en' ? 'bg-burgundy-500 text-white border-burgundy-500' : 'bg-white dark:bg-dark-50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600'"
+                            class="flex-1 py-2.5 px-4 rounded-xl border-2 font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2">
+                            🇬🇧 English
+                        </button>
+                        <button @click="setLang('fr')" type="button"
+                            :class="lang === 'fr' ? 'bg-burgundy-500 text-white border-burgundy-500' : 'bg-white dark:bg-dark-50 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600'"
+                            class="flex-1 py-2.5 px-4 rounded-xl border-2 font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2">
+                            🇫🇷 Français
+                        </button>
+                    </div>
+                </div>
+
+                <!-- First Name -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" x-text="t.firstName"></label>
+                    <input type="text" x-model="firstName" :placeholder="t.firstNamePlaceholder"
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-50 text-gray-900 dark:text-white focus:ring-2 focus:ring-burgundy-500 focus:border-transparent transition">
+                </div>
+
+                <!-- Last Name -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" x-text="t.lastName"></label>
+                    <input type="text" x-model="lastName" :placeholder="t.lastNamePlaceholder"
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-50 text-gray-900 dark:text-white focus:ring-2 focus:ring-burgundy-500 focus:border-transparent transition">
+                </div>
+
+                <!-- Error -->
+                <p x-show="error" x-text="error" class="text-red-500 text-sm"></p>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 pb-5">
+                <button @click="submit()" :disabled="saving"
+                    class="w-full py-3 bg-burgundy-500 hover:bg-burgundy-600 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2">
+                    <svg x-show="saving" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <span x-text="saving ? t.saving : t.save"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+    function onboardingPopup() {
+        const translations = {
+            en: {
+                welcome: 'Welcome to Xanula! 👋',
+                subtitle: 'Let us personalize your experience',
+                language: 'Preferred Language',
+                firstName: 'First Name *',
+                lastName: 'Last Name',
+                firstNamePlaceholder: 'Enter your first name',
+                lastNamePlaceholder: 'Enter your last name',
+                save: 'Continue',
+                saving: 'Saving...',
+                errorFirstName: 'Please enter your first name',
+                errorLang: 'Please select a language',
+            },
+            fr: {
+                welcome: 'Bienvenue sur Xanula ! 👋',
+                subtitle: 'Personnalisons votre expérience',
+                language: 'Langue préférée',
+                firstName: 'Prénom *',
+                lastName: 'Nom de famille',
+                firstNamePlaceholder: 'Entrez votre prénom',
+                lastNamePlaceholder: 'Entrez votre nom de famille',
+                save: 'Continuer',
+                saving: 'Enregistrement...',
+                errorFirstName: 'Veuillez entrer votre prénom',
+                errorLang: 'Veuillez choisir une langue',
+            }
+        };
+        return {
+            showPopup: true,
+            lang: '',
+            firstName: '{{ user.first_name|escapejs }}',
+            lastName: '{{ user.last_name|escapejs }}',
+            saving: false,
+            error: '',
+            get t() { return translations[this.lang] || translations.en; },
+            setLang(l) { this.lang = l; this.error = ''; },
+            async submit() {
+                if (!this.firstName.trim()) { this.error = this.t.errorFirstName; return; }
+                if (!this.lang) { this.error = this.t.errorLang; return; }
+                this.saving = true;
+                try {
+                    const res = await fetch('{% url "core:complete_onboarding" %}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                        body: JSON.stringify({ first_name: this.firstName.trim(), last_name: this.lastName.trim(), preferred_language: this.lang })
+                    });
+                    if (res.ok) { window.location.reload(); }
+                    else { const d = await res.json(); this.error = d.error || 'Error'; this.saving = false; }
+                } catch(e) { this.error = 'Network error'; this.saving = false; }
+            }
+        };
+    }
+    </script>
+    {% endif %}
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

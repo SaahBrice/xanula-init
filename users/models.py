@@ -119,6 +119,19 @@ class User(AbstractUser):
         help_text=_('Receive reminders to continue reading books.'),
     )
     
+    # Preferred language
+    LANGUAGE_CHOICES = [
+        ('en', 'English'),
+        ('fr', 'Français'),
+    ]
+    preferred_language = models.CharField(
+        _('preferred language'),
+        max_length=10,
+        blank=True,
+        choices=LANGUAGE_CHOICES,
+        help_text=_('Preferred interface language.'),
+    )
+    
     # Use email as the username field
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # Email is already required by USERNAME_FIELD
