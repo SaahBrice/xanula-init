@@ -1124,11 +1124,13 @@ def purchase_success(request, purchase_id):
             
             # Send email receipt
             try:
-                html_content = render_to_string('emails/purchase_receipt.html', {
-                    'purchase': purchase,
-                    'book': purchase.book,
-                    'user': request.user,
-                })
+                from core.tasks import user_language
+                with user_language(request.user):
+                    html_content = render_to_string('emails/purchase_receipt.html', {
+                        'purchase': purchase,
+                        'book': purchase.book,
+                        'user': request.user,
+                    })
                 send_mail(
                     subject=f'Your Xanula Purchase Receipt - {purchase.book.title}',
                     message=f'Thank you for purchasing {purchase.book.title}!',
@@ -1748,11 +1750,13 @@ def fapshi_return(request, purchase_id):
             
             # Send email receipt
             try:
-                html_content = render_to_string('emails/purchase_receipt.html', {
-                    'purchase': purchase,
-                    'book': purchase.book,
-                    'user': request.user,
-                })
+                from core.tasks import user_language
+                with user_language(request.user):
+                    html_content = render_to_string('emails/purchase_receipt.html', {
+                        'purchase': purchase,
+                        'book': purchase.book,
+                        'user': request.user,
+                    })
                 send_mail(
                     subject=f'Your Xanula Purchase Receipt - {purchase.book.title}',
                     message=f'Thank you for purchasing {purchase.book.title}!',

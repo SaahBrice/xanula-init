@@ -23,6 +23,24 @@ def get_email_context():
     }
 
 
+from contextlib import contextmanager
+from django.utils import translation
+
+@contextmanager
+def user_language(user):
+    """
+    Context manager to activate user's preferred language for email rendering.
+    Falls back to default language if no preference is set.
+    """
+    old_lang = translation.get_language()
+    lang = getattr(user, 'preferred_language', '') or settings.LANGUAGE_CODE
+    translation.activate(lang)
+    try:
+        yield
+    finally:
+        translation.activate(old_lang)
+
+
 def send_book_approved_notification(book_id):
     """
     Send notification email when book is approved.
@@ -41,8 +59,9 @@ def send_book_approved_notification(book_id):
         context = get_email_context()
         context['book'] = book
         
-        html_content = render_to_string('emails/book_approved.html', context)
-        text_content = strip_tags(html_content)
+        with user_language(user):
+            html_content = render_to_string('emails/book_approved.html', context)
+            text_content = strip_tags(html_content)
         
         msg = EmailMultiAlternatives(
             subject=f'🎉 "{book.title}" is now live on Xanula!',
@@ -79,8 +98,9 @@ def send_book_denied_notification(book_id):
         context = get_email_context()
         context['book'] = book
         
-        html_content = render_to_string('emails/book_denied.html', context)
-        text_content = strip_tags(html_content)
+        with user_language(user):
+            html_content = render_to_string('emails/book_denied.html', context)
+            text_content = strip_tags(html_content)
         
         msg = EmailMultiAlternatives(
             subject=f'Update on "{book.title}" submission - Xanula',
@@ -128,8 +148,9 @@ def send_payout_status_notification(payout_id, status):
             'failed': f'⚠️ Payout issue - Action needed - Xanula',
         }
         
-        html_content = render_to_string('emails/payout_status.html', context)
-        text_content = strip_tags(html_content)
+        with user_language(user):
+            html_content = render_to_string('emails/payout_status.html', context)
+            text_content = strip_tags(html_content)
         
         msg = EmailMultiAlternatives(
             subject=subjects.get(status, 'Payout Update - Xanula'),
@@ -182,8 +203,9 @@ def send_daily_reminder(user_id, book_id, entry_id):
         context['entry'] = entry
         context['progress_percent'] = progress_percent
         
-        html_content = render_to_string('emails/daily_reminder.html', context)
-        text_content = strip_tags(html_content)
+        with user_language(user):
+            html_content = render_to_string('emails/daily_reminder.html', context)
+            text_content = strip_tags(html_content)
         
         msg = EmailMultiAlternatives(
             subject=f'📖 Continue "{book.title}" on Xanula',
@@ -223,8 +245,9 @@ def send_purchase_receipt(purchase_id):
         context['book'] = book
         context['user'] = user
         
-        html_content = render_to_string('emails/purchase_receipt.html', context)
-        text_content = strip_tags(html_content)
+        with user_language(user):
+            html_content = render_to_string('emails/purchase_receipt.html', context)
+            text_content = strip_tags(html_content)
         
         msg = EmailMultiAlternatives(
             subject=f'🎉 Your Xanula Purchase: {book.title}',
@@ -265,8 +288,9 @@ def send_hard_copy_request_notification(request_id):
         context['book'] = book
         context['author'] = author
         
-        html_content = render_to_string('emails/hardcopy_request.html', context)
-        text_content = strip_tags(html_content)
+        with user_language(user):
+            html_content = render_to_string('emails/hardcopy_request.html', context)
+            text_content = strip_tags(html_content)
         
         # Send to admin
         admin_email = settings.DEFAULT_FROM_EMAIL
@@ -594,8 +618,9 @@ def notify_author_async(user, notification_type, title, message, icon="📚",
                 'cta_text': cta_text,
             })
             
-            html_content = render_to_string('emails/author_notification.html', context)
-            text_content = strip_tags(html_content)
+            with user_language(user):
+                html_content = render_to_string('emails/author_notification.html', context)
+                text_content = strip_tags(html_content)
             
             # Force SMTP backend (even in DEBUG mode)
             from django.core.mail import get_connection
@@ -1037,8 +1062,9 @@ def notify_reader_async(user, notification_type, title, message, icon="📚",
             })
             
             # Reuse author_notification template (works for readers too)
-            html_content = render_to_string('emails/author_notification.html', context)
-            text_content = strip_tags(html_content)
+            with user_language(user):
+                html_content = render_to_string('emails/author_notification.html', context)
+                text_content = strip_tags(html_content)
             
             # Force SMTP backend (even in DEBUG mode)
             from django.core.mail import get_connection
@@ -1221,9 +1247,6 @@ def notify_all_users_new_article(article):
                 'article_url': article_url,
             })
             
-            html_content = render_to_string('emails/new_article.html', context)
-            text_content = strip_tags(html_content)
-            
             # Force SMTP backend
             from django.core.mail import get_connection
             connection = get_connection(
@@ -1234,20 +1257,31 @@ def notify_all_users_new_article(article):
             sent_count = 0
             for user in users:
                 try:
+                    # Determine user's language
+                    user_lang = getattr(user, 'preferred_language', '') or 'en'
+                    
+                    article_title = article.get_title(user_lang)
+                    article_subtitle = article.get_subtitle(user_lang)
+                    
                     # In-app notification
                     Notification.create_notification(
                         user=user,
                         notification_type=Notification.NotificationType.SYSTEM,
-                        title=f"{article.title}",
-                        message=article.subtitle or f"Check out our latest article: {article.title}",
+                        title=article_title,
+                        message=article_subtitle or f"Check out our latest article: {article_title}",
                         icon="📰",
                         related_url=f"/blog/{article.slug}/"
                     )
                     
                     # Email
                     if user.email:
+                        context['article_title'] = article_title
+                        context['article_subtitle'] = article_subtitle
+                        with user_language(user):
+                            html_content = render_to_string('emails/new_article.html', context)
+                            text_content = strip_tags(html_content)
                         msg = EmailMultiAlternatives(
-                            subject=f"{article.title}",
+                            subject=article_title,
                             body=text_content,
                             from_email=settings.DEFAULT_FROM_EMAIL,
                             to=[user.email],

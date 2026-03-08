@@ -1,5 +1,6 @@
 {% extends "emails/base_email.html" %}
 {% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 
 {% block title %}{% trans "New Article" %} - Xanula{% endblock %}
 
@@ -12,9 +13,9 @@
     <img src="{{ article.thumbnail.url }}" alt="{{ article.title }}" style="width: 100%; height: 200px; object-fit: cover; display: block;">
     {% endif %}
     <div style="padding: 24px;">
-        <h2 style="font-family: Georgia, 'Times New Roman', serif; color: #2a2a2a; font-size: 22px; margin: 0 0 8px; font-weight: 600;">{{ article.title }}</h2>
-        {% if article.subtitle %}
-        <p style="color: #5a5a5a; font-size: 15px; margin: 0 0 12px; line-height: 1.6; font-family: Georgia, 'Times New Roman', serif;">{{ article.subtitle }}</p>
+        <h2 style="font-family: Georgia, 'Times New Roman', serif; color: #2a2a2a; font-size: 22px; margin: 0 0 8px; font-weight: 600;">{{ article_title }}</h2>
+        {% if article_subtitle %}
+        <p style="color: #5a5a5a; font-size: 15px; margin: 0 0 12px; line-height: 1.6; font-family: Georgia, 'Times New Roman', serif;">{{ article_subtitle }}</p>
         {% endif %}
         <table cellpadding="0" cellspacing="0">
             <tr>

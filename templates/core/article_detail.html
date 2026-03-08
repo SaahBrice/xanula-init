@@ -161,25 +161,7 @@
     }
     [data-theme="dark"] .article-content figcaption { color: #9ca3af; }
 
-    /* ─── Like animation ─── */
-    @keyframes likePopIn {
-        0% { transform: scale(1); }
-        30% { transform: scale(1.35); }
-        60% { transform: scale(0.9); }
-        100% { transform: scale(1); }
-    }
-    @keyframes heartFloat {
-        0% { opacity: 1; transform: translateY(0) scale(1); }
-        100% { opacity: 0; transform: translateY(-40px) scale(1.3); }
-    }
-    .like-animate {
-        animation: likePopIn 0.4s ease-out;
-    }
-    .heart-particle {
-        position: absolute;
-        pointer-events: none;
-        animation: heartFloat 0.7s ease-out forwards;
-    }
+    /* ─── Like animation (external file) ─── */
 
     /* ─── Sticky action bar ─── */
     .sticky-action-bar {
@@ -301,6 +283,7 @@
         to { opacity: 1; transform: translateY(0); }
     }
 </style>
+<link rel="stylesheet" href="{% static 'css/like-reactions.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -466,6 +449,7 @@
 
             <!-- Like Button -->
             {% if user.is_authenticated %}
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <button id="like-btn" onclick="likeArticle({{ article.id }})"
                     class="flex items-center gap-2 group cursor-pointer">
                 <div id="like-icon" class="w-10 h-10 rounded-full bg-burgundy-50 dark:bg-burgundy-900/30 flex items-center justify-center group-hover:bg-burgundy-100 dark:group-hover:bg-burgundy-900/50 transition-all relative">
@@ -546,41 +530,10 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/like-reactions.js' %}"></script>
 <script>
-// ─── Like article with animation ───
-function likeArticle(articleId) {
-    const countEl = document.getElementById('like-count');
-    const iconEl = document.getElementById('like-icon');
-
-    const currentCount = parseInt(countEl.textContent);
-    countEl.textContent = currentCount + 1;
-
-    // Pop animation
-    iconEl.classList.remove('like-animate');
-    void iconEl.offsetWidth;
-    iconEl.classList.add('like-animate');
-
-    // Floating heart particle
-    const particle = document.createElement('span');
-    particle.className = 'heart-particle';
-    particle.textContent = '❤️';
-    particle.style.left = '50%';
-    particle.style.top = '-8px';
-    particle.style.fontSize = '16px';
-    iconEl.appendChild(particle);
-    setTimeout(() => particle.remove(), 700);
-
-    fetch(`/api/blog/${articleId}/like/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json',
-        },
-    })
-    .then(r => r.json())
-    .then(data => { if (data.success) countEl.textContent = data.likes; })
-    .catch(() => { countEl.textContent = currentCount; });
-}
+// ─── Like article (external file) ───
+// likeArticle() is provided by like-reactions.js
 
 // ─── Copy link ───
 function copyArticleLink() {
