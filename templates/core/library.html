@@ -78,144 +78,91 @@
     </div>
     
     {% if entries %}
-    <!-- Books Grid (smaller gap for compact design) -->
-    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 md:gap-4" 
-        x-data="{ expandedBookId: null }"
-        @click.away="expandedBookId = null">
+    <!-- Books Grid -->
+    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 md:gap-4"
+        x-data="libraryManager()">
         {% for entry in entries %}
-        <div class="group transition-all duration-200 ease-out"
-            :class="expandedBookId === {{ entry.book.id }} ? 'z-30 -translate-y-4' : 'z-0'"
-            x-data="{ 
+        <div class="group transition-all duration-200 ease-out cursor-pointer"
+            @click="openModal({
                 bookId: {{ entry.book.id }},
                 entryId: {{ entry.id }},
-                isDownloaded: {{ entry.download_status|yesno:'true,false' }},
+                title: '{{ entry.book.title|escapejs }}',
+                author: '{{ entry.book.author.get_display_name|escapejs }}',
+                coverUrl: '{% if entry.book.cover_image %}{{ entry.book.cover_image.url }}{% endif %}',
                 ebookUrl: '{% if entry.book.ebook_file %}{{ entry.book.ebook_file.url }}{% endif %}',
                 audiobookUrl: '{% if entry.book.audiobook_file %}{{ entry.book.audiobook_file.url }}{% endif %}',
-                coverUrl: '{% if entry.book.cover_image %}{{ entry.book.cover_image.url }}{% endif %}',
-                expanded: false
+                hasAudiobook: {{ entry.book.has_audiobook|yesno:'true,false' }},
+                readUrl: '{% url 'core:book_reader' slug=entry.book.slug %}',
+                listenUrl: '{% url 'core:audiobook_player' slug=entry.book.slug %}',
+                detailUrl: '{% url 'core:book_detail' slug=entry.book.slug %}',
+                hardCopyOption: '{{ entry.book.hard_copy_option }}',
+                hardCopyUrl: '{% url 'core:request_hard_copy' book_id=entry.book.id %}',
+                isOwnBook: {{ entry.book.author.id|default:0 }} === {{ request.user.id|default:-1 }},
+                supportUrl: '{% if entry.book.author != request.user %}{% url 'core:support_author_book' author_id=entry.book.author.id book_id=entry.book.id %}{% endif %}',
+                readingProgress: {{ entry.reading_progress|default:0 }},
+                listeningProgress: {{ entry.listening_progress|default:0 }},
+                completionStatus: '{{ entry.completion_status }}',
+                isDownloaded: {{ entry.download_status|yesno:'true,false' }}
+            })"
+            x-data="{ 
+                bookId: {{ entry.book.id }},
+                isDownloaded: {{ entry.download_status|yesno:'true,false' }}
             }">
-            <!-- Clickable Book Card -->
-            <div @click="expandedBookId = (expandedBookId === bookId) ? null : bookId" class="cursor-pointer">
-                <!-- 3D Book Cover -->
-                <div class="lib-book-3d">
-                    <div class="lib-book-wrapper aspect-[2/3]">
-                        <!-- Back Cover -->
-                        <div class="lib-book-back"></div>
+            <!-- 3D Book Cover -->
+            <div class="lib-book-3d">
+                <div class="lib-book-wrapper aspect-[2/3]">
+                    <!-- Front Cover -->
+                    <div class="lib-book-front">
+                        {% if entry.book.cover_image %}
+                        <img src="{{ entry.book.cover_image.url }}" alt="{{ entry.book.title }}">
+                        {% else %}
+                        <div class="w-full h-full bg-gradient-to-br from-burgundy-500 to-forest-500 flex items-center justify-center">
+                            <span class="text-2xl font-display font-bold text-white/40">{{ entry.book.title|first }}</span>
+                        </div>
+                        {% endif %}
                         
-                        <!-- Spine -->
-                        <div class="lib-book-spine"></div>
-                        
-                        <!-- Right Pages -->
-                        <div class="lib-book-pages"></div>
-                        
-                        <!-- Front Cover -->
-                        <div class="lib-book-front">
-                            {% if entry.book.cover_image %}
-                            <img src="{{ entry.book.cover_image.url }}" alt="{{ entry.book.title }}">
-                            {% else %}
-                            <div class="w-full h-full bg-gradient-to-br from-burgundy-500 to-forest-500 flex items-center justify-center">
-                                <span class="text-2xl font-display font-bold text-white/40">{{ entry.book.title|first }}</span>
-                            </div>
+                        <!-- Status Badges -->
+                        <div class="absolute top-1.5 left-1.5 flex flex-col gap-0.5 z-20">
+                            {% if entry.completion_status == 'completed' %}
+                            <span class="px-1.5 py-0.5 bg-forest-500 text-white text-[8px] font-medium rounded-full shadow">✓</span>
+                            {% elif entry.completion_status == 'in_progress' %}
+                            <span class="px-1.5 py-0.5 bg-gold-500 text-white text-[8px] font-medium rounded-full shadow">📖</span>
                             {% endif %}
-                            
-                            <!-- Status Badges -->
-                            <div class="absolute top-1.5 left-1.5 flex flex-col gap-0.5 z-20" x-show="expandedBookId !== bookId">
-                                {% if entry.completion_status == 'completed' %}
-                                <span class="px-1.5 py-0.5 bg-forest-500 text-white text-[8px] font-medium rounded-full shadow">✓</span>
-                                {% elif entry.completion_status == 'in_progress' %}
-                                <span class="px-1.5 py-0.5 bg-gold-500 text-white text-[8px] font-medium rounded-full shadow">📖</span>
-                                {% endif %}
-                                <span x-show="isDownloaded || downloads[bookId]?.status === 'complete'" x-cloak
-                                    class="px-1.5 py-0.5 bg-white/90 dark:bg-dark-100/90 text-forest-500 text-[8px] font-medium rounded-full shadow">📱</span>
+                            <span x-show="isDownloaded || $store.libraryDownloads[bookId]?.status === 'complete'" x-cloak
+                                class="px-1.5 py-0.5 bg-white/90 dark:bg-dark-100/90 text-forest-500 text-[8px] font-medium rounded-full shadow">📱</span>
+                        </div>
+                        
+                        <!-- Format Badges -->
+                        <div class="absolute top-1.5 right-1.5 flex flex-col gap-0.5 z-20">
+                            <span class="w-5 h-5 flex items-center justify-center text-[10px] bg-white/90 dark:bg-dark-100/90 rounded shadow-sm">📖</span>
+                            {% if entry.book.has_audiobook %}
+                            <span class="w-5 h-5 flex items-center justify-center text-[10px] bg-white/90 dark:bg-dark-100/90 rounded shadow-sm">🎧</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Download Progress Overlay -->
+                        <div x-show="$store.libraryDownloads[bookId]?.status === 'downloading'" x-cloak
+                            class="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white z-30">
+                            <div class="w-8 h-8 mb-1">
+                                <svg class="animate-spin" viewBox="0 0 24 24" fill="none">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                </svg>
                             </div>
-                            
-                            <!-- Format Badges -->
-                            <div class="absolute top-1.5 right-1.5 flex flex-col gap-0.5 z-20" x-show="expandedBookId !== bookId">
-                                <span class="w-5 h-5 flex items-center justify-center text-[10px] bg-white/90 dark:bg-dark-100/90 rounded shadow-sm">📖</span>
-                                {% if entry.book.has_audiobook %}
-                                <span class="w-5 h-5 flex items-center justify-center text-[10px] bg-white/90 dark:bg-dark-100/90 rounded shadow-sm">🎧</span>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Download Progress Overlay -->
-                            <div x-show="downloads[bookId]?.status === 'downloading'" x-cloak
-                                class="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white z-30">
-                                <div class="w-8 h-8 mb-1">
-                                    <svg class="animate-spin" viewBox="0 0 24 24" fill="none">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                    </svg>
-                                </div>
-                                <p class="font-semibold text-xs" x-text="downloads[bookId]?.percent + '%'">0%</p>
-                            </div>
-                            
-                            <!-- EXPANDED BUTTONS OVERLAY (centered on cover) -->
-                            <div x-show="expandedBookId === bookId" 
-                                x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 scale-90"
-                                x-transition:enter-end="opacity-100 scale-100"
-                                x-transition:leave="transition ease-in duration-150"
-                                x-transition:leave-start="opacity-100 scale-100"
-                                x-transition:leave-end="opacity-0 scale-90"
-                                x-cloak
-                                @click.stop
-                                class="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-1 p-2 z-40 overflow-hidden">
-                                
-                                <!-- Read Button -->
-                                <a href="{% url 'core:book_reader' slug=entry.book.slug %}" 
-                                    class="w-full py-2 bg-burgundy-500 text-white text-center text-xs font-medium rounded hover:bg-burgundy-600 transition-colors shadow">
-                                    {% if entry.reading_progress > 0 %}{% trans "Continue" %}{% else %}{% trans "Read" %}{% endif %}
-                                </a>
-                                
-                                {% if entry.book.has_audiobook %}
-                                <!-- Listen Button -->
-                                <a href="{% url 'core:audiobook_player' slug=entry.book.slug %}" 
-                                    class="w-full py-2 bg-white/90 text-burgundy-600 text-center text-xs font-medium rounded hover:bg-white transition-colors shadow">
-                                    🎧 {% trans "Listen" %}
-                                </a>
-                                {% endif %}
-                                
-                                <!-- Action Icons Row -->
-                                <div class="flex gap-2 mt-1">
-                                    <button 
-                                        @click.stop="isDownloaded || downloads[bookId]?.status === 'complete' ? removeDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId) : startDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId)"
-                                        :disabled="downloads[bookId]?.status === 'downloading'"
-                                        class="w-6 h-6 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white text-sm rounded-full transition-colors"
-                                        :class="{ 'opacity-50': downloads[bookId]?.status === 'downloading' }">
-                                        <span x-show="!(isDownloaded || downloads[bookId]?.status === 'complete') && downloads[bookId]?.status !== 'downloading'">↓</span>
-                                        <span x-show="isDownloaded || downloads[bookId]?.status === 'complete'" x-cloak>✓</span>
-                                        <span x-show="downloads[bookId]?.status === 'downloading'" x-cloak class="text-[9px]" x-text="downloads[bookId]?.percent + '%'"></span>
-                                    </button>
-                                    <a href="{% url 'core:book_detail' slug=entry.book.slug %}#reviews" @click.stop
-                                        class="w-6 h-6 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white text-sm rounded-full transition-colors">
-                                        ⭐
-                                    </a>
-                                    {% if entry.book.author != request.user %}
-                                    <a href="{% url 'core:support_author_book' author_id=entry.book.author.id book_id=entry.book.id %}" @click.stop
-                                        class="w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white text-sm rounded-full transition-colors heartbeat">
-                                        ❤️
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </div>
+                            <p class="font-semibold text-xs" x-text="$store.libraryDownloads[bookId]?.percent + '%'">0%</p>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Info Below Card (always visible) -->
+            <!-- Info Below Card -->
             <div class="mt-2">
-                <!-- Title -->
                 <h3 class="font-semibold text-gray-900 dark:text-white text-xs leading-snug line-clamp-2">
                     {{ entry.book.title }}
                 </h3>
-                
-                <!-- Author -->
                 <p class="text-[10px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
                     {{ entry.book.author.get_display_name }}
                 </p>
-                
-                <!-- Progress + Last Read -->
                 <div class="flex items-center justify-between mt-1 text-[9px] text-gray-500 dark:text-gray-400">
                     {% if entry.reading_progress > 0 or entry.listening_progress > 0 %}
                     <span>
@@ -231,6 +178,150 @@
             </div>
         </div>
         {% endfor %}
+
+        <!-- POPUP MODAL -->
+        <div x-show="modalOpen" x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4"
+            @click.self="closeModal()"
+            @keydown.escape.window="closeModal()">
+            
+            <!-- Backdrop -->
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+            
+            <!-- Modal Content -->
+            <div x-show="modalOpen"
+                x-transition:enter="transition ease-out duration-200 delay-50"
+                x-transition:enter-start="opacity-0 scale-90 translate-y-4"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+                @click.stop
+                class="relative bg-white dark:bg-dark-100 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden z-10">
+                
+                <!-- Close Button -->
+                <button @click="closeModal()" 
+                    class="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 text-white transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+                
+                <!-- Book Cover Header -->
+                <div class="relative bg-gradient-to-b from-burgundy-600 to-burgundy-800 dark:from-dark-200 dark:to-dark-300 px-6 pt-6 pb-4 flex gap-4 items-end">
+                    <!-- Cover Image -->
+                    <div class="lib-book-3d flex-shrink-0" style="width: 100px;">
+                        <div class="lib-book-wrapper aspect-[2/3]">
+                            <div class="lib-book-front">
+                                <template x-if="modal.coverUrl">
+                                    <img :src="modal.coverUrl" :alt="modal.title" class="w-full h-full object-cover">
+                                </template>
+                                <template x-if="!modal.coverUrl">
+                                    <div class="w-full h-full bg-gradient-to-br from-burgundy-500 to-forest-500 flex items-center justify-center">
+                                        <span class="text-2xl font-display font-bold text-white/40" x-text="modal.title?.charAt(0)"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Book Info -->
+                    <div class="flex-1 min-w-0 pb-1">
+                        <h3 class="font-display font-bold text-white text-lg leading-tight line-clamp-2" x-text="modal.title"></h3>
+                        <p class="text-white/70 text-sm mt-1 truncate" x-text="modal.author"></p>
+                        
+                        <!-- Status Badge -->
+                        <div class="flex gap-1.5 mt-2">
+                            <template x-if="modal.completionStatus === 'completed'">
+                                <span class="px-2 py-0.5 bg-forest-500/80 text-white text-[10px] font-medium rounded-full">✓ {% trans "Completed" %}</span>
+                            </template>
+                            <template x-if="modal.completionStatus === 'in_progress'">
+                                <span class="px-2 py-0.5 bg-gold-500/80 text-white text-[10px] font-medium rounded-full">📖 {% trans "In Progress" %}</span>
+                            </template>
+                            <template x-if="modal.completionStatus === 'not_started'">
+                                <span class="px-2 py-0.5 bg-white/20 text-white text-[10px] font-medium rounded-full">{% trans "New" %}</span>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="px-5 py-4 space-y-2.5">
+                    <!-- Read Button -->
+                    <a :href="modal.readUrl" 
+                        class="flex items-center gap-3 w-full px-4 py-3 bg-burgundy-500 hover:bg-burgundy-600 text-white rounded-xl transition-colors shadow-sm">
+                        <span class="text-lg">📖</span>
+                        <span class="font-medium text-sm" x-text="modal.readingProgress > 0 ? '{% trans "Continue Reading" %}' : '{% trans "Start Reading" %}'"></span>
+                        <template x-if="modal.readingProgress > 0">
+                            <span class="ml-auto text-xs text-white/70" x-text="modal.readingProgress + '%'"></span>
+                        </template>
+                    </a>
+                    
+                    <!-- Listen Button -->
+                    <template x-if="modal.hasAudiobook">
+                        <a :href="modal.listenUrl" 
+                            class="flex items-center gap-3 w-full px-4 py-3 bg-gray-100 dark:bg-dark-50 hover:bg-gray-200 dark:hover:bg-dark-200 text-gray-800 dark:text-gray-200 rounded-xl transition-colors">
+                            <span class="text-lg">🎧</span>
+                            <span class="font-medium text-sm" x-text="modal.listeningProgress > 0 ? '{% trans "Continue Listening" %}' : '{% trans "Listen to Audiobook" %}'"></span>
+                            <template x-if="modal.listeningProgress > 0">
+                                <span class="ml-auto text-xs text-gray-500" x-text="formatTime(modal.listeningProgress)"></span>
+                            </template>
+                        </a>
+                    </template>
+                    
+                    <!-- Order Printed Copy Button -->
+                    <template x-if="modal.hardCopyOption !== 'none'">
+                        <a :href="modal.hardCopyUrl" 
+                            class="flex items-center gap-3 w-full px-4 py-3 bg-gray-100 dark:bg-dark-50 hover:bg-gray-200 dark:hover:bg-dark-200 text-gray-800 dark:text-gray-200 rounded-xl transition-colors">
+                            <span class="text-lg">📦</span>
+                            <span class="font-medium text-sm">{% trans "Order Printed Copy" %}</span>
+                        </a>
+                    </template>
+                    
+                    <!-- Secondary Actions Row -->
+                    <div class="flex gap-2 pt-1">
+                        <!-- Download / Remove Download -->
+                        <button 
+                            @click.prevent="modal.isDownloaded || $store.libraryDownloads[modal.bookId]?.status === 'complete' 
+                                ? removeDownload(modal.bookId, modal.ebookUrl, modal.audiobookUrl, modal.coverUrl, modal.entryId) 
+                                : startDownload(modal.bookId, modal.ebookUrl, modal.audiobookUrl, modal.coverUrl, modal.entryId)"
+                            :disabled="$store.libraryDownloads[modal.bookId]?.status === 'downloading'"
+                            class="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-gray-100 dark:bg-dark-50 hover:bg-gray-200 dark:hover:bg-dark-200 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-medium transition-colors"
+                            :class="{ 'opacity-50 cursor-not-allowed': $store.libraryDownloads[modal.bookId]?.status === 'downloading' }">
+                            <template x-if="!(modal.isDownloaded || $store.libraryDownloads[modal.bookId]?.status === 'complete') && $store.libraryDownloads[modal.bookId]?.status !== 'downloading'">
+                                <span>📥 {% trans "Download" %}</span>
+                            </template>
+                            <template x-if="modal.isDownloaded || $store.libraryDownloads[modal.bookId]?.status === 'complete'">
+                                <span>✓ {% trans "Downloaded" %}</span>
+                            </template>
+                            <template x-if="$store.libraryDownloads[modal.bookId]?.status === 'downloading'">
+                                <span x-text="$store.libraryDownloads[modal.bookId]?.percent + '%'"></span>
+                            </template>
+                        </button>
+                        
+                        <!-- Review -->
+                        <a :href="modal.detailUrl + '#reviews'"
+                            class="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-gray-100 dark:bg-dark-50 hover:bg-gray-200 dark:hover:bg-dark-200 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-medium transition-colors">
+                            ⭐ {% trans "Review" %}
+                        </a>
+                        
+                        <!-- Support Author -->
+                        <template x-if="!modal.isOwnBook && modal.supportUrl">
+                            <a :href="modal.supportUrl"
+                                class="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-gray-100 dark:bg-dark-50 hover:bg-gray-200 dark:hover:bg-dark-200 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-medium transition-colors heartbeat-hover">
+                                ❤️ {% trans "Tip" %}
+                            </a>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
     {% else %}
@@ -259,10 +350,15 @@
 </div>
 
 <script>
+// Alpine store for download state (persists across modal open/close)
+document.addEventListener('alpine:init', () => {
+    Alpine.store('libraryDownloads', {});
+});
+
 function libraryManager() {
     return {
-        downloads: {},
-        abortControllers: {},
+        modalOpen: false,
+        modal: {},
         
         init() {
             // Listen for service worker messages
@@ -270,16 +366,34 @@ function libraryManager() {
                 navigator.serviceWorker.addEventListener('message', (event) => {
                     const { type, payload } = event.data;
                     if (type === 'DOWNLOAD_COMPLETE') {
-                        this.downloads[payload.bookId] = { status: 'complete', percent: 100 };
+                        Alpine.store('libraryDownloads')[payload.bookId] = { status: 'complete', percent: 100 };
                         showToast('{% trans "Book saved for offline reading!" %}', 'success');
                     } else if (type === 'DOWNLOAD_ERROR') {
-                        delete this.downloads[payload.bookId];
+                        delete Alpine.store('libraryDownloads')[payload.bookId];
                         showToast('{% trans "Download failed:" %} ' + payload.error, 'error');
                     } else if (type === 'REMOVE_COMPLETE') {
-                        delete this.downloads[payload.bookId];
+                        delete Alpine.store('libraryDownloads')[payload.bookId];
                     }
                 });
             }
+        },
+        
+        openModal(data) {
+            this.modal = data;
+            this.modalOpen = true;
+            document.body.style.overflow = 'hidden';
+        },
+        
+        closeModal() {
+            this.modalOpen = false;
+            document.body.style.overflow = '';
+        },
+        
+        formatTime(seconds) {
+            if (!seconds) return '0:00';
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return m + ':' + (s < 10 ? '0' : '') + s;
         },
         
         formatBytes(bytes) {
@@ -290,11 +404,11 @@ function libraryManager() {
             return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
         },
         
+        abortControllers: {},
+        
         async startDownload(bookId, ebookUrl, audiobookUrl, coverUrl, entryId) {
-            // Initialize download state
-            this.downloads[bookId] = { status: 'downloading', percent: 0, loaded: 0, total: 0 };
+            Alpine.store('libraryDownloads')[bookId] = { status: 'downloading', percent: 0, loaded: 0, total: 0 };
             
-            // Create abort controller for cancellation
             this.abortControllers[bookId] = new AbortController();
             const signal = this.abortControllers[bookId].signal;
             
@@ -304,7 +418,6 @@ function libraryManager() {
                 if (audiobookUrl) filesToDownload.push({ type: 'audiobook', url: audiobookUrl });
                 if (coverUrl) filesToDownload.push({ type: 'cover', url: coverUrl });
                 
-                // First, get total size
                 let totalSize = 0;
                 for (const file of filesToDownload) {
                     try {
@@ -317,10 +430,9 @@ function libraryManager() {
                     }
                 }
                 
-                this.downloads[bookId].total = totalSize;
+                Alpine.store('libraryDownloads')[bookId].total = totalSize;
                 let totalLoaded = 0;
                 
-                // Download each file with progress
                 for (const file of filesToDownload) {
                     const response = await fetch(file.url, { signal });
                     
@@ -338,25 +450,21 @@ function libraryManager() {
                         chunks.push(value);
                         totalLoaded += value.length;
                         
-                        // Update progress
-                        this.downloads[bookId].loaded = totalLoaded;
-                        this.downloads[bookId].percent = Math.round((totalLoaded / totalSize) * 100);
+                        Alpine.store('libraryDownloads')[bookId].loaded = totalLoaded;
+                        Alpine.store('libraryDownloads')[bookId].percent = Math.round((totalLoaded / totalSize) * 100);
                     }
                     
-                    // Combine chunks and cache
                     const blob = new Blob(chunks);
                     
-                    // Store in cache via service worker message
                     if (navigator.serviceWorker.controller) {
                         const cache = await caches.open('xanula-books');
                         await cache.put(file.url, new Response(blob));
                     }
                 }
                 
-                // Mark as complete
-                this.downloads[bookId] = { status: 'complete', percent: 100 };
+                Alpine.store('libraryDownloads')[bookId] = { status: 'complete', percent: 100 };
+                this.modal.isDownloaded = true;
                 
-                // Update server-side status
                 await fetch(`/library/${entryId}/download/`, {
                     method: 'POST',
                     headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
@@ -366,10 +474,10 @@ function libraryManager() {
                 
             } catch (error) {
                 if (error.name === 'AbortError') {
-                    delete this.downloads[bookId];
+                    delete Alpine.store('libraryDownloads')[bookId];
                     showToast('{% trans "Download cancelled" %}', 'info');
                 } else {
-                    delete this.downloads[bookId];
+                    delete Alpine.store('libraryDownloads')[bookId];
                     showToast('{% trans "Download failed:" %} ' + error.message, 'error');
                 }
             } finally {
@@ -390,16 +498,15 @@ function libraryManager() {
                 if (audiobookUrl) await cache.delete(audiobookUrl);
                 if (coverUrl) await cache.delete(coverUrl);
                 
-                delete this.downloads[bookId];
+                delete Alpine.store('libraryDownloads')[bookId];
+                this.modal.isDownloaded = false;
                 
-                // Update server-side status
                 await fetch(`/library/${entryId}/download/`, {
                     method: 'POST',
                     headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
                 });
                 
-                // Reload to update UI
-                window.location.reload();
+                showToast('{% trans "Download removed" %}', 'success');
                 
             } catch (error) {
                 showToast('{% trans "Failed to remove download" %}', 'error');
@@ -418,17 +525,17 @@ function libraryManager() {
     display: none;
 }
 
-/* Heartbeat Animation */
-@keyframes heartbeat {
-    0%, 100% { transform: scale(1); }
-    15% { transform: scale(1.15); }
-    30% { transform: scale(1); }
-    45% { transform: scale(1.1); }
-    60% { transform: scale(1); }
+/* Heartbeat only on hover */
+.heartbeat-hover:hover {
+    animation: heartbeat 1.5s ease-in-out infinite;
 }
 
-.heartbeat {
-    animation: heartbeat 1.5s ease-in-out infinite;
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    15% { transform: scale(1.08); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.05); }
+    60% { transform: scale(1); }
 }
 
 /* 3D Book Cover for Library Cards */
@@ -447,7 +554,7 @@ function libraryManager() {
     transform: rotateY(-6deg);
 }
 
-/* Front Cover - clean */
+/* Front Cover */
 .lib-book-front {
     position: relative;
     width: 100%;
@@ -463,7 +570,7 @@ function libraryManager() {
     object-fit: cover;
 }
 
-/* Page edge reflection - overlays left side of cover */
+/* Page edge reflection */
 .lib-book-front::before {
     content: '';
     position: absolute;
@@ -481,7 +588,7 @@ function libraryManager() {
     pointer-events: none;
 }
 
-/* Hardcover binding crease - thinner strip further in */
+/* Hardcover binding crease */
 .lib-book-front::after {
     content: '';
     position: absolute;
@@ -513,7 +620,7 @@ function libraryManager() {
         rgba(0, 0, 0, 0.1) 100%);
 }
 
-/* Hide unused elements */
+/* Hide unused book elements */
 .lib-book-spine,
 .lib-book-back,
 .lib-book-pages {
