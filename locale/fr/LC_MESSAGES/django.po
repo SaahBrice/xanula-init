@@ -2102,3 +2102,33 @@ msgstr "Mis à jour le"
 msgid "Copy"
 msgstr "Copier"
 
+#: Library Modal
+msgid "Continue Reading"
+msgstr "Continuer la Lecture"
+
+msgid "Start Reading"
+msgstr "Commencer la Lecture"
+
+msgid "Continue Listening"
+msgstr "Continuer l'Écoute"
+
+msgid "Listen to Audiobook"
+msgstr "Écouter le Livre Audio"
+
+msgid "Order Printed Copy"
+msgstr "Commander une Copie Imprimée"
+
+msgid "Download"
+msgstr "Télécharger"
+
+msgid "Downloaded"
+msgstr "Téléchargé"
+
+msgid "Download removed"
+msgstr "Téléchargement supprimé"
+
+msgid "Review"
+msgstr "Avis"
+
+msgid "New"
+msgstr "Nouveau"

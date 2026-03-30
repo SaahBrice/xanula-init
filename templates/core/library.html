@@ -239,10 +239,10 @@
                         <!-- Status Badge -->
                         <div class="flex gap-1.5 mt-2">
                             <template x-if="modal.completionStatus === 'completed'">
-                                <span class="px-2 py-0.5 bg-forest-500/80 text-white text-[10px] font-medium rounded-full">✓ {% trans "Completed" %}</span>
+                                <span class="px-2 py-0.5 bg-forest-500/80 text-white text-[10px] font-medium rounded-full">{% trans "Completed" %}</span>
                             </template>
                             <template x-if="modal.completionStatus === 'in_progress'">
-                                <span class="px-2 py-0.5 bg-gold-500/80 text-white text-[10px] font-medium rounded-full">📖 {% trans "In Progress" %}</span>
+                                <span class="px-2 py-0.5 bg-gold-500/80 text-white text-[10px] font-medium rounded-full">{% trans "In Progress" %}</span>
                             </template>
                             <template x-if="modal.completionStatus === 'not_started'">
                                 <span class="px-2 py-0.5 bg-white/20 text-white text-[10px] font-medium rounded-full">{% trans "New" %}</span>
