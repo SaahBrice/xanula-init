@@ -257,7 +257,8 @@
                     <a :href="modal.readUrl" 
                         class="flex items-center gap-3 w-full px-4 py-3 bg-burgundy-500 hover:bg-burgundy-600 text-white rounded-xl transition-colors shadow-sm">
                         <span class="text-lg">📖</span>
-                        <span class="font-medium text-sm" x-text="modal.readingProgress > 0 ? '{% trans "Continue Reading" %}' : '{% trans "Start Reading" %}'"></span>
+                        <span class="font-medium text-sm" x-show="modal.readingProgress > 0">{% trans "Continue Reading" %}</span>
+                        <span class="font-medium text-sm" x-show="!(modal.readingProgress > 0)">{% trans "Start Reading" %}</span>
                         <template x-if="modal.readingProgress > 0">
                             <span class="ml-auto text-xs text-white/70" x-text="modal.readingProgress + '%'"></span>
                         </template>
@@ -268,7 +269,8 @@
                         <a :href="modal.listenUrl" 
                             class="flex items-center gap-3 w-full px-4 py-3 bg-gray-100 dark:bg-dark-50 hover:bg-gray-200 dark:hover:bg-dark-200 text-gray-800 dark:text-gray-200 rounded-xl transition-colors">
                             <span class="text-lg">🎧</span>
-                            <span class="font-medium text-sm" x-text="modal.listeningProgress > 0 ? '{% trans "Continue Listening" %}' : '{% trans "Listen to Audiobook" %}'"></span>
+                            <span class="font-medium text-sm" x-show="modal.listeningProgress > 0">{% trans "Continue Listening" %}</span>
+                            <span class="font-medium text-sm" x-show="!(modal.listeningProgress > 0)">{% trans "Listen to Audiobook" %}</span>
                             <template x-if="modal.listeningProgress > 0">
                                 <span class="ml-auto text-xs text-gray-500" x-text="formatTime(modal.listeningProgress)"></span>
                             </template>
