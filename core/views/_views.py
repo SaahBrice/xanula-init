@@ -1717,12 +1717,10 @@ def fapshi_return(request, purchase_id):
             # Payment successful!
             purchase.payment_status = Purchase.PaymentStatus.COMPLETED
             
-            # Calculate commission based on book format
+            # Calculate commission using book's effective rate
+            # Priority: custom_commission_rate → legacy commission_rate → global CommissionSettings
             amount = purchase.amount_paid
-            if purchase.book.has_audiobook:
-                commission_rate = Decimal('0.30')
-            else:
-                commission_rate = Decimal('0.10')
+            commission_rate = purchase.book.get_effective_commission_rate()
             
             purchase.platform_commission = amount * commission_rate
             purchase.author_earning = amount - purchase.platform_commission
@@ -1860,10 +1858,7 @@ def check_purchase_status_api(request, purchase_id):
             purchase.payment_status = Purchase.PaymentStatus.COMPLETED
             
             amount = purchase.amount_paid
-            if purchase.book.has_audiobook:
-                commission_rate = Decimal('0.30')
-            else:
-                commission_rate = Decimal('0.10')
+            commission_rate = purchase.book.get_effective_commission_rate()
             
             purchase.platform_commission = amount * commission_rate
             purchase.author_earning = amount - purchase.platform_commission

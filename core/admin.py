@@ -64,7 +64,8 @@ class BookAdmin(admin.ModelAdmin):
             'fields': ('short_description', 'long_description')
         }),
         (_('Classification'), {
-            'fields': ('category', 'language', 'price', 'commission_rate')
+            'fields': ('category', 'language', 'price', 'commission_rate', 'custom_commission_rate'),
+            'description': 'Set custom_commission_rate to override global/legacy commission. Leave blank to use global settings.'
         }),
         (_('Status & Workflow'), {
             'fields': ('status', 'denial_reason', 'approval_date', 'completion_date'),

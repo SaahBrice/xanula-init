@@ -122,9 +122,10 @@ class Purchase(models.Model):
         return f"{self.buyer.email} - {self.book.title}"
     
     def save(self, *args, **kwargs):
-        # Calculate commission and author earning
+        # Calculate commission and author earning using the book's effective rate
+        # Priority: custom_commission_rate → legacy commission_rate → global CommissionSettings
         if self.amount_paid and self.book:
-            commission_rate = Decimal(str(self.book.commission_rate)) / Decimal('100')
+            commission_rate = self.book.get_effective_commission_rate()
             self.platform_commission = self.amount_paid * commission_rate
             self.author_earning = self.amount_paid - self.platform_commission
         super().save(*args, **kwargs)

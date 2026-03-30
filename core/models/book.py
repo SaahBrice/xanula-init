@@ -376,14 +376,19 @@ class Book(models.Model):
         """
         Get the effective commission rate as a decimal (e.g., 0.30 for 30%).
         Priority:
-        1. If custom_commission_rate is set, use it
-        2. Otherwise, use global CommissionSettings based on book format
+        1. If custom_commission_rate is set on this book, use it
+        2. Otherwise, fall back to the legacy commission_rate field
+        3. If legacy field is at default, use global CommissionSettings based on book format
         """
-        # Check for custom per-book rate first
+        # 1. Custom per-book rate (highest priority)
         if self.custom_commission_rate is not None:
             return self.custom_commission_rate / Decimal('100')
         
-        # Use global settings based on book format
+        # 2. Legacy commission_rate field (if explicitly changed from default)
+        if self.commission_rate != self.CommissionRate.LOW:
+            return Decimal(str(self.commission_rate)) / Decimal('100')
+        
+        # 3. Global settings based on book format
         from .social import CommissionSettings
         if self.has_audiobook:
             return CommissionSettings.get_audiobook_rate()
