@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); cd \"C:\\\\Users\\\\saahb\\\\OneDrive\\\\Bureau\\\\xanula\\\\xanula init\\\\.claude\\\\worktrees\\\\amazing-goldwasser-8f3fa6\"; npm install --save-dev esbuild 2>&1 | Select-Object -Last 5)",
+      "Bash(python manage.py runserver 8000)"
+    ]
+  }
+}

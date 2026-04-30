@@ -750,11 +750,14 @@ body             { overflow: hidden; }
 
 </div>
 
-<script src="{% static 'js/editor.bundle.js' %}"></script>
+<script src="{% static 'js/editor.bundle.js' %}?v={{ manuscript.updated_at|date:'U' }}"></script>
 <script>
+/* Editor lives outside Alpine's reactive proxy — Alpine wraps everything in
+   Proxies which break TipTap's internal === checks (this.state vs view.state). */
+window.__xanulaEditor = null
+
 function writeEditor() {
     return {
-        editor: null,
         toc: [],
         saveStatus: '',
         saveTimeout: null,
@@ -773,66 +776,79 @@ function writeEditor() {
         stateVersion: 0,
         bubble: { show: false, x: 0, y: 0 },
 
+        get ed() { return window.__xanulaEditor },
+
         /* ─────────────────── init ─────────────────── */
         init() {
-            const mount = document.getElementById('editor-mount')
+            if (window.__xanulaEditor) {
+                window.__xanulaEditor.destroy()
+                window.__xanulaEditor = null
+            }
 
-            // Parse content safely via json_script tag
+            const mount = document.getElementById('editor-mount')
+            if (mount.querySelector('.ProseMirror')) mount.innerHTML = ''
+
             let initialContent = {}
             const contentEl = document.getElementById('ed-content-data')
             if (contentEl) {
                 try { initialContent = JSON.parse(contentEl.textContent) } catch(e) {}
             }
 
-            this.editor = window.initTiptapEditor(mount, initialContent)
+            const editor = window.initTiptapEditor(mount, initialContent)
+            window.__xanulaEditor = editor
 
-            this.editor.on('update', () => {
-                this.stateVersion++
-                this.updateWordCount()
-                this.updateToc()
-                this.scheduleSave()
+            const self = this
+            editor.on('update', () => {
+                self.stateVersion++
+                self.updateWordCount()
+                self.updateToc()
+                self.scheduleSave()
             })
 
-            this.editor.on('selectionUpdate', ({ editor }) => {
-                this.stateVersion++
-                this.updateBubble(editor)
+            editor.on('selectionUpdate', ({ editor }) => {
+                self.stateVersion++
+                self.updateBubble(editor)
             })
 
-            this.editor.on('blur', () => {
-                this.bubble.show = false
+            editor.on('blur', () => {
+                self.bubble.show = false
             })
 
             setTimeout(() => {
-                this.updateWordCount()
-                this.updateToc()
+                self.updateWordCount()
+                self.updateToc()
             }, 150)
         },
 
         /* ─────────────────── commands ─────────────── */
         cmd(name, attrs) {
-            if (!this.editor) return
-            const c = this.editor.chain().focus()
+            const ed = window.__xanulaEditor
+            if (!ed) return
+            const c = ed.chain().focus()
             attrs ? c[name](attrs).run() : c[name]().run()
         },
 
         isActive(name, attrs) {
             void this.stateVersion
-            if (!this.editor) return false
-            return attrs ? this.editor.isActive(name, attrs) : this.editor.isActive(name)
+            const ed = window.__xanulaEditor
+            if (!ed) return false
+            return attrs ? ed.isActive(name, attrs) : ed.isActive(name)
         },
 
         /* ─────────────────── insert chapter/section ── */
         insertChapter() {
-            if (!this.editor) return
-            this.editor.chain().focus()
+            const ed = window.__xanulaEditor
+            if (!ed) return
+            ed.chain().focus()
                 .setHorizontalRule()
                 .insertContent({ type: 'heading', attrs: { level: 1 }, content: [{ type: 'text', text: 'New Chapter' }] })
                 .run()
         },
 
         insertSection() {
-            if (!this.editor) return
-            this.editor.chain().focus()
+            const ed = window.__xanulaEditor
+            if (!ed) return
+            ed.chain().focus()
                 .setHorizontalRule()
                 .insertContent({ type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'New Section' }] })
                 .run()
@@ -840,8 +856,9 @@ function writeEditor() {
 
         /* ─────────────────── word/page count ──────── */
         updateWordCount() {
-            if (!this.editor) return
-            const text = this.editor.state.doc.textContent.trim()
+            const ed = window.__xanulaEditor
+            if (!ed) return
+            const text = ed.state.doc.textContent.trim()
             this.wordCount = text ? text.split(/\s+/).length : 0
             this.pageCount = Math.max(1, Math.ceil(this.wordCount / 250))
         },
@@ -850,16 +867,17 @@ function writeEditor() {
         scheduleSave() {
             this.saveStatus = 'unsaved'
             clearTimeout(this.saveTimeout)
-            this.saveTimeout = setTimeout(() => this.save(), 2000)
+            this.saveTimeout = setTimeout(() => this.save(), 1500)
         },
 
         save() {
-            if (!this.editor) return
+            const ed = window.__xanulaEditor
+            if (!ed) return
             this.saveStatus = 'saving'
             fetch(`/write/${this.manuscriptId}/save/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': this.csrfToken },
-                body: JSON.stringify({ content: this.editor.getJSON(), title: this.title }),
+                body: JSON.stringify({ content: ed.getJSON(), title: this.title }),
             })
             .then(r => r.json())
             .then(d => {
@@ -872,9 +890,10 @@ function writeEditor() {
 
         /* ─────────────────── live TOC ──────────────── */
         updateToc() {
-            if (!this.editor) return
+            const ed = window.__xanulaEditor
+            if (!ed) return
             const items = []
-            this.editor.state.doc.forEach(node => {
+            ed.state.doc.forEach(node => {
                 if (node.type.name === 'heading') {
                     const text = node.textContent.trim()
                     if (text) items.push({ level: node.attrs.level, text, active: false })
@@ -885,15 +904,16 @@ function writeEditor() {
         },
 
         scrollToHeading(item) {
-            if (!this.editor) return
+            const ed = window.__xanulaEditor
+            if (!ed) return
             let found = false
-            this.editor.state.doc.descendants((node, pos) => {
+            ed.state.doc.descendants((node, pos) => {
                 if (found) return false
                 if (node.type.name === 'heading'
                     && node.attrs.level === item.level
                     && node.textContent.trim() === item.text) {
-                    this.editor.chain().focus().setTextSelection(pos + 1).run()
-                    const { node: domNode } = this.editor.view.domAtPos(pos + 1)
+                    ed.chain().focus().setTextSelection(pos + 1).run()
+                    const { node: domNode } = ed.view.domAtPos(pos + 1)
                     const el = domNode?.nodeType === 3 ? domNode.parentElement : domNode
                     el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
                     found = true
