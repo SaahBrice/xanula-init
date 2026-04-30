@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     # Local apps
     "core",
     "users",
+    "write",
 ]
 
 # Required for django-allauth

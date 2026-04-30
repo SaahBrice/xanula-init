@@ -1,0 +1,937 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{{ manuscript.title }} — Xanula Write{% endblock %}
+
+{% block content %}
+
+{# ── Suppress the site nav; the editor has its own minimal top bar ── #}
+<style>
+header.top-nav   { display: none !important; }
+nav.bottom-nav   { display: none !important; }
+main.page        { padding: 0 !important; overflow: hidden; }
+body             { overflow: hidden; }
+
+/* ───────────────────────────────────────────────────────────────
+   EDITOR SHELL
+─────────────────────────────────────────────────────────────── */
+.ed {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #fafaf9;
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* ── Top bar ─────────────────────────────────────────────────── */
+.ed-bar {
+    flex-shrink: 0;
+    height: 48px;
+    background: #ffffff;
+    border-bottom: 1px solid #e7e5e4;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 0;
+    z-index: 50;
+}
+.ed-bar-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8125rem;
+    color: #78716c;
+    text-decoration: none;
+    padding: 6px 8px;
+    border-radius: 5px;
+    white-space: nowrap;
+    transition: color .15s, background .15s;
+}
+.ed-bar-back:hover { color: #1c1917; background: #f5f4f0; }
+.ed-bar-sep {
+    width: 1px;
+    height: 18px;
+    background: #e7e5e4;
+    margin: 0 12px;
+    flex-shrink: 0;
+}
+.ed-bar-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: #1c1917;
+    background: none;
+    border: none;
+    outline: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: background .15s;
+}
+.ed-bar-title:hover  { background: #f5f4f0; }
+.ed-bar-title:focus  { background: #f5f4f0; }
+.ed-bar-title::placeholder { color: #a8a29e; }
+.ed-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+.ed-save-text {
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+.ed-save-text.idle    { color: transparent; }
+.ed-save-text.saving  { color: #a8a29e; }
+.ed-save-text.saved   { color: #a8a29e; }
+.ed-save-text.unsaved { color: #d97706; }
+.ed-save-text.error   { color: #dc2626; }
+
+/* ── Three-panel row ─────────────────────────────────────────── */
+.ed-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* ── Shared sidebar base ─────────────────────────────────────── */
+.ed-sidebar {
+    flex-shrink: 0;
+    overflow: hidden;
+    transition: width .2s ease;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.ed-sidebar-inner {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px 12px 24px;
+    scrollbar-width: thin;
+    scrollbar-color: #e7e5e4 transparent;
+}
+.ed-sidebar-inner::-webkit-scrollbar       { width: 4px; }
+.ed-sidebar-inner::-webkit-scrollbar-track { background: transparent; }
+.ed-sidebar-inner::-webkit-scrollbar-thumb { background: #e7e5e4; border-radius: 2px; }
+
+/* ── Left sidebar (TOC) ──────────────────────────────────────── */
+.ed-left {
+    background: #fafaf9;
+    border-right: 1px solid #e7e5e4;
+    min-width: 180px;
+    max-width: 380px;
+}
+.ed-sidebar-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #a8a29e;
+    margin-bottom: 10px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.ed-sidebar-toggle {
+    background: none;
+    border: none;
+    padding: 2px 4px;
+    cursor: pointer;
+    color: #a8a29e;
+    border-radius: 3px;
+    line-height: 1;
+    transition: color .15s, background .15s;
+}
+.ed-sidebar-toggle:hover { color: #44403c; background: #f0ede9; }
+
+.toc-empty {
+    font-size: 0.78rem;
+    color: #d6d3d1;
+    line-height: 1.5;
+    padding: 0 4px;
+    font-style: italic;
+}
+.toc-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background .12s, color .12s;
+    position: relative;
+}
+.toc-item:hover { background: #f0ede9; }
+.toc-h1 { font-size: 0.8125rem; font-weight: 500; color: #44403c; margin-top: 4px; }
+.toc-h2 { font-size: 0.775rem; color: #78716c; padding-left: 18px; }
+.toc-h3 { font-size: 0.74rem;  color: #a8a29e; padding-left: 32px; }
+.toc-item.active {
+    color: #8B2635;
+    background: #fdf5f5;
+}
+.toc-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 4px; bottom: 4px;
+    width: 2px;
+    background: #8B2635;
+    border-radius: 1px;
+}
+
+/* ── Resize handle ───────────────────────────────────────────── */
+.ed-resize {
+    width: 4px;
+    flex-shrink: 0;
+    cursor: col-resize;
+    background: transparent;
+    transition: background .15s;
+    z-index: 5;
+}
+.ed-resize:hover,
+.ed-resize.dragging { background: #8B2635; }
+
+/* ── Center ──────────────────────────────────────────────────── */
+.ed-center {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────── */
+.ed-toolbar {
+    flex-shrink: 0;
+    height: 40px;
+    background: #ffffff;
+    border-bottom: 1px solid #f0ede9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    gap: 2px;
+}
+.tb-group { display: flex; align-items: center; gap: 1px; }
+.tb-sep   { width: 1px; height: 16px; background: #e7e5e4; margin: 0 6px; flex-shrink: 0; }
+.tb-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 4px;
+    border: none;
+    background: none;
+    color: #a8a29e;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    transition: color .12s, background .12s;
+    flex-shrink: 0;
+}
+.tb-btn:hover       { color: #44403c; background: #f5f4f0; }
+.tb-btn.on          { color: #8B2635; background: #fdf5f5; }
+
+/* ── Desk (scrollable) ───────────────────────────────────────── */
+.ed-desk {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #f2f0eb;
+    padding: 40px 24px 120px;
+    scrollbar-width: thin;
+    scrollbar-color: #d6d3d1 transparent;
+}
+.ed-desk::-webkit-scrollbar       { width: 6px; }
+.ed-desk::-webkit-scrollbar-track { background: transparent; }
+.ed-desk::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 3px; }
+
+/* ── Page card ───────────────────────────────────────────────── */
+.ed-page {
+    max-width: 760px;
+    margin: 0 auto;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
+    border-radius: 2px;
+    padding: 72px 88px 96px;
+    min-height: calc(100vh - 48px - 40px - 40px);
+    position: relative;
+}
+
+/* ── Document title (lives inside the page card) ─────────────── */
+.ed-doc-title {
+    display: block;
+    width: 100%;
+    font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #1c1917;
+    border: none;
+    outline: none;
+    background: none;
+    padding: 0;
+    margin: 0 0 8px;
+    resize: none;
+}
+.ed-doc-title::placeholder { color: #d6d3d1; }
+.ed-title-rule {
+    border: none;
+    border-top: 1px solid #e7e5e4;
+    margin: 20px 0 32px;
+}
+
+/* ── ProseMirror content ─────────────────────────────────────── */
+.ed-page .ProseMirror {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.0625rem;
+    line-height: 1.85;
+    color: #292524;
+    outline: none;
+    min-height: 320px;
+}
+.ed-page .ProseMirror > * + *          { margin-top: .8em; }
+.ed-page .ProseMirror p                { margin: 0; }
+.ed-page .ProseMirror h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.875rem; font-weight: 700; line-height: 1.2;
+    color: #1c1917; margin-top: 2em; margin-bottom: .4em;
+}
+.ed-page .ProseMirror h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.375rem; font-weight: 700; line-height: 1.3;
+    color: #292524; margin-top: 1.75em; margin-bottom: .35em;
+}
+.ed-page .ProseMirror h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.125rem; font-weight: 600; line-height: 1.4;
+    color: #44403c; margin-top: 1.5em; margin-bottom: .3em;
+}
+.ed-page .ProseMirror h1:first-child,
+.ed-page .ProseMirror h2:first-child,
+.ed-page .ProseMirror h3:first-child { margin-top: 0; }
+.ed-page .ProseMirror blockquote {
+    border-left: 2px solid #d6d3d1;
+    margin: 1.5em 0; padding: .5em 0 .5em 1.25em;
+    color: #78716c; font-style: italic;
+}
+.ed-page .ProseMirror ul,
+.ed-page .ProseMirror ol  { margin: .75em 0 .75em 1.5em; }
+.ed-page .ProseMirror li + li { margin-top: .3em; }
+.ed-page .ProseMirror hr  { border: none; border-top: 1px solid #e7e5e4; margin: 2.5em 0; }
+.ed-page .ProseMirror code {
+    font-family: ui-monospace, 'Courier New', monospace;
+    font-size: .875em; background: #f5f4f0;
+    border: 1px solid #e7e5e4; border-radius: 3px;
+    padding: .1em .35em; color: #8B2635;
+}
+.ed-page .ProseMirror pre {
+    background: #1c1917; color: #d6d3d1; border-radius: 5px;
+    padding: 1.1em 1.4em; overflow-x: auto;
+    font-family: ui-monospace, 'Courier New', monospace;
+    font-size: .875rem; line-height: 1.65; margin: 1.5em 0;
+}
+.ed-page .ProseMirror pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+.ed-page .ProseMirror strong  { font-weight: 700; }
+.ed-page .ProseMirror em      { font-style: italic; }
+.ed-page .ProseMirror u       { text-decoration: underline; text-underline-offset: 2px; }
+.ed-page .ProseMirror s       { text-decoration: line-through; }
+
+/* Placeholder — only style colour; TipTap Placeholder extension handles content */
+.ed-page .ProseMirror .is-editor-empty.is-empty::before {
+    color: #c7c3be;
+    font-style: italic;
+}
+
+/* Page-break guides */
+.ed-page-break {
+    position: absolute; left: 88px; right: 88px;
+    border-top: 1px dashed #e7e5e4;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+}
+.ed-page-break span {
+    background: white; padding: 0 10px;
+    font-size: 0.65rem; color: #c7c3be;
+    letter-spacing: .06em; text-transform: uppercase;
+    margin-top: -1px;
+}
+
+/* ── Right sidebar (AI) ──────────────────────────────────────── */
+.ed-right {
+    background: #fafaf9;
+    border-left: 1px solid #e7e5e4;
+    min-width: 0;
+    max-width: 380px;
+}
+.ai-body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    gap: 10px;
+}
+.ai-icon { color: #d6d3d1; }
+.ai-coming {
+    font-size: 0.78rem;
+    color: #c7c3be;
+    text-align: center;
+    font-style: italic;
+    line-height: 1.5;
+}
+
+/* ── Sidebar collapse buttons (float at the edge of center) ───── */
+.ed-collapse-left,
+.ed-collapse-right {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px; height: 44px;
+    background: #ffffff;
+    border: 1px solid #e7e5e4;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #a8a29e; z-index: 20;
+    transition: color .12s, background .12s;
+}
+.ed-collapse-left  { left: 0; border-left: none; border-radius: 0 4px 4px 0; }
+.ed-collapse-right { right: 0; border-right: none; border-radius: 4px 0 0 4px; }
+.ed-collapse-left:hover,
+.ed-collapse-right:hover { background: #f5f4f0; color: #44403c; }
+.ed-center-wrap { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Bubble menu ─────────────────────────────────────────────── */
+.ed-bubble {
+    position: fixed;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    background: #ffffff;
+    border: 1px solid #e7e5e4;
+    border-radius: 8px;
+    padding: 4px 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.10), 0 1px 3px rgba(0,0,0,.06);
+    transform: translateX(-50%);
+}
+.bm {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 26px; border-radius: 4px; border: none;
+    background: none; color: #78716c; cursor: pointer;
+    font-size: 0.8125rem; font-weight: 600;
+    transition: color .1s, background .1s;
+}
+.bm:hover { color: #1c1917; background: #f5f4f0; }
+.bm.on    { color: #8B2635; background: #fdf5f5; }
+.bm-sep   { width: 1px; height: 14px; background: #e7e5e4; margin: 0 3px; flex-shrink: 0; }
+
+/* ── Dark mode ───────────────────────────────────────────────── */
+[data-theme="dark"] .ed-bar,
+[data-theme="dark"] .ed-toolbar    { background: #1a1a1a; border-color: #292524; }
+[data-theme="dark"] .ed-left,
+[data-theme="dark"] .ed-right      { background: #141414; border-color: #292524; }
+[data-theme="dark"] .ed-desk       { background: #111; }
+[data-theme="dark"] .ed-page       { background: #1e1e1e; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+[data-theme="dark"] .ed-doc-title  { color: #f5f4f0; }
+[data-theme="dark"] .ed-title-rule { border-color: #292524; }
+[data-theme="dark"] .ed-page .ProseMirror        { color: #d6d3d1; }
+[data-theme="dark"] .ed-page .ProseMirror h1     { color: #f5f4f0; }
+[data-theme="dark"] .ed-page .ProseMirror h2     { color: #e7e5e4; }
+[data-theme="dark"] .ed-page .ProseMirror h3     { color: #d6d3d1; }
+[data-theme="dark"] .ed-page .ProseMirror hr     { border-color: #292524; }
+[data-theme="dark"] .ed-page .ProseMirror code   { background: #252525; border-color: #333; color: #fca5a5; }
+[data-theme="dark"] .ed-page .ProseMirror blockquote { border-color: #44403c; color: #78716c; }
+[data-theme="dark"] .ed-page .ProseMirror .is-editor-empty.is-empty::before { color: #44403c; }
+[data-theme="dark"] .ed-bar-title  { color: #e7e5e4; }
+[data-theme="dark"] .ed-bar-title:hover,
+[data-theme="dark"] .ed-bar-title:focus { background: #252525; }
+[data-theme="dark"] .ed-bar-back   { color: #78716c; }
+[data-theme="dark"] .ed-bar-back:hover { color: #d6d3d1; background: #252525; }
+[data-theme="dark"] .ed-bar-sep,
+[data-theme="dark"] .tb-sep,
+[data-theme="dark"] .ed-resize     { background: #292524; }
+[data-theme="dark"] .tb-btn        { color: #57534e; }
+[data-theme="dark"] .tb-btn:hover  { color: #d6d3d1; background: #252525; }
+[data-theme="dark"] .tb-btn.on     { color: #fca5a5; background: #3d1010; }
+[data-theme="dark"] .toc-h1        { color: #d6d3d1; }
+[data-theme="dark"] .toc-h2        { color: #78716c; }
+[data-theme="dark"] .toc-h3        { color: #57534e; }
+[data-theme="dark"] .toc-item:hover     { background: #252525; }
+[data-theme="dark"] .toc-item.active    { color: #fca5a5; background: #2d1010; }
+[data-theme="dark"] .ed-collapse-left,
+[data-theme="dark"] .ed-collapse-right  { background: #1a1a1a; border-color: #292524; color: #57534e; }
+[data-theme="dark"] .ed-collapse-left:hover,
+[data-theme="dark"] .ed-collapse-right:hover { background: #252525; color: #d6d3d1; }
+[data-theme="dark"] .ed-page-break      { border-color: #292524; }
+[data-theme="dark"] .ed-page-break span { background: #1e1e1e; color: #44403c; }
+
+/* ── Mobile ──────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .ed-left, .ed-right, .ed-resize { display: none !important; }
+    .ed-page { padding: 32px 24px 60px; }
+    .ed-desk  { padding: 16px 8px 80px; }
+    .ed-doc-title { font-size: 1.75rem; }
+}
+</style>
+
+{# ── Pass content safely via json_script ── #}
+{{ manuscript.content|json_script:"ed-content-data" }}
+
+<div id="ed-root" x-data="writeEditor()" x-init="init()" class="ed"
+    @mousemove.window="onDragMove($event)"
+    @mouseup.window="stopDrag()"
+>
+
+    <!-- TOP BAR -->
+    <div class="ed-bar">
+        <a href="{% url 'write:landing' %}" class="ed-bar-back">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+            </svg>
+            {% trans "Manuscripts" %}
+        </a>
+        <div class="ed-bar-sep"></div>
+        <input
+            type="text"
+            x-model="title"
+            @input="scheduleSave()"
+            class="ed-bar-title"
+            placeholder="{% trans 'Untitled' %}"
+        >
+        <div class="ed-bar-actions">
+            <span :class="['ed-save-text', saveStatus || 'idle']">
+                <template x-if="saveStatus === 'saving'">
+                    <span>{% trans "Saving…" %}</span>
+                </template>
+                <template x-if="saveStatus === 'saved'">
+                    <span>{% trans "Saved" %}</span>
+                </template>
+                <template x-if="saveStatus === 'unsaved'">
+                    <span>{% trans "Unsaved changes" %}</span>
+                </template>
+                <template x-if="saveStatus === 'error'">
+                    <span>{% trans "Save failed" %}</span>
+                </template>
+            </span>
+            <div class="ed-bar-sep"></div>
+            <span class="text-xs text-stone-400 tabular-nums">
+                <span x-text="wordCount"></span> {% trans "words" %}
+            </span>
+        </div>
+    </div>
+
+    <!-- THREE-PANEL BODY -->
+    <div class="ed-body">
+
+        {# ── LEFT SIDEBAR: TOC ── #}
+        <aside class="ed-sidebar ed-left" :style="`width: ${tocOpen ? tocWidth : 0}px`">
+            <div class="ed-sidebar-inner">
+                <div class="ed-sidebar-label">
+                    <span>{% trans "Chapters" %}</span>
+                </div>
+                <nav>
+                    <template x-if="toc.length === 0">
+                        <p class="toc-empty">{% trans "Headings you write appear here." %}</p>
+                    </template>
+                    <template x-for="(item, i) in toc" :key="i">
+                        <button
+                            @click="scrollToHeading(item)"
+                            :class="['toc-item', `toc-h${item.level}`, item.active ? 'active' : '']"
+                            x-text="item.text"
+                        ></button>
+                    </template>
+                </nav>
+            </div>
+        </aside>
+
+        {# Resize: TOC ↔ Editor #}
+        <div class="ed-resize" :class="drag?.side==='toc' ? 'dragging' : ''"
+            @mousedown.prevent="startDrag('toc', $event)"
+            x-show="tocOpen"></div>
+
+        {# ── CENTER ── #}
+        <div class="ed-center-wrap">
+
+            {# Collapse left #}
+            <button class="ed-collapse-left" @click="tocOpen = !tocOpen"
+                :title="tocOpen ? '{% trans "Hide chapters" %}' : '{% trans "Show chapters" %}'">
+                <svg class="w-3 h-3 transition-transform duration-200" :class="tocOpen ? '' : 'rotate-180'"
+                    fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
+                </svg>
+            </button>
+
+            {# Collapse right #}
+            <button class="ed-collapse-right" @click="aiOpen = !aiOpen"
+                :title="aiOpen ? '{% trans "Hide AI panel" %}' : '{% trans "Show AI panel" %}'">
+                <svg class="w-3 h-3 transition-transform duration-200" :class="aiOpen ? '' : 'rotate-180'"
+                    fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                </svg>
+            </button>
+
+            <div class="ed-center">
+
+                {# ── TOOLBAR ── #}
+                <div class="ed-toolbar">
+                    <div class="tb-group">
+                        <button @mousedown.prevent="cmd('toggleBold')"
+                            :class="['tb-btn', isActive('bold') ? 'on' : '']" title="Bold (Ctrl+B)">
+                            <strong>B</strong>
+                        </button>
+                        <button @mousedown.prevent="cmd('toggleItalic')"
+                            :class="['tb-btn', isActive('italic') ? 'on' : '']" title="Italic (Ctrl+I)">
+                            <em>I</em>
+                        </button>
+                        <button @mousedown.prevent="cmd('toggleUnderline')"
+                            :class="['tb-btn', isActive('underline') ? 'on' : '']" title="Underline (Ctrl+U)">
+                            <span class="underline">U</span>
+                        </button>
+                        <button @mousedown.prevent="cmd('toggleStrike')"
+                            :class="['tb-btn', isActive('strike') ? 'on' : '']" title="Strikethrough">
+                            <span class="line-through">S</span>
+                        </button>
+                        <button @mousedown.prevent="cmd('toggleCode')"
+                            :class="['tb-btn', isActive('code') ? 'on' : '']" title="Inline code">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="tb-sep"></div>
+
+                    <div class="tb-group">
+                        <button @mousedown.prevent="cmd('toggleHeading',{level:1})"
+                            :class="['tb-btn', isActive('heading',{level:1}) ? 'on' : '']" title="Heading 1">
+                            <span class="text-xs font-bold">H1</span>
+                        </button>
+                        <button @mousedown.prevent="cmd('toggleHeading',{level:2})"
+                            :class="['tb-btn', isActive('heading',{level:2}) ? 'on' : '']" title="Heading 2">
+                            <span class="text-xs font-bold">H2</span>
+                        </button>
+                        <button @mousedown.prevent="cmd('toggleHeading',{level:3})"
+                            :class="['tb-btn', isActive('heading',{level:3}) ? 'on' : '']" title="Heading 3">
+                            <span class="text-xs font-bold">H3</span>
+                        </button>
+                    </div>
+
+                    <div class="tb-sep"></div>
+
+                    <div class="tb-group">
+                        <button @mousedown.prevent="cmd('toggleBlockquote')"
+                            :class="['tb-btn', isActive('blockquote') ? 'on' : '']" title="Blockquote">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0 0h4.5m-4.5 0L9 3M13.5 3.75h7.5M13.5 9h7.5M13.5 14.25h7.5M13.5 19.5h7.5"/></svg>
+                        </button>
+                        <button @mousedown.prevent="cmd('toggleBulletList')"
+                            :class="['tb-btn', isActive('bulletList') ? 'on' : '']" title="Bullet list">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zM3.75 12h.007v.008H3.75zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z"/></svg>
+                        </button>
+                        <button @mousedown.prevent="cmd('toggleOrderedList')"
+                            :class="['tb-btn', isActive('orderedList') ? 'on' : '']" title="Numbered list">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M4.5 6h-.75a.75.75 0 0 0-.75.75v.75h.75V6zm0 5.25h-.75v1.5h.75v-1.5zm0 5.25v.75h-.75V18h1.5v-.75h-.75z"/></svg>
+                        </button>
+                        <button @mousedown.prevent="cmd('toggleCodeBlock')"
+                            :class="['tb-btn', isActive('codeBlock') ? 'on' : '']" title="Code block">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.75 16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25z"/></svg>
+                        </button>
+                        <button @mousedown.prevent="cmd('setHorizontalRule')" class="tb-btn" title="Divider">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="tb-sep"></div>
+
+                    <div class="tb-group">
+                        <button @mousedown.prevent="insertChapter()" class="tb-btn" title="New Chapter" style="width:auto;padding:0 8px;gap:4px">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                            <span class="text-xs">Ch</span>
+                        </button>
+                        <button @mousedown.prevent="insertSection()" class="tb-btn" title="New Section" style="width:auto;padding:0 8px;gap:4px">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                            <span class="text-xs">§</span>
+                        </button>
+                    </div>
+
+                    <div class="tb-sep"></div>
+
+                    <div class="tb-group">
+                        <button @mousedown.prevent="cmd('undo')" class="tb-btn" title="Undo (Ctrl+Z)">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+                        </button>
+                        <button @mousedown.prevent="cmd('redo')" class="tb-btn" title="Redo (Ctrl+Y)">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15 21 9m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                {# ── DESK (scrollable) ── #}
+                <div class="ed-desk">
+                    <div class="ed-page" id="ed-page-card">
+
+                        {# Document title — lives INSIDE the page card #}
+                        <input
+                            type="text"
+                            x-model="title"
+                            @input="scheduleSave()"
+                            class="ed-doc-title"
+                            placeholder="{% trans 'Untitled' %}"
+                        >
+                        <hr class="ed-title-rule">
+
+                        {# TipTap mount #}
+                        <div id="editor-mount"></div>
+
+                        {# Page-break guides — rendered by JS, positioned absolutely #}
+                        <template x-if="pageCount > 1">
+                            <template x-for="n in pageCount - 1" :key="n">
+                                <div class="ed-page-break" :style="`top: ${72 + n * 1010}px`">
+                                    <span x-text="`{% trans 'page' %} ${n + 1}`"></span>
+                                </div>
+                            </template>
+                        </template>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {# Resize: Editor ↔ AI #}
+        <div class="ed-resize" :class="drag?.side==='ai' ? 'dragging' : ''"
+            @mousedown.prevent="startDrag('ai', $event)"
+            x-show="aiOpen"></div>
+
+        {# ── RIGHT SIDEBAR: AI ── #}
+        <aside class="ed-sidebar ed-right" :style="`width: ${aiOpen ? aiWidth : 0}px`">
+            <div class="ai-body">
+                <svg class="ai-icon w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09z"/>
+                </svg>
+                <p class="ai-coming">{% trans "AI Assistant" %}<br>{% trans "coming soon" %}</p>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- BUBBLE MENU -->
+    <div x-show="bubble.show" x-cloak
+        :style="`left:${bubble.x}px; top:${bubble.y}px`"
+        class="ed-bubble"
+        @mousedown.prevent>
+        <button @click="cmd('toggleBold')"              :class="['bm', isActive('bold')         ? 'on':'']"><strong>B</strong></button>
+        <button @click="cmd('toggleItalic')"            :class="['bm', isActive('italic')       ? 'on':'']"><em>I</em></button>
+        <button @click="cmd('toggleUnderline')"         :class="['bm', isActive('underline')    ? 'on':'']"><span class="underline">U</span></button>
+        <button @click="cmd('toggleStrike')"            :class="['bm', isActive('strike')       ? 'on':'']"><span class="line-through">S</span></button>
+        <div class="bm-sep"></div>
+        <button @click="cmd('toggleHeading',{level:1})" :class="['bm', isActive('heading',{level:1}) ? 'on':'']"><span class="text-xs font-bold">H1</span></button>
+        <button @click="cmd('toggleHeading',{level:2})" :class="['bm', isActive('heading',{level:2}) ? 'on':'']"><span class="text-xs font-bold">H2</span></button>
+        <button @click="cmd('toggleHeading',{level:3})" :class="['bm', isActive('heading',{level:3}) ? 'on':'']"><span class="text-xs font-bold">H3</span></button>
+        <div class="bm-sep"></div>
+        <button @click="cmd('toggleBlockquote')" :class="['bm', isActive('blockquote') ? 'on':'']">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0 0h4.5m-4.5 0L9 3M13.5 3.75h7.5"/></svg>
+        </button>
+        <button @click="cmd('toggleCode')" :class="['bm', isActive('code') ? 'on':'']">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25"/></svg>
+        </button>
+    </div>
+
+</div>
+
+<script src="{% static 'js/editor.bundle.js' %}"></script>
+<script>
+function writeEditor() {
+    return {
+        editor: null,
+        toc: [],
+        saveStatus: '',
+        saveTimeout: null,
+        title: '{{ manuscript.title|escapejs }}',
+        manuscriptId: {{ manuscript.pk }},
+        csrfToken: '{{ csrf_token }}',
+
+        tocOpen: true,
+        aiOpen: true,
+        tocWidth: 260,
+        aiWidth: 280,
+        drag: null,
+
+        wordCount: 0,
+        pageCount: 1,
+        stateVersion: 0,
+        bubble: { show: false, x: 0, y: 0 },
+
+        /* ─────────────────── init ─────────────────── */
+        init() {
+            const mount = document.getElementById('editor-mount')
+
+            // Parse content safely via json_script tag
+            let initialContent = {}
+            const contentEl = document.getElementById('ed-content-data')
+            if (contentEl) {
+                try { initialContent = JSON.parse(contentEl.textContent) } catch(e) {}
+            }
+
+            this.editor = window.initTiptapEditor(mount, initialContent)
+
+            this.editor.on('update', () => {
+                this.stateVersion++
+                this.updateWordCount()
+                this.updateToc()
+                this.scheduleSave()
+            })
+
+            this.editor.on('selectionUpdate', ({ editor }) => {
+                this.stateVersion++
+                this.updateBubble(editor)
+            })
+
+            this.editor.on('blur', () => {
+                this.bubble.show = false
+            })
+
+            setTimeout(() => {
+                this.updateWordCount()
+                this.updateToc()
+            }, 150)
+        },
+
+        /* ─────────────────── commands ─────────────── */
+        cmd(name, attrs) {
+            if (!this.editor) return
+            const c = this.editor.chain().focus()
+            attrs ? c[name](attrs).run() : c[name]().run()
+        },
+
+        isActive(name, attrs) {
+            void this.stateVersion
+            if (!this.editor) return false
+            return attrs ? this.editor.isActive(name, attrs) : this.editor.isActive(name)
+        },
+
+        /* ─────────────────── insert chapter/section ── */
+        insertChapter() {
+            if (!this.editor) return
+            this.editor.chain().focus()
+                .setHorizontalRule()
+                .insertContent({ type: 'heading', attrs: { level: 1 }, content: [{ type: 'text', text: 'New Chapter' }] })
+                .run()
+        },
+
+        insertSection() {
+            if (!this.editor) return
+            this.editor.chain().focus()
+                .setHorizontalRule()
+                .insertContent({ type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'New Section' }] })
+                .run()
+        },
+
+        /* ─────────────────── word/page count ──────── */
+        updateWordCount() {
+            if (!this.editor) return
+            const text = this.editor.state.doc.textContent.trim()
+            this.wordCount = text ? text.split(/\s+/).length : 0
+            this.pageCount = Math.max(1, Math.ceil(this.wordCount / 250))
+        },
+
+        /* ─────────────────── auto-save ─────────────── */
+        scheduleSave() {
+            this.saveStatus = 'unsaved'
+            clearTimeout(this.saveTimeout)
+            this.saveTimeout = setTimeout(() => this.save(), 2000)
+        },
+
+        save() {
+            if (!this.editor) return
+            this.saveStatus = 'saving'
+            fetch(`/write/${this.manuscriptId}/save/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': this.csrfToken },
+                body: JSON.stringify({ content: this.editor.getJSON(), title: this.title }),
+            })
+            .then(r => r.json())
+            .then(d => {
+                this.saveStatus = d.status === 'ok' ? 'saved' : 'error'
+                if (this.saveStatus === 'saved')
+                    setTimeout(() => { if (this.saveStatus === 'saved') this.saveStatus = '' }, 2500)
+            })
+            .catch(() => { this.saveStatus = 'error' })
+        },
+
+        /* ─────────────────── live TOC ──────────────── */
+        updateToc() {
+            if (!this.editor) return
+            const items = []
+            this.editor.state.doc.forEach(node => {
+                if (node.type.name === 'heading') {
+                    const text = node.textContent.trim()
+                    if (text) items.push({ level: node.attrs.level, text, active: false })
+                }
+            })
+            const prevActive = this.toc.findIndex(t => t.active)
+            this.toc = items.map((item, i) => ({ ...item, active: i === prevActive }))
+        },
+
+        scrollToHeading(item) {
+            if (!this.editor) return
+            let found = false
+            this.editor.state.doc.descendants((node, pos) => {
+                if (found) return false
+                if (node.type.name === 'heading'
+                    && node.attrs.level === item.level
+                    && node.textContent.trim() === item.text) {
+                    this.editor.chain().focus().setTextSelection(pos + 1).run()
+                    const { node: domNode } = this.editor.view.domAtPos(pos + 1)
+                    const el = domNode?.nodeType === 3 ? domNode.parentElement : domNode
+                    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    found = true
+                }
+            })
+        },
+
+        /* ─────────────────── bubble menu ───────────── */
+        updateBubble(editor) {
+            const { from, to, empty } = editor.state.selection
+            if (empty) { this.bubble.show = false; return }
+            const a = editor.view.coordsAtPos(from)
+            const b = editor.view.coordsAtPos(to)
+            this.bubble = {
+                show: true,
+                x: (a.left + b.left) / 2,
+                y: Math.max(Math.min(a.top, b.top) - 52, 8),
+            }
+        },
+
+        /* ─────────────────── panel resize ──────────── */
+        startDrag(side, e) {
+            this.drag = { side, startX: e.clientX, startW: side === 'toc' ? this.tocWidth : this.aiWidth }
+        },
+
+        onDragMove(e) {
+            if (!this.drag) return
+            const dx = e.clientX - this.drag.startX
+            if (this.drag.side === 'toc') {
+                this.tocWidth = Math.max(180, Math.min(380, this.drag.startW + dx))
+            } else {
+                this.aiWidth  = Math.max(180, Math.min(380, this.drag.startW - dx))
+            }
+        },
+
+        stopDrag() { this.drag = null },
+    }
+}
+</script>
+
+{% endblock %}

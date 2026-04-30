@@ -1,0 +1,27 @@
+{
+  "name": "amazing-goldwasser-8f3fa6",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:editor": "esbuild frontend/src/editor.js --bundle --outfile=static/js/editor.bundle.js --format=iife --minify --sourcemap",
+    "watch:editor": "esbuild frontend/src/editor.js --bundle --outfile=static/js/editor.bundle.js --format=iife --sourcemap --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@tiptap/core": "^3.22.5",
+    "@tiptap/extension-heading": "^3.22.5",
+    "@tiptap/extension-history": "^3.22.5",
+    "@tiptap/extension-placeholder": "^3.22.5",
+    "@tiptap/extension-underline": "^3.22.5",
+    "@tiptap/pm": "^3.22.5",
+    "@tiptap/starter-kit": "^3.22.5"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
+  }
+}
