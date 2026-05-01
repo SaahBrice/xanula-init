@@ -7,20 +7,25 @@ from django.urls import reverse
 
 from .ai import (
     action_output_contract,
+    build_word_diff,
     clean_ai_draft,
     enforce_action_length,
     extract_tiptap_headings,
     extract_tiptap_text,
     generate_draft,
     infer_custom_prompt_intent,
+    intent_preview_for,
 )
 from .intelligence import (
+    build_chapter_memory,
     build_longform_engine_state,
     build_section_index,
     build_generation_context,
     check_consistency,
     infer_book_lens,
     inspect_content,
+    memory_freshness,
+    next_memory_meta,
     retrieve_relevant_sections,
     validate_output,
 )
@@ -339,6 +344,14 @@ class BookIntelligenceTests(TestCase):
         self.assertEqual(insert["placement"], "insert_at_cursor")
         self.assertEqual(freeform["placement"], "insert_at_cursor")
 
+    def test_intent_preview_and_diff_are_deterministic(self):
+        preview = intent_preview_for("custom", "Improve this.", "Mara waited.", "")
+        diff = build_word_diff("Mara waited by the river.", "Mara listened by the dark river.")
+
+        self.assertEqual(preview["label"], "Replace selection")
+        self.assertTrue(any(part["type"] == "removed" for part in diff))
+        self.assertTrue(any(part["type"] == "added" for part in diff))
+
     def test_custom_prompt_sends_user_instruction_and_returns_placement(self):
         class FakeClient:
             def __init__(self):
@@ -367,6 +380,10 @@ class BookIntelligenceTests(TestCase):
         payload = json.loads(client.messages[-1]["content"])
 
         self.assertEqual(result["placement"], "replace_selection")
+        self.assertEqual(result["intent_preview"]["label"], "Replace selection")
+        self.assertTrue(result["diff_available"])
+        self.assertTrue(result["suggestion_diff"])
+        self.assertEqual(result["cost_mode"], "balanced")
         self.assertEqual(payload["user_prompt"], "Improve this and make it more tense.")
         self.assertEqual(payload["custom_prompt_intent"]["intent"], "custom_replace")
         self.assertIn("Follow the user's instruction", payload["output_contract"]["instruction"])
@@ -377,6 +394,40 @@ class BookIntelligenceTests(TestCase):
 
         with self.assertRaisesMessage(Exception, "Add an instruction"):
             generate_draft(manuscript, "custom", user_prompt="")
+
+    def test_chapter_memory_and_memory_freshness_are_local(self):
+        content = {
+            "type": "doc",
+            "content": [
+                {"type": "heading", "attrs": {"level": 1}, "content": [{"type": "text", "text": "Chapter One"}]},
+                {"type": "paragraph", "content": [{"type": "text", "text": "Mara met John in Paris in 1998."}]},
+            ],
+        }
+
+        meta = next_memory_meta({}, content, "inspect")
+        chapter_memory = build_chapter_memory(content, {"open_threads": ["Mara must decide."]}, meta["version"])
+        freshness = memory_freshness(meta, {"is_stale": False})
+
+        self.assertEqual(meta["version"], 1)
+        self.assertEqual(freshness["label"], "Memory v1")
+        self.assertEqual(chapter_memory["sections"][0]["title"], "Chapter One")
+        self.assertIn("Mara", chapter_memory["sections"][0]["characters"])
+
+    def test_cost_mode_changes_context_budget(self):
+        user = get_user_model().objects.create_user(email="cost@example.com", password="pass12345")
+        manuscript = Manuscript.objects.create(
+            user=user,
+            title="Cost Book",
+            content={"type": "doc", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Mara waited by the river. " * 500}]}]},
+            ai_cost_mode="fast",
+        )
+
+        fast = build_generation_context(manuscript, "continue", cursor_context="Mara waited.", cost_mode="fast")
+        deep = build_generation_context(manuscript, "continue", cursor_context="Mara waited.", cost_mode="deep")
+
+        self.assertEqual(fast["context_summary"]["policy"], "fast")
+        self.assertEqual(deep["context_summary"]["policy"], "deep")
+        self.assertLess(fast["context_summary"]["input_chars"], deep["context_summary"]["input_chars"])
 
 
 class ManuscriptAITests(TestCase):
@@ -410,11 +461,18 @@ class ManuscriptAITests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Reepls AI Editor")
         self.assertContains(response, "Ask Reepls")
+        self.assertContains(response, "Fast")
+        self.assertContains(response, "Balanced")
+        self.assertContains(response, "Deep")
+        self.assertContains(response, "Clean")
+        self.assertContains(response, "Changes")
         self.assertContains(response, "capturePromptSelection")
         self.assertContains(response, "ai-prompt-selection")
         self.assertContains(response, "Status")
         self.assertContains(response, "ed-ai-profile-data")
         self.assertContains(response, "ed-ai-voice-data")
+        self.assertContains(response, "ed-ai-memory-freshness-data")
+        self.assertContains(response, "ed-ai-chapter-memory-data")
         self.assertContains(response, "ed-ai-longform-data")
         self.assertNotContains(response, "ed-page-break")
 
@@ -452,6 +510,8 @@ class ManuscriptAITests(TestCase):
         self.manuscript.refresh_from_db()
         self.assertEqual(self.manuscript.ai_profile["genre"], "Literary fiction")
         self.assertEqual(self.manuscript.ai_memory["characters"], ["Mara"])
+        self.assertEqual(self.manuscript.ai_memory_meta["version"], 1)
+        self.assertTrue(self.manuscript.ai_chapter_memory["sections"])
         self.assertFalse(self.manuscript.ai_profile_confirmed)
 
     def test_profile_endpoint_saves_confirmed_edits(self):
@@ -474,6 +534,7 @@ class ManuscriptAITests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.manuscript.refresh_from_db()
         self.assertEqual(self.manuscript.ai_profile["genre"], "Memoir")
+        self.assertEqual(self.manuscript.ai_memory_meta["version"], 1)
         self.assertTrue(self.manuscript.ai_profile_confirmed)
 
     @override_settings(DEEPSEEK_API_KEY="")
@@ -487,6 +548,8 @@ class ManuscriptAITests(TestCase):
         self.assertIn("chapter_map", data)
         self.assertIn("entities", data)
         self.assertIn("engine_state", data)
+        self.assertIn("memory_freshness", data)
+        self.assertIn("chapter_memory", data)
         self.assertEqual(data["engine_state"]["retrieval"]["strategy"], "section-aware local retrieval")
 
     def test_save_marks_memory_stale_after_large_change(self):
@@ -515,11 +578,17 @@ class ManuscriptAITests(TestCase):
         generate_mock.return_value = {
             "draft": "The river carried the next secret downstream.",
             "placement": "insert_at_cursor",
+            "intent_preview": {"label": "Insert at cursor", "placement": "insert_at_cursor"},
+            "diff_available": False,
+            "suggestion_diff": [],
             "agent_steps": [{"name": "Safety Agent", "status": "ready", "detail": "Checked suggestion."}],
             "usage_hint": "chapter context",
             "safety_warnings": ["Suggestion passed local safety checks."],
             "consistency_report": {"status": "clear", "issues": [], "retrieved_sections": [], "reviewed_action": "continue"},
             "engine_state": {"readiness": "ready", "integrity_score": 100},
+            "memory_freshness": {"label": "Memory v1"},
+            "chapter_memory": {"sections": []},
+            "cost_mode": "balanced",
             "context_summary": {"input_chars": 500},
             "usage": {"request_count": 1, "input_chars": 500, "output_chars": 45, "actions": {}, "last_request": {}},
         }
@@ -533,6 +602,9 @@ class ManuscriptAITests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["draft"], "The river carried the next secret downstream.")
         self.assertEqual(response.json()["placement"], "insert_at_cursor")
+        self.assertEqual(response.json()["intent_preview"]["label"], "Insert at cursor")
+        self.assertFalse(response.json()["diff_available"])
+        self.assertEqual(response.json()["cost_mode"], "balanced")
         self.assertEqual(response.json()["usage_hint"], "chapter context")
         self.assertEqual(response.json()["engine_state"]["readiness"], "ready")
         self.manuscript.refresh_from_db()

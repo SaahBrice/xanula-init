@@ -8,6 +8,9 @@ from .intelligence import (
     build_longform_engine_state,
     build_generation_context,
     check_consistency,
+    memory_freshness,
+    normalize_chapter_memory,
+    normalize_cost_mode,
     record_usage,
     validate_output,
 )
@@ -279,6 +282,55 @@ def infer_custom_prompt_intent(user_prompt="", selected_text=""):
     }
 
 
+def intent_preview_for(action, user_prompt="", selected_text="", placement=""):
+    labels = {
+        "continue": "Insert at cursor",
+        "rewrite": "Replace selection",
+        "expand": "Replace selection",
+        "improve": "Replace selection",
+        "summarize": "Summarize selection" if selected_text else "Insert summary at cursor",
+        "outline": "Create outline",
+    }
+    if action == "custom":
+        intent = infer_custom_prompt_intent(user_prompt, selected_text)
+        label_by_intent = {
+            "custom_replace": "Replace selection",
+            "custom_insert": "Use as idea",
+            "custom_contextual": "Insert at cursor",
+            "custom_freeform": "Insert at cursor",
+        }
+        return {
+            "label": label_by_intent.get(intent["intent"], "Revise with instruction"),
+            "placement": intent.get("placement", placement or "insert_at_cursor"),
+            "intent": intent.get("intent", "custom"),
+            "uses_selection": bool(selected_text),
+        }
+    return {
+        "label": labels.get(action, "Revise with instruction"),
+        "placement": placement or ("replace_selection" if action in {"rewrite", "expand", "improve", "summarize"} and selected_text else "insert_at_cursor"),
+        "intent": action,
+        "uses_selection": bool(selected_text),
+    }
+
+
+def build_word_diff(original, draft):
+    original_words = re.findall(r"\S+", original or "")
+    draft_words = re.findall(r"\S+", draft or "")
+    rows = []
+    max_len = max(len(original_words), len(draft_words))
+    for index in range(max_len):
+        before = original_words[index] if index < len(original_words) else ""
+        after = draft_words[index] if index < len(draft_words) else ""
+        if before == after:
+            rows.append({"type": "same", "text": after})
+        else:
+            if before:
+                rows.append({"type": "removed", "text": before})
+            if after:
+                rows.append({"type": "added", "text": after})
+    return rows[:900]
+
+
 def action_output_contract(action, selected_text=""):
     selected_words = _word_count(selected_text)
     if action == "rewrite":
@@ -440,7 +492,7 @@ def analyze_manuscript(manuscript, client=None):
     return normalize_profile(data.get("ai_profile", {})), normalize_memory(data.get("ai_memory", {}))
 
 
-def generate_draft(manuscript, action, selected_text="", cursor_context="", user_prompt="", client=None):
+def generate_draft(manuscript, action, selected_text="", cursor_context="", user_prompt="", regeneration_instruction="", cost_mode="", client=None):
     if action not in ACTION_INSTRUCTIONS:
         raise AIServiceError("Unknown AI action.")
     user_prompt = (user_prompt or "").strip()
@@ -448,18 +500,24 @@ def generate_draft(manuscript, action, selected_text="", cursor_context="", user
     if action == "custom" and not user_prompt:
         raise AIServiceError("Add an instruction before sending.")
 
+    cost_mode = normalize_cost_mode(cost_mode or getattr(manuscript, "ai_cost_mode", "balanced"))
     context = build_generation_context(
         manuscript,
         action,
         selected_text=selected_text,
         cursor_context=cursor_context,
         user_prompt=user_prompt,
+        cost_mode=cost_mode,
     )
     payload = context["payload"]
     payload["instruction"] = ACTION_INSTRUCTIONS[action]
     if custom_intent:
         payload["custom_prompt_intent"] = custom_intent
         payload["instruction"] = f"{payload['instruction']} {custom_intent['instruction']}"
+    regeneration_instruction = (regeneration_instruction or "").strip()
+    if regeneration_instruction:
+        payload["regeneration_instruction"] = regeneration_instruction
+        payload["instruction"] = f"{payload['instruction']} Regenerate with this extra direction: {regeneration_instruction}."
     output_contract = action_output_contract(action, selected_text)
     payload["output_contract"] = {
         "max_words": output_contract["max_words"],
@@ -509,6 +567,11 @@ def generate_draft(manuscript, action, selected_text="", cursor_context="", user
         f"{issue.get('message')} {issue.get('reason')}".strip()
         for issue in consistency_report.get("issues", [])
     ]
+    placement = custom_intent["placement"] if custom_intent else ""
+    intent_preview = intent_preview_for(action, user_prompt, selected_text, placement)
+    placement = intent_preview.get("placement", placement)
+    diff_available = bool(selected_text and intent_preview.get("placement") == "replace_selection")
+    suggestion_diff = build_word_diff(selected_text, draft) if diff_available else []
     context["agent_steps"] = [
         *context["agent_steps"],
         {
@@ -532,12 +595,18 @@ def generate_draft(manuscript, action, selected_text="", cursor_context="", user
     )
     return {
         "draft": draft,
-        "placement": custom_intent["placement"] if custom_intent else "",
+        "placement": placement,
+        "intent_preview": intent_preview,
+        "diff_available": diff_available,
+        "suggestion_diff": suggestion_diff,
         "agent_steps": context["agent_steps"],
         "usage_hint": context["usage_hint"],
         "safety_warnings": [*consistency_warnings, *safety_warnings],
         "consistency_report": consistency_report,
         "engine_state": engine_state,
+        "memory_freshness": memory_freshness(manuscript.ai_memory_meta, manuscript.ai_memory_stale),
+        "chapter_memory": normalize_chapter_memory(manuscript.ai_chapter_memory),
+        "cost_mode": cost_mode,
         "context_summary": context["context_summary"],
         "usage": context["usage"],
     }

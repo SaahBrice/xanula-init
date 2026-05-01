@@ -52,6 +52,18 @@ DEFAULT_USAGE = {
     "last_request": {},
 }
 
+DEFAULT_MEMORY_META = {
+    "version": 0,
+    "last_refreshed_at": "",
+    "last_refreshed_words": 0,
+    "source": "",
+}
+
+DEFAULT_CHAPTER_MEMORY = {
+    "sections": [],
+    "version": 0,
+}
+
 DEFAULT_STALE = {
     "is_stale": False,
     "changed_words": 0,
@@ -63,6 +75,7 @@ DEFAULT_STALE = {
 LONGFORM_TARGET_CHARS = 700000
 SECTION_CHUNK_CHARS = 2400
 MAX_INDEXED_CHUNKS = 360
+COST_MODES = {"fast", "balanced", "deep"}
 
 ACTION_AGENT_LABELS = {
     "continue": "Continuing from cursor",
@@ -315,6 +328,57 @@ def normalize_usage(usage):
     return data
 
 
+def normalize_memory_meta(meta):
+    data = dict(DEFAULT_MEMORY_META)
+    if isinstance(meta, dict):
+        data["version"] = int(meta.get("version") or 0)
+        data["last_refreshed_at"] = str(meta.get("last_refreshed_at") or "")
+        data["last_refreshed_words"] = int(meta.get("last_refreshed_words") or 0)
+        data["source"] = str(meta.get("source") or "")
+    return data
+
+
+def next_memory_meta(previous_meta, content, source, timestamp=None):
+    meta = normalize_memory_meta(previous_meta)
+    meta["version"] += 1
+    meta["last_refreshed_at"] = timestamp.isoformat() if timestamp else ""
+    meta["last_refreshed_words"] = _word_count(extract_text(content))
+    meta["source"] = source
+    return meta
+
+
+def memory_freshness(meta, stale):
+    meta = normalize_memory_meta(meta)
+    stale = normalize_stale(stale)
+    if stale.get("is_stale"):
+        label = "Refresh suggested"
+    elif meta.get("version"):
+        label = f"Memory v{meta['version']}"
+    else:
+        label = "Memory not refreshed"
+    return {
+        "label": label,
+        "version": meta.get("version", 0),
+        "last_refreshed_at": meta.get("last_refreshed_at", ""),
+        "last_refreshed_words": meta.get("last_refreshed_words", 0),
+        "source": meta.get("source", ""),
+        "is_stale": stale.get("is_stale", False),
+    }
+
+
+def normalize_cost_mode(mode):
+    normalized = str(mode or "").strip().lower()
+    return normalized if normalized in COST_MODES else "balanced"
+
+
+def normalize_chapter_memory(chapter_memory):
+    data = dict(DEFAULT_CHAPTER_MEMORY)
+    if isinstance(chapter_memory, dict):
+        data["sections"] = chapter_memory.get("sections") if isinstance(chapter_memory.get("sections"), list) else []
+        data["version"] = int(chapter_memory.get("version") or 0)
+    return data
+
+
 def normalize_stale(stale):
     data = dict(DEFAULT_STALE)
     if isinstance(stale, dict):
@@ -324,6 +388,61 @@ def normalize_stale(stale):
         data["reason"] = str(stale.get("reason") or "")
         data["last_analyzed_words"] = int(stale.get("last_analyzed_words") or 0)
     return data
+
+
+def build_chapter_memory(content, existing_memory=None, version=0):
+    chapter_map = analyze_structure(content)
+    text = extract_text(content)
+    sections = []
+    indexed = build_section_index(content, max_sections=120)
+    summary_lookup = {}
+    if isinstance(existing_memory, dict):
+        for item in existing_memory.get("chapter_summaries", []) if isinstance(existing_memory.get("chapter_summaries"), list) else []:
+            if isinstance(item, dict):
+                title = str(item.get("title") or item.get("chapter") or "").lower()
+                if title:
+                    summary_lookup[title] = str(item.get("summary") or item.get("text") or "")
+            elif isinstance(item, str):
+                summary_lookup.setdefault("", item)
+
+    for section in chapter_map.get("sections", [])[:80]:
+        title = section.get("title") or "Opening"
+        related = [
+            chunk for chunk in indexed
+            if chunk.get("title", "").lower().startswith(title.lower())
+        ][:3]
+        sample = "\n\n".join(chunk.get("snippet", "") for chunk in related)
+        entities = analyze_entities(sample)
+        summary = summary_lookup.get(title.lower()) or _truncate(sample, 260)
+        sections.append({
+            "title": title,
+            "level": section.get("level", 1),
+            "word_count": section.get("word_count", 0),
+            "summary": summary,
+            "characters": entities.get("characters", [])[:10],
+            "locations": entities.get("locations", [])[:8],
+            "dates": entities.get("dates", [])[:8],
+            "open_threads": _memory_items(existing_memory, "open_threads")[:6],
+            "continuity_notes": _memory_items(existing_memory, "consistency_notes")[:6],
+        })
+
+    if not sections and text:
+        entities = analyze_entities(text)
+        sections.append({
+            "title": "Opening",
+            "level": 1,
+            "word_count": _word_count(text),
+            "summary": _truncate(text, 260),
+            "characters": entities.get("characters", [])[:10],
+            "locations": entities.get("locations", [])[:8],
+            "dates": entities.get("dates", [])[:8],
+            "open_threads": _memory_items(existing_memory, "open_threads")[:6],
+            "continuity_notes": _memory_items(existing_memory, "consistency_notes")[:6],
+        })
+    return {
+        "sections": sections,
+        "version": int(version or 0),
+    }
 
 
 def analyze_structure(content):
@@ -746,6 +865,8 @@ def build_longform_engine_state(manuscript, consistency_report=None, context_sum
             "strategy": "section-aware local retrieval",
             "last_retrieved_sections": (context_summary or {}).get("retrieved_sections", len(consistency.get("retrieved_sections", []))),
         },
+        "memory_freshness": memory_freshness(manuscript.ai_memory_meta, manuscript.ai_memory_stale),
+        "cost_mode": normalize_cost_mode(getattr(manuscript, "ai_cost_mode", "balanced")),
         "continuity": {
             "status": consistency.get("status", "clear"),
             "issue_count": len(issues),
@@ -874,22 +995,36 @@ def check_consistency(draft, manuscript, action="", selected_text="", retrieved_
     }
 
 
-def _context_limit(action):
-    policy = getattr(settings, "REEPLS_AI_CONTEXT_POLICY", "balanced")
+def _context_limit(action, cost_mode=None):
+    policy = normalize_cost_mode(cost_mode or getattr(settings, "REEPLS_AI_CONTEXT_POLICY", "balanced"))
     if action in {"rewrite", "improve", "expand"}:
         limit = getattr(settings, "REEPLS_AI_MAX_INPUT_CHARS_REWRITE", 9000)
     elif action == "outline":
         limit = getattr(settings, "REEPLS_AI_MAX_INPUT_CHARS_OUTLINE", 22000)
     else:
         limit = getattr(settings, "REEPLS_AI_MAX_INPUT_CHARS_CONTINUE", 16000)
-    if policy == "strict":
+    if policy == "fast":
         return math.floor(limit * 0.65), policy
-    if policy == "quality":
+    if policy == "deep":
         return math.floor(limit * 1.25), policy
     return limit, policy
 
 
-def build_generation_context(manuscript, action, selected_text="", cursor_context="", user_prompt=""):
+def _chapter_memory_for_section(chapter_memory, current_section):
+    data = normalize_chapter_memory(chapter_memory)
+    title = str((current_section or {}).get("title") or "").lower()
+    if not title:
+        return {}
+    for section in data.get("sections", []):
+        if str(section.get("title") or "").lower() == title:
+            return section
+    for section in data.get("sections", []):
+        if title and title in str(section.get("title") or "").lower():
+            return section
+    return {}
+
+
+def build_generation_context(manuscript, action, selected_text="", cursor_context="", user_prompt="", cost_mode=None):
     text = extract_text(manuscript.content)
     voice = normalize_voice(manuscript.ai_voice) if manuscript.ai_voice else analyze_voice(text, profile=manuscript.ai_profile)
     lens = infer_book_lens(manuscript.ai_profile, text)
@@ -900,17 +1035,19 @@ def build_generation_context(manuscript, action, selected_text="", cursor_contex
     chapter_map = normalize_chapter_map(manuscript.ai_chapter_map) if manuscript.ai_chapter_map else analyze_structure(manuscript.content)
     entities = normalize_entities(manuscript.ai_entities) if manuscript.ai_entities else analyze_entities(text)
     stale = normalize_stale(manuscript.ai_memory_stale)
-    limit, policy = _context_limit(action)
+    limit, policy = _context_limit(action, cost_mode or getattr(manuscript, "ai_cost_mode", "balanced"))
     selected_text = _truncate(selected_text, min(6000, limit // 2))
     cursor_context = _truncate(cursor_context, min(4000, limit // 3))
     current_section = _current_section(chapter_map, cursor_context)
     retrieval_query = "\n\n".join(part for part in [user_prompt, selected_text, cursor_context, current_section.get("preview", "")] if part)
+    retrieve_limit = 3 if policy == "fast" else 7 if policy == "deep" else 5
     retrieved_sections = retrieve_relevant_sections(
         manuscript.content,
         retrieval_query,
         entities=entities,
-        limit=5,
+        limit=retrieve_limit,
     )
+    chapter_memory = _chapter_memory_for_section(manuscript.ai_chapter_memory, current_section)
 
     if action in REPLACEMENT_ACTIONS:
         excerpt_budget = min(1400, max(500, limit - len(selected_text) - len(cursor_context) - 2400))
@@ -960,6 +1097,7 @@ def build_generation_context(manuscript, action, selected_text="", cursor_contex
             "headings": chapter_map.get("headings", [])[:40],
             "current_section": current_section,
         },
+        "chapter_memory": chapter_memory,
         "entities": {
             "characters": entities.get("characters", [])[:25],
             "locations": entities.get("locations", [])[:20],
@@ -1007,6 +1145,7 @@ def build_generation_context(manuscript, action, selected_text="", cursor_contex
             "current_section": current_section.get("title", ""),
             "book_lens": voice.get("book_lens") or lens["lens"],
             "retrieved_sections": len(retrieved_sections),
+            "chapter_memory_title": chapter_memory.get("title", ""),
         },
         "retrieved_sections": retrieved_sections,
     }

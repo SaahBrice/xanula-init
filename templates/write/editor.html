@@ -637,6 +637,28 @@ body             { overflow: hidden; }
     gap: 6px;
     margin-top: 10px;
 }
+.ai-segment {
+    display: inline-flex;
+    border: 1px solid #e7e5e4;
+    border-radius: 7px;
+    overflow: hidden;
+    background: #ffffff;
+}
+.ai-segment button {
+    min-height: 28px;
+    border: 0;
+    border-right: 1px solid #e7e5e4;
+    background: transparent;
+    color: #78716c;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 5px 8px;
+}
+.ai-segment button:last-child { border-right: 0; }
+.ai-segment button.on {
+    background: #8B2635;
+    color: #ffffff;
+}
 .ai-warning-list {
     display: grid;
     gap: 5px;
@@ -709,6 +731,52 @@ body             { overflow: hidden; }
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+.ai-intent-preview {
+    border-radius: 7px;
+    background: #f8f7f4;
+    color: #57534e;
+    font-size: 0.72rem;
+    line-height: 1.35;
+    padding: 7px 8px;
+}
+.ai-intent-preview strong { color: #292524; }
+.ai-warning-card {
+    border-radius: 7px;
+    background: #fffbeb;
+    color: #92400e;
+    font-size: 0.72rem;
+    line-height: 1.35;
+    padding: 8px;
+}
+.ai-warning-card strong { color: #78350f; }
+.ai-diff {
+    max-height: 180px;
+    overflow: auto;
+    border-radius: 7px;
+    background: #f8f7f4;
+    padding: 8px;
+    font-size: 0.78rem;
+    line-height: 1.7;
+}
+.ai-diff span { margin-right: 4px; }
+.ai-diff .added {
+    background: #dcfce7;
+    color: #166534;
+    border-radius: 4px;
+    padding: 1px 3px;
+}
+.ai-diff .removed {
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 4px;
+    padding: 1px 3px;
+    text-decoration: line-through;
+}
+.ai-mini-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
 }
 .ai-prompt-selection {
     background: rgba(139, 38, 53, .16);
@@ -862,6 +930,12 @@ body             { overflow: hidden; }
 [data-theme="dark"] .ai-progress { background: #292524; }
 [data-theme="dark"] .ai-meter       { background: #252525; color: #a8a29e; }
 [data-theme="dark"] .ai-meter strong { color: #e7e5e4; }
+[data-theme="dark"] .ai-segment { background: #1e1e1e; border-color: #292524; }
+[data-theme="dark"] .ai-segment button { border-color: #292524; color: #a8a29e; }
+[data-theme="dark"] .ai-intent-preview,
+[data-theme="dark"] .ai-diff { background: #252525; color: #a8a29e; }
+[data-theme="dark"] .ai-intent-preview strong { color: #e7e5e4; }
+[data-theme="dark"] .ai-warning-card { background: #2a2113; color: #fbbf24; }
 [data-theme="dark"] .ai-warning-list li { background: #2a2113; color: #fbbf24; }
 [data-theme="dark"] .ai-chip        { background: #252525; color: #a8a29e; }
 [data-theme="dark"] .ai-suggestion-bar { border-color: #44403c; box-shadow: 0 -8px 20px rgba(0,0,0,.35); }
@@ -886,6 +960,9 @@ body             { overflow: hidden; }
 {{ ai_chapter_map|json_script:"ed-ai-chapter-map-data" }}
 {{ ai_entities|json_script:"ed-ai-entities-data" }}
 {{ ai_consistency|json_script:"ed-ai-consistency-data" }}
+{{ ai_memory_meta|json_script:"ed-ai-memory-meta-data" }}
+{{ ai_memory_freshness|json_script:"ed-ai-memory-freshness-data" }}
+{{ ai_chapter_memory|json_script:"ed-ai-chapter-memory-data" }}
 {{ ai_longform_state|json_script:"ed-ai-longform-data" }}
 {{ ai_usage|json_script:"ed-ai-usage-data" }}
 {{ ai_memory_stale|json_script:"ed-ai-stale-data" }}
@@ -1173,6 +1250,15 @@ body             { overflow: hidden; }
                             <strong x-text="engineReadinessLabel()"></strong>
                         </div>
                     </div>
+                    <div class="ai-row mt-2">
+                        <span class="ai-chip" x-text="memoryFreshnessLabel()"></span>
+                        <span class="ai-chip" x-text="usageHint || 'balanced context'"></span>
+                        <div class="ai-segment" title="{% trans 'Controls how much context Reepls sends.' %}">
+                            <button :class="costMode === 'fast' ? 'on' : ''" @click="costMode = 'fast'" :disabled="aiLoading || suggestion.active">{% trans "Fast" %}</button>
+                            <button :class="costMode === 'balanced' ? 'on' : ''" @click="costMode = 'balanced'" :disabled="aiLoading || suggestion.active">{% trans "Balanced" %}</button>
+                            <button :class="costMode === 'deep' ? 'on' : ''" @click="costMode = 'deep'" :disabled="aiLoading || suggestion.active">{% trans "Deep" %}</button>
+                        </div>
+                    </div>
                 </section>
 
                 <section class="ai-card ai-section" x-show="activityVisible()" x-cloak>
@@ -1259,6 +1345,10 @@ body             { overflow: hidden; }
                                 <span>{% trans "Send" %}</span>
                             </button>
                         </div>
+                        <div class="ai-intent-preview">
+                            <span>{% trans "Reepls will:" %}</span>
+                            <strong x-text="promptIntentPreview().label"></strong>
+                        </div>
                     </div>
                 </section>
 
@@ -1281,8 +1371,30 @@ body             { overflow: hidden; }
                 </section>
 
                 <section class="ai-card ai-section ai-suggestion-bar" x-show="suggestion.active" x-cloak>
-                    <label class="ai-label">{% trans "Suggestion Preview" %}</label>
+                    <div class="ai-head">
+                        <label class="ai-label mb-0">{% trans "Suggestion Preview" %}</label>
+                        <template x-if="suggestion.diffAvailable">
+                            <div class="ai-segment">
+                                <button :class="suggestion.view === 'clean' ? 'on' : ''" @click="suggestion.view = 'clean'">{% trans "Clean" %}</button>
+                                <button :class="suggestion.view === 'changes' ? 'on' : ''" @click="suggestion.view = 'changes'">{% trans "Changes" %}</button>
+                            </div>
+                        </template>
+                    </div>
                     <p class="ai-subtle">{% trans "The preview is in the editor. Confirm to save it, reject to restore, or regenerate another version." %}</p>
+                    <template x-if="suggestion.view === 'changes' && suggestion.diffAvailable">
+                        <div class="ai-diff">
+                            <template x-for="(part, index) in suggestion.diff" :key="index">
+                                <span :class="part.type" x-text="part.text"></span>
+                            </template>
+                        </div>
+                    </template>
+                    <template x-if="suggestionWarnings().length">
+                        <div class="ai-warning-card">
+                            <template x-for="warning in suggestionWarnings()" :key="warning">
+                                <div x-text="warning"></div>
+                            </template>
+                        </div>
+                    </template>
                     <div class="ai-row">
                         <button class="ai-btn primary" @click="confirmSuggestion()" :disabled="aiLoading">{% trans "Confirm" %}</button>
                         <button class="ai-btn" @click="rejectSuggestion()" :disabled="aiLoading">{% trans "Reject" %}</button>
@@ -1292,6 +1404,13 @@ body             { overflow: hidden; }
                             </template>
                             <span>{% trans "Regenerate" %}</span>
                         </button>
+                    </div>
+                    <div class="ai-mini-actions">
+                        <button class="ai-btn" @click="regenerateSuggestion('Shorter')" :disabled="aiLoading">{% trans "Shorter" %}</button>
+                        <button class="ai-btn" @click="regenerateSuggestion('Closer to original')" :disabled="aiLoading">{% trans "Closer" %}</button>
+                        <button class="ai-btn" @click="regenerateSuggestion('More emotional')" :disabled="aiLoading">{% trans "Emotional" %}</button>
+                        <button class="ai-btn" @click="regenerateSuggestion('More direct')" :disabled="aiLoading">{% trans "Direct" %}</button>
+                        <button class="ai-btn" @click="regenerateSuggestion('More literary')" :disabled="aiLoading">{% trans "Literary" %}</button>
                     </div>
                 </section>
             </div>
@@ -1383,9 +1502,13 @@ function writeEditor() {
         aiChapterMap: {},
         aiEntities: {},
         aiConsistency: {},
+        aiMemoryMeta: {},
+        aiMemoryFreshness: {},
+        aiChapterMemory: {},
         aiLongform: {},
         aiUsage: {},
         aiStale: {},
+        costMode: '{{ ai_cost_mode|escapejs }}' || 'balanced',
         aiProfileConfirmed: {{ manuscript.ai_profile_confirmed|yesno:"true,false" }},
         profileExpanded: !{{ manuscript.ai_profile_confirmed|yesno:"true,false" }},
         aiLoading: false,
@@ -1411,6 +1534,13 @@ function writeEditor() {
             selectedText: '',
             cursorContext: '',
             userPrompt: '',
+            regenerationInstruction: '',
+            intentPreview: {},
+            diffAvailable: false,
+            diff: [],
+            warnings: [],
+            consistencyIssues: [],
+            view: 'clean',
         },
 
         get ed() { return window.__xanulaEditor },
@@ -1445,6 +1575,9 @@ function writeEditor() {
             this.aiChapterMap = readEditorJson('ed-ai-chapter-map-data', {})
             this.aiEntities = readEditorJson('ed-ai-entities-data', {})
             this.aiConsistency = readEditorJson('ed-ai-consistency-data', {})
+            this.aiMemoryMeta = readEditorJson('ed-ai-memory-meta-data', {})
+            this.aiMemoryFreshness = readEditorJson('ed-ai-memory-freshness-data', {})
+            this.aiChapterMemory = readEditorJson('ed-ai-chapter-memory-data', {})
             this.aiLongform = readEditorJson('ed-ai-longform-data', {})
             this.aiUsage = readEditorJson('ed-ai-usage-data', {})
             this.aiStale = readEditorJson('ed-ai-stale-data', {})
@@ -1603,10 +1736,13 @@ function writeEditor() {
             if (data.chapter_map) this.aiChapterMap = data.chapter_map
             if (data.entities) this.aiEntities = data.entities
             if (data.consistency_report) this.aiConsistency = data.consistency_report
+            if (data.memory_freshness) this.aiMemoryFreshness = data.memory_freshness
+            if (data.chapter_memory) this.aiChapterMemory = data.chapter_memory
             if (data.engine_state) this.aiLongform = data.engine_state
             if (data.stale) this.aiStale = data.stale
             if (data.usage) this.aiUsage = data.usage
             if (data.usage_hint) this.usageHint = data.usage_hint
+            if (data.cost_mode) this.costMode = data.cost_mode
             if (data.context_summary) this.contextSummary = data.context_summary
             const warnings = data.safety_warnings || data.warnings || []
             this.agentWarnings = Array.isArray(warnings)
@@ -1647,6 +1783,34 @@ function writeEditor() {
         engineReadinessLabel() {
             const label = String(this.aiLongform?.readiness || 'ready').replaceAll('_', ' ')
             return label.charAt(0).toUpperCase() + label.slice(1)
+        },
+
+        memoryFreshnessLabel() {
+            return this.aiMemoryFreshness?.label || (this.aiStale?.is_stale ? 'Refresh suggested' : 'Memory not refreshed')
+        },
+
+        promptIntentPreview() {
+            const prompt = (this.aiPrompt || '').toLowerCase()
+            const hasSelection = !!(this.rememberedSelection.text || this.selectedText())
+            const replacementWords = ['rewrite', 'improve', 'polish', 'make this', 'make it', 'shorten', 'condense', 'summarize', 'summary', 'expand this', 'expand it', 'fix', 'edit', 'revise', 'change this', 'turn this', 'replace']
+            const insertionWords = ['continue', 'next part', 'next scene', 'after this', 'following', 'write from here', 'use this idea', 'use my idea', 'insert', 'add a scene', 'write a scene', 'generate the next']
+            if (hasSelection && replacementWords.some(term => prompt.includes(term))) {
+                if (prompt.includes('summarize') || prompt.includes('summary') || prompt.includes('condense')) {
+                    return { label: 'Summarize selection', placement: 'replace_selection' }
+                }
+                return { label: 'Replace selection', placement: 'replace_selection' }
+            }
+            if (insertionWords.some(term => prompt.includes(term))) return { label: 'Use as idea', placement: 'insert_at_cursor' }
+            if (hasSelection) return { label: 'Insert at cursor', placement: 'insert_at_cursor' }
+            return { label: 'Insert at cursor', placement: 'insert_at_cursor' }
+        },
+
+        suggestionWarnings() {
+            const issueWarnings = (this.suggestion.consistencyIssues || []).map(issue => {
+                const source = issue.source ? ` from ${issue.source}` : ''
+                return `${issue.message || 'Continuity warning'}${source}. ${issue.reason || ''}`.trim()
+            })
+            return [...issueWarnings, ...(this.suggestion.warnings || [])].filter(Boolean).slice(0, 4)
         },
 
         startActivity(action) {
@@ -1884,6 +2048,8 @@ function writeEditor() {
                     selected_text: selectedText,
                     cursor_context: cursorContext,
                     user_prompt: promptToSend,
+                    regeneration_instruction: this.suggestion.active ? this.suggestion.regenerationInstruction : '',
+                    cost_mode: this.costMode,
                 })
                 await this.holdAgentCue(startedAt)
                 const draft = data.draft || ''
@@ -1893,7 +2059,7 @@ function writeEditor() {
                         ? (data.placement === 'replace_selection' ? replacementRange : insertionRange)
                         : defaultRange
                     this.clearPromptSelectionHighlight()
-                    this.showSuggestion(action, draft, range, selectedText, cursorContext, promptToSend)
+                    this.showSuggestion(action, draft, range, selectedText, cursorContext, promptToSend, data)
                     this.finishActivity(token, 'Preview is ready in the editor.')
                     this.aiNotice = 'Preview ready in the editor.'
                     if (action === 'custom') this.aiPrompt = ''
@@ -1912,7 +2078,7 @@ function writeEditor() {
             }
         },
 
-        showSuggestion(action, text, range, selectedText, cursorContext, userPrompt = '') {
+        showSuggestion(action, text, range, selectedText, cursorContext, userPrompt = '', data = {}) {
             const ed = window.__xanulaEditor
             if (!ed || !text) return
             this.suggestion = {
@@ -1924,6 +2090,13 @@ function writeEditor() {
                 selectedText,
                 cursorContext,
                 userPrompt,
+                regenerationInstruction: '',
+                intentPreview: data.intent_preview || {},
+                diffAvailable: !!data.diff_available,
+                diff: data.suggestion_diff || [],
+                warnings: data.safety_warnings || [],
+                consistencyIssues: data.consistency_report?.issues || [],
+                view: 'clean',
             }
             window.xanulaGhostSuggestion?.show(ed, this.suggestion)
         },
@@ -1935,7 +2108,7 @@ function writeEditor() {
             if (!nodes.length) return
             const confirmed = window.xanulaGhostSuggestion?.confirm(ed, nodes)
             if (confirmed) {
-                this.suggestion = { active: false, id: null, action: '', text: '', range: null, selectedText: '', cursorContext: '', userPrompt: '' }
+                this.suggestion = { active: false, id: null, action: '', text: '', range: null, selectedText: '', cursorContext: '', userPrompt: '', regenerationInstruction: '', intentPreview: {}, diffAvailable: false, diff: [], warnings: [], consistencyIssues: [], view: 'clean' }
                 this.activityState = 'done'
                 this.activityTitle = 'Ready'
                 this.activityMessage = 'Suggestion confirmed and queued for autosave.'
@@ -1947,15 +2120,16 @@ function writeEditor() {
         rejectSuggestion() {
             const ed = window.__xanulaEditor
             window.xanulaGhostSuggestion?.clear(ed)
-            this.suggestion = { active: false, id: null, action: '', text: '', range: null, selectedText: '', cursorContext: '', userPrompt: '' }
+            this.suggestion = { active: false, id: null, action: '', text: '', range: null, selectedText: '', cursorContext: '', userPrompt: '', regenerationInstruction: '', intentPreview: {}, diffAvailable: false, diff: [], warnings: [], consistencyIssues: [], view: 'clean' }
             this.activityState = 'done'
             this.activityTitle = 'Ready'
             this.activityMessage = 'Suggestion rejected. The manuscript was not changed.'
             this.aiNotice = 'Suggestion rejected.'
         },
 
-        regenerateSuggestion() {
+        regenerateSuggestion(direction = '') {
             if (!this.suggestion.active || this.aiLoading) return
+            this.suggestion.regenerationInstruction = direction
             this.runAiAction(this.suggestion.action, this.suggestion.userPrompt)
         },
 

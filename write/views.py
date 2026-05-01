@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 
 from .ai import (
     AIConfigurationError,
@@ -15,12 +16,18 @@ from .ai import (
 )
 from .intelligence import (
     agent_steps_for_inspect,
+    build_chapter_memory,
     build_longform_engine_state,
     inspect_content,
+    memory_freshness,
+    next_memory_meta,
     mark_stale_from_change,
     normalize_chapter_map,
+    normalize_chapter_memory,
     normalize_consistency,
+    normalize_cost_mode,
     normalize_entities,
+    normalize_memory_meta,
     normalize_stale,
     normalize_usage,
     normalize_voice,
@@ -57,6 +64,10 @@ def editor(request, manuscript_id):
         'ai_chapter_map': normalize_chapter_map(manuscript.ai_chapter_map),
         'ai_entities': normalize_entities(manuscript.ai_entities),
         'ai_consistency': normalize_consistency(manuscript.ai_consistency),
+        'ai_memory_meta': normalize_memory_meta(manuscript.ai_memory_meta),
+        'ai_memory_freshness': memory_freshness(manuscript.ai_memory_meta, manuscript.ai_memory_stale),
+        'ai_chapter_memory': normalize_chapter_memory(manuscript.ai_chapter_memory),
+        'ai_cost_mode': normalize_cost_mode(manuscript.ai_cost_mode),
         'ai_longform_state': build_longform_engine_state(manuscript),
         'ai_usage': normalize_usage(manuscript.ai_usage),
         'ai_memory_stale': normalize_stale(manuscript.ai_memory_stale),
@@ -107,6 +118,8 @@ def ai_analyze(request, manuscript_id):
         manuscript.ai_voice = local['voice']
         manuscript.ai_chapter_map = local['chapter_map']
         manuscript.ai_entities = local['entities']
+        manuscript.ai_memory_meta = next_memory_meta(manuscript.ai_memory_meta, manuscript.content, 'analyze', timezone.now())
+        manuscript.ai_chapter_memory = build_chapter_memory(manuscript.content, memory, manuscript.ai_memory_meta['version'])
         manuscript.ai_memory_stale = reset_stale_for(manuscript.content)
         manuscript.ai_profile_confirmed = False
         manuscript.save(update_fields=[
@@ -115,6 +128,8 @@ def ai_analyze(request, manuscript_id):
             'ai_voice',
             'ai_chapter_map',
             'ai_entities',
+            'ai_memory_meta',
+            'ai_chapter_memory',
             'ai_memory_stale',
             'ai_profile_confirmed',
             'updated_at',
@@ -126,6 +141,9 @@ def ai_analyze(request, manuscript_id):
             'voice': manuscript.ai_voice,
             'chapter_map': manuscript.ai_chapter_map,
             'entities': manuscript.ai_entities,
+            'memory_freshness': memory_freshness(manuscript.ai_memory_meta, manuscript.ai_memory_stale),
+            'chapter_memory': normalize_chapter_memory(manuscript.ai_chapter_memory),
+            'cost_mode': normalize_cost_mode(manuscript.ai_cost_mode),
             'stale': manuscript.ai_memory_stale,
             'engine_state': build_longform_engine_state(manuscript),
             'agent_steps': [
@@ -151,12 +169,17 @@ def ai_profile(request, manuscript_id):
     manuscript.ai_profile = normalize_profile(data.get('profile', {}))
     if 'memory' in data:
         manuscript.ai_memory = normalize_memory(data.get('memory', {}))
+    manuscript.ai_memory_meta = next_memory_meta(manuscript.ai_memory_meta, manuscript.content, 'profile edit', timezone.now())
+    manuscript.ai_chapter_memory = build_chapter_memory(manuscript.content, manuscript.ai_memory, manuscript.ai_memory_meta['version'])
     manuscript.ai_profile_confirmed = bool(data.get('confirmed', True))
-    manuscript.save(update_fields=['ai_profile', 'ai_memory', 'ai_profile_confirmed', 'updated_at'])
+    manuscript.save(update_fields=['ai_profile', 'ai_memory', 'ai_memory_meta', 'ai_chapter_memory', 'ai_profile_confirmed', 'updated_at'])
     return JsonResponse({
         'status': 'ok',
         'profile': manuscript.ai_profile,
         'memory': normalize_memory(manuscript.ai_memory),
+        'memory_freshness': memory_freshness(manuscript.ai_memory_meta, manuscript.ai_memory_stale),
+        'chapter_memory': normalize_chapter_memory(manuscript.ai_chapter_memory),
+        'cost_mode': normalize_cost_mode(manuscript.ai_cost_mode),
         'confirmed': manuscript.ai_profile_confirmed,
     })
 
@@ -169,11 +192,15 @@ def ai_inspect(request, manuscript_id):
     manuscript.ai_voice = local['voice']
     manuscript.ai_chapter_map = local['chapter_map']
     manuscript.ai_entities = local['entities']
+    manuscript.ai_memory_meta = next_memory_meta(manuscript.ai_memory_meta, manuscript.content, 'inspect', timezone.now())
+    manuscript.ai_chapter_memory = build_chapter_memory(manuscript.content, manuscript.ai_memory, manuscript.ai_memory_meta['version'])
     manuscript.ai_memory_stale = local['stale']
     manuscript.save(update_fields=[
         'ai_voice',
         'ai_chapter_map',
         'ai_entities',
+        'ai_memory_meta',
+        'ai_chapter_memory',
         'ai_memory_stale',
         'updated_at',
     ])
@@ -183,6 +210,9 @@ def ai_inspect(request, manuscript_id):
         'voice': manuscript.ai_voice,
         'chapter_map': manuscript.ai_chapter_map,
         'entities': manuscript.ai_entities,
+        'memory_freshness': memory_freshness(manuscript.ai_memory_meta, manuscript.ai_memory_stale),
+        'chapter_memory': normalize_chapter_memory(manuscript.ai_chapter_memory),
+        'cost_mode': normalize_cost_mode(manuscript.ai_cost_mode),
         'stale': manuscript.ai_memory_stale,
         'engine_state': build_longform_engine_state(manuscript),
         'warnings': warnings,
@@ -203,21 +233,30 @@ def ai_generate(request, manuscript_id):
             selected_text=data.get('selected_text', ''),
             cursor_context=data.get('cursor_context', ''),
             user_prompt=data.get('user_prompt', ''),
+            regeneration_instruction=data.get('regeneration_instruction', ''),
+            cost_mode=data.get('cost_mode', manuscript.ai_cost_mode),
         )
         if isinstance(result, str):
             return JsonResponse({'status': 'ok', 'draft': result})
         manuscript.ai_usage = result.get('usage', manuscript.ai_usage)
         manuscript.ai_consistency = result.get('consistency_report', manuscript.ai_consistency)
-        manuscript.save(update_fields=['ai_usage', 'ai_consistency', 'updated_at'])
+        manuscript.ai_cost_mode = normalize_cost_mode(result.get('cost_mode', manuscript.ai_cost_mode))
+        manuscript.save(update_fields=['ai_usage', 'ai_consistency', 'ai_cost_mode', 'updated_at'])
         return JsonResponse({
             'status': 'ok',
             'draft': result.get('draft', ''),
             'placement': result.get('placement', ''),
+            'intent_preview': result.get('intent_preview', {}),
+            'diff_available': result.get('diff_available', False),
+            'suggestion_diff': result.get('suggestion_diff', []),
             'agent_steps': result.get('agent_steps', []),
             'usage_hint': result.get('usage_hint', ''),
             'safety_warnings': result.get('safety_warnings', []),
             'consistency_report': result.get('consistency_report', {}),
             'engine_state': result.get('engine_state', build_longform_engine_state(manuscript)),
+            'memory_freshness': result.get('memory_freshness', memory_freshness(manuscript.ai_memory_meta, manuscript.ai_memory_stale)),
+            'chapter_memory': result.get('chapter_memory', normalize_chapter_memory(manuscript.ai_chapter_memory)),
+            'cost_mode': result.get('cost_mode', normalize_cost_mode(manuscript.ai_cost_mode)),
             'context_summary': result.get('context_summary', {}),
             'usage': manuscript.ai_usage,
         })
