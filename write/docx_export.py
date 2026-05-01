@@ -1,8 +1,8 @@
 from io import BytesIO
+from xml.sax.saxutils import escape
+from zipfile import ZIP_DEFLATED, ZipFile
 
 from django.utils.text import slugify
-from docx import Document
-from docx.enum.text import WD_BREAK
 
 
 def manuscript_docx_filename(manuscript):
@@ -11,14 +11,19 @@ def manuscript_docx_filename(manuscript):
 
 
 def manuscript_to_docx_bytes(manuscript):
-    document = Document()
+    paragraphs = []
     title = (manuscript.title or "").strip()
     if title:
-        document.add_heading(title, level=0)
+        paragraphs.append(_paragraph(_run(title), style="Title"))
+    _append_nodes(paragraphs, manuscript.content.get("content", []) if isinstance(manuscript.content, dict) else [])
 
-    _append_nodes(document, manuscript.content.get("content", []) if isinstance(manuscript.content, dict) else [])
     buffer = BytesIO()
-    document.save(buffer)
+    with ZipFile(buffer, "w", ZIP_DEFLATED) as docx:
+        docx.writestr("[Content_Types].xml", _content_types_xml())
+        docx.writestr("_rels/.rels", _package_rels_xml())
+        docx.writestr("word/_rels/document.xml.rels", _document_rels_xml())
+        docx.writestr("word/styles.xml", _styles_xml())
+        docx.writestr("word/document.xml", _document_xml("".join(paragraphs)))
     return buffer.getvalue()
 
 
@@ -47,7 +52,7 @@ def submission_prefill_for(manuscript):
     }
 
 
-def _append_nodes(document, nodes, list_style=None):
+def _append_nodes(paragraphs, nodes):
     if not isinstance(nodes, list):
         return
     for node in nodes:
@@ -59,61 +64,56 @@ def _append_nodes(document, nodes, list_style=None):
             text = _inline_text(content).strip()
             if text:
                 level = min(max(int((node.get("attrs") or {}).get("level") or 1), 1), 4)
-                document.add_heading(text, level=level)
+                paragraphs.append(_paragraph(_run(text), style=f"Heading{level}"))
         elif node_type == "paragraph":
-            paragraph = document.add_paragraph(style=list_style) if list_style else document.add_paragraph()
-            _append_inline(paragraph, content)
+            paragraphs.append(_paragraph(_inline_runs(content)))
         elif node_type == "blockquote":
             for child in content if isinstance(content, list) else []:
-                paragraph = document.add_paragraph(style="Intense Quote")
-                _append_inline(paragraph, child.get("content", []) if isinstance(child, dict) else [])
+                text = _inline_text(child.get("content", []) if isinstance(child, dict) else []).strip()
+                if text:
+                    paragraphs.append(_paragraph(_run(text), style="Quote"))
         elif node_type == "bulletList":
-            _append_list(document, content, "List Bullet")
+            _append_list(paragraphs, content, ordered=False)
         elif node_type == "orderedList":
-            _append_list(document, content, "List Number")
+            _append_list(paragraphs, content, ordered=True)
         elif node_type == "listItem":
-            _append_nodes(document, content, list_style=list_style)
+            _append_nodes(paragraphs, content)
         elif content:
-            _append_nodes(document, content, list_style=list_style)
+            _append_nodes(paragraphs, content)
 
 
-def _append_list(document, items, style):
+def _append_list(paragraphs, items, ordered=False):
+    index = 1
     for item in items if isinstance(items, list) else []:
         if not isinstance(item, dict):
             continue
-        paragraphs = item.get("content", [])
-        if not paragraphs:
-            continue
-        first = True
-        for child in paragraphs:
-            if not isinstance(child, dict):
-                continue
-            child_style = style if first and child.get("type") == "paragraph" else None
-            _append_nodes(document, [child], list_style=child_style)
-            first = False
+        text = " ".join(_plain_text(item).split())
+        if text:
+            prefix = f"{index}. " if ordered else "- "
+            paragraphs.append(_paragraph(_run(f"{prefix}{text}")))
+            index += 1
 
 
-def _append_inline(paragraph, nodes):
+def _inline_runs(nodes):
+    runs = []
     for node in nodes if isinstance(nodes, list) else []:
         if not isinstance(node, dict):
             continue
         node_type = node.get("type")
         if node_type == "text":
-            run = paragraph.add_run(node.get("text", ""))
-            for mark in node.get("marks", []) or []:
-                mark_type = mark.get("type") if isinstance(mark, dict) else ""
-                if mark_type == "bold":
-                    run.bold = True
-                elif mark_type == "italic":
-                    run.italic = True
-                elif mark_type == "underline":
-                    run.underline = True
-                elif mark_type == "strike":
-                    run.font.strike = True
+            marks = {mark.get("type") for mark in node.get("marks", []) or [] if isinstance(mark, dict)}
+            runs.append(_run(
+                node.get("text", ""),
+                bold="bold" in marks,
+                italic="italic" in marks,
+                underline="underline" in marks,
+                strike="strike" in marks,
+            ))
         elif node_type == "hardBreak":
-            paragraph.add_run().add_break(WD_BREAK.LINE)
+            runs.append("<w:r><w:br/></w:r>")
         elif node.get("content"):
-            _append_inline(paragraph, node.get("content"))
+            runs.append(_inline_runs(node.get("content")))
+    return "".join(runs)
 
 
 def _inline_text(nodes):
@@ -153,9 +153,97 @@ def _plain_text(content):
     return "\n".join(line.strip() for line in "".join(parts).splitlines() if line.strip())
 
 
+def _paragraph(runs, style=None):
+    style_xml = f'<w:pPr><w:pStyle w:val="{style}"/></w:pPr>' if style else ""
+    return f"<w:p>{style_xml}{runs}</w:p>"
+
+
+def _run(text, bold=False, italic=False, underline=False, strike=False):
+    props = []
+    if bold:
+        props.append("<w:b/>")
+    if italic:
+        props.append("<w:i/>")
+    if underline:
+        props.append('<w:u w:val="single"/>')
+    if strike:
+        props.append("<w:strike/>")
+    prop_xml = f"<w:rPr>{''.join(props)}</w:rPr>" if props else ""
+    return f'<w:r>{prop_xml}<w:t xml:space="preserve">{escape(str(text))}</w:t></w:r>'
+
+
+def _document_xml(body):
+    return (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+        f"<w:body>{body}"
+        '<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" '
+        'w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>'
+        "</w:body></w:document>"
+    )
+
+
+def _content_types_xml():
+    return (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Override PartName="/word/document.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+        '<Override PartName="/word/styles.xml" '
+        'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>'
+        "</Types>"
+    )
+
+
+def _package_rels_xml():
+    return (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '
+        'Target="word/document.xml"/>'
+        "</Relationships>"
+    )
+
+
+def _document_rels_xml():
+    return (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" '
+        'Target="styles.xml"/>'
+        "</Relationships>"
+    )
+
+
+def _styles_xml():
+    return (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+        '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/>'
+        '<w:qFormat/></w:style>'
+        '<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/>'
+        '<w:qFormat/><w:rPr><w:b/><w:sz w:val="36"/></w:rPr></w:style>'
+        '<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/>'
+        '<w:qFormat/><w:rPr><w:b/><w:sz w:val="32"/></w:rPr></w:style>'
+        '<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/>'
+        '<w:qFormat/><w:rPr><w:b/><w:sz w:val="28"/></w:rPr></w:style>'
+        '<w:style w:type="paragraph" w:styleId="Heading3"><w:name w:val="heading 3"/><w:basedOn w:val="Normal"/>'
+        '<w:qFormat/><w:rPr><w:b/><w:sz w:val="24"/></w:rPr></w:style>'
+        '<w:style w:type="paragraph" w:styleId="Heading4"><w:name w:val="heading 4"/><w:basedOn w:val="Normal"/>'
+        '<w:qFormat/><w:rPr><w:b/><w:sz w:val="22"/></w:rPr></w:style>'
+        '<w:style w:type="paragraph" w:styleId="Quote"><w:name w:val="Quote"/><w:basedOn w:val="Normal"/>'
+        '<w:qFormat/><w:pPr><w:ind w:left="720"/></w:pPr><w:rPr><w:i/></w:rPr></w:style>'
+        "</w:styles>"
+    )
+
+
 def _language_from_profile(profile, text):
     value = str(profile.get("language") or "").strip().lower()
-    if value.startswith("fr") or "french" in value or "francais" in value or "français" in value:
+    if value.startswith("fr") or "french" in value or "francais" in value:
         return "fr"
     if value.startswith("en") or "english" in value:
         return "en"
