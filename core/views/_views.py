@@ -63,6 +63,29 @@ def get_available_books():
     ).select_related('author')
 
 
+def _pending_write_submission(request):
+    pending = request.session.get('write_submission_prefill')
+    if not isinstance(pending, dict):
+        return None
+    manuscript_id = request.GET.get('from_manuscript') or request.POST.get('write_manuscript_id')
+    if manuscript_id and str(pending.get('manuscript_id')) != str(manuscript_id):
+        return None
+    return pending
+
+
+def _attach_pending_manuscript_file(book, pending):
+    from django.core.files import File
+    from django.core.files.storage import default_storage
+
+    storage_path = pending.get('storage_path')
+    filename = pending.get('filename') or f"{book.slug or 'manuscript'}.docx"
+    if not storage_path or not default_storage.exists(storage_path):
+        return False
+    with default_storage.open(storage_path, 'rb') as source:
+        book.manuscript_file.save(filename, File(source), save=True)
+    return True
+
+
 def homepage(request):
     """
     Homepage view with hero, featured books, and category browse.
@@ -579,14 +602,25 @@ def publish_book(request):
     Per Planning Document Section 3.
     """
     from ..forms import BookSubmissionForm
+    pending_submission = _pending_write_submission(request)
+    initial = pending_submission.get('initial', {}) if pending_submission else {}
     
     if request.method == 'POST':
         form = BookSubmissionForm(request.POST, request.FILES)
+        if pending_submission and not request.FILES.get('manuscript_file'):
+            form.fields['manuscript_file'].required = False
         if form.is_valid():
             book = form.save(commit=False)
             book.author = request.user
             book.status = Book.Status.IN_REVIEW
             book.save()
+            if pending_submission and not request.FILES.get('manuscript_file'):
+                if not _attach_pending_manuscript_file(book, pending_submission):
+                    book.delete()
+                    messages.error(request, 'The generated manuscript file is no longer available. Please export it again from the editor.')
+                    return redirect('write:editor', manuscript_id=pending_submission.get('manuscript_id'))
+                request.session.pop('write_submission_prefill', None)
+                request.session.modified = True
             
             messages.success(
                 request,
@@ -595,11 +629,14 @@ def publish_book(request):
             )
             return redirect('core:my_books')
     else:
-        form = BookSubmissionForm()
+        form = BookSubmissionForm(initial=initial)
+        if pending_submission:
+            form.fields['manuscript_file'].required = False
     
     context = {
         'form': form,
         'categories': Book.Category.choices,
+        'pending_write_submission': pending_submission,
     }
     return render(request, 'core/publish_book.html', context)
 

@@ -10,7 +10,7 @@
          makeFree: false,
          priceValue: {{ form.price.value|default:'0' }},
          coverPreview: null,
-         manuscriptName: '',
+         manuscriptName: '{{ pending_write_submission.filename|default:""|escapejs }}',
          manuscriptError: '',
          coverError: '',
          submitting: false,
@@ -46,6 +46,9 @@
     <!-- Form -->
     <form method="post" enctype="multipart/form-data" @submit="submitting = true" class="space-y-6">
         {% csrf_token %}
+        {% if pending_write_submission %}
+        <input type="hidden" name="write_manuscript_id" value="{{ pending_write_submission.manuscript_id }}">
+        {% endif %}
         
         <!-- Book Details Section -->
         <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
@@ -141,6 +144,11 @@
                 <!-- Manuscript Upload -->
                 <div>
                     <label class="label mb-2">{% trans "Manuscript File" %} *</label>
+                    {% if pending_write_submission %}
+                    <div class="mb-3 rounded-xl border border-forest-200 bg-forest-50 px-4 py-3 text-sm text-forest-700 dark:border-forest-800 dark:bg-forest-900/20 dark:text-forest-200">
+                        {% trans "Imported from Reepls Write:" %} <strong>{{ pending_write_submission.filename }}</strong>
+                    </div>
+                    {% endif %}
                     <div @click="$refs.manuscriptInput.click()"
                         class="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-burgundy-500 rounded-xl p-6 text-center cursor-pointer transition-colors min-h-[200px] flex flex-col items-center justify-center bg-cream dark:bg-dark-50">
                         <template x-if="!manuscriptName">

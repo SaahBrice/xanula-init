@@ -1,11 +1,16 @@
 import json
+import tempfile
+import zipfile
+from io import BytesIO
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from PIL import Image
 
-from core.models import AITokenLedgerEntry, AITokenSettings, AITokenWallet
+from core.models import AITokenLedgerEntry, AITokenSettings, AITokenWallet, Book
 from .ai import (
     AIServiceError,
     action_output_contract,
@@ -485,7 +490,60 @@ class ManuscriptAITests(TestCase):
         self.assertContains(response, "Buy tokens")
         self.assertContains(response, "Mobile Money (OM/MOMO)")
         self.assertContains(response, "Card")
+        self.assertContains(response, reverse("write:download_docx", args=[self.manuscript.pk]))
+        self.assertContains(response, reverse("write:submit_to_xanula", args=[self.manuscript.pk]))
+        self.assertContains(response, "Submit to Xanula")
         self.assertNotContains(response, "ed-page-break")
+
+    def test_download_manuscript_as_docx(self):
+        response = self.client.get(reverse("write:download_docx", args=[self.manuscript.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        self.assertIn("the-river-house.docx", response["Content-Disposition"])
+        with zipfile.ZipFile(BytesIO(response.content)) as archive:
+            document_xml = archive.read("word/document.xml").decode("utf-8")
+        self.assertIn("The River House", document_xml)
+        self.assertIn("The river remembered everything.", document_xml)
+
+    def test_submit_to_xanula_prefills_publish_form_and_attaches_docx(self):
+        file_storage = {
+            "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+            "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+        }
+        with tempfile.TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root, STORAGES=file_storage):
+            response = self.client.post(reverse("write:submit_to_xanula", args=[self.manuscript.pk]))
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.url, f"/publish/?from_manuscript={self.manuscript.pk}")
+
+            page = self.client.get(response.url)
+            self.assertContains(page, "The River House")
+            self.assertContains(page, "Imported from Reepls Write")
+            self.assertContains(page, "the-river-house.docx")
+
+            image_buffer = BytesIO()
+            Image.new("RGB", (16, 24), color=(120, 30, 30)).save(image_buffer, format="PNG")
+            cover = SimpleUploadedFile("cover.png", image_buffer.getvalue(), content_type="image/png")
+            submit_response = self.client.post(
+                reverse("core:publish_book"),
+                data={
+                    "write_manuscript_id": str(self.manuscript.pk),
+                    "title": "The River House",
+                    "short_description": "A river story",
+                    "long_description": "A river story with memory and mystery.",
+                    "category": Book.Category.FICTION,
+                    "language": Book.Language.ENGLISH,
+                    "price": "0",
+                    "hard_copy_option": Book.HardCopyOption.NONE,
+                    "cover_image": cover,
+                },
+            )
+
+            self.assertEqual(submit_response.status_code, 302)
+            book = Book.objects.get(title="The River House")
+            self.assertTrue(book.manuscript_file.name.endswith(".docx"))
+            self.assertTrue(book.manuscript_file.storage.exists(book.manuscript_file.name))
+            self.assertNotIn("write_submission_prefill", self.client.session)
 
     def test_only_owner_can_call_ai_endpoint(self):
         self.client.force_login(self.other_user)

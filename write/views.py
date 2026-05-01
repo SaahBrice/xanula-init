@@ -1,7 +1,9 @@
 import json
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 
@@ -40,6 +42,7 @@ from .intelligence import (
     normalize_voice,
     reset_stale_for,
 )
+from .docx_export import manuscript_docx_filename, manuscript_to_docx_bytes, submission_prefill_for
 from .models import Manuscript
 
 
@@ -91,6 +94,37 @@ def editor(request, manuscript_id):
         'ai_token_status': token_status_for_user(request.user, grant_if_needed=False),
         'ai_token_purchase_options': get_purchase_options(),
     })
+
+
+@login_required
+def download_manuscript_docx(request, manuscript_id):
+    manuscript = get_object_or_404(Manuscript, pk=manuscript_id, user=request.user)
+    filename = manuscript_docx_filename(manuscript)
+    response = HttpResponse(
+        manuscript_to_docx_bytes(manuscript),
+        content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+@login_required
+@require_POST
+def submit_to_xanula(request, manuscript_id):
+    manuscript = get_object_or_404(Manuscript, pk=manuscript_id, user=request.user)
+    filename = manuscript_docx_filename(manuscript)
+    storage_path = f"write_submissions/user_{request.user.pk}/manuscript_{manuscript.pk}/{filename}"
+    if default_storage.exists(storage_path):
+        default_storage.delete(storage_path)
+    default_storage.save(storage_path, ContentFile(manuscript_to_docx_bytes(manuscript)))
+    request.session['write_submission_prefill'] = {
+        'manuscript_id': manuscript.pk,
+        'storage_path': storage_path,
+        'filename': filename,
+        'initial': submission_prefill_for(manuscript),
+    }
+    request.session.modified = True
+    return redirect(f"/publish/?from_manuscript={manuscript.pk}")
 
 
 @login_required

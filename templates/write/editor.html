@@ -90,6 +90,27 @@ body             { overflow: hidden; }
 .ed-save-text.saved   { color: #a8a29e; }
 .ed-save-text.unsaved { color: #d97706; }
 .ed-save-text.error   { color: #dc2626; }
+.ed-export-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+    border: 1px solid #e7e5e4;
+    border-radius: 999px;
+    background: #fff;
+    color: #57534e;
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 7px 10px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background .15s, border-color .15s, color .15s;
+}
+.ed-export-action:hover { background: #f5f4f0; border-color: #d6d3d1; color: #1c1917; }
+.ed-export-action.primary { background: #7f1d1d; border-color: #7f1d1d; color: #fff; }
+.ed-export-action.primary:hover { background: #991b1b; border-color: #991b1b; color: #fff; }
+.ed-export-form { margin: 0; }
 
 /* ── Three-panel row ─────────────────────────────────────────── */
 .ed-body {
@@ -1052,6 +1073,9 @@ body             { overflow: hidden; }
 [data-theme="dark"] .ed-bar-title:focus { background: #252525; }
 [data-theme="dark"] .ed-bar-back   { color: #78716c; }
 [data-theme="dark"] .ed-bar-back:hover { color: #d6d3d1; background: #252525; }
+[data-theme="dark"] .ed-export-action { background: #1f1f1f; border-color: #292524; color: #d6d3d1; }
+[data-theme="dark"] .ed-export-action:hover { background: #252525; color: #f5f4f0; }
+[data-theme="dark"] .ed-export-action.primary { background: #991b1b; border-color: #991b1b; color: #fff; }
 [data-theme="dark"] .ed-bar-sep,
 [data-theme="dark"] .tb-sep,
 [data-theme="dark"] .ed-resize     { background: #292524; }
@@ -1175,6 +1199,21 @@ body             { overflow: hidden; }
             <span class="text-xs text-stone-400 tabular-nums">
                 <span x-text="wordCount"></span> {% trans "words" %}
             </span>
+            <a class="ed-export-action" href="{% url 'write:download_docx' manuscript.id %}" @click.prevent="downloadDocx($event.currentTarget.href)" title="{% trans 'Download this manuscript as a DOCX file.' %}">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/>
+                </svg>
+                {% trans "DOCX" %}
+            </a>
+            <form class="ed-export-form" method="post" action="{% url 'write:submit_to_xanula' manuscript.id %}" @submit.prevent="submitToXanula($event)">
+                {% csrf_token %}
+                <button class="ed-export-action primary" type="submit" title="{% trans 'Convert to DOCX and open the Xanula submission form.' %}">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m0 0-5-5m5 5-5 5"/>
+                    </svg>
+                    {% trans "Submit to Xanula" %}
+                </button>
+            </form>
         </div>
     </div>
 
@@ -1958,6 +1997,16 @@ function writeEditor() {
         async ensureSavedForAi() {
             clearTimeout(this.saveTimeout)
             await this.save()
+        },
+
+        async downloadDocx(url) {
+            await this.ensureSavedForAi()
+            window.location.href = url
+        },
+
+        async submitToXanula(event) {
+            await this.ensureSavedForAi()
+            event.target.submit()
         },
 
         async postAi(path, payload = {}) {
