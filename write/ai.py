@@ -418,6 +418,7 @@ class DeepSeekClient:
         self.model = settings.DEEPSEEK_MODEL
         self.base_url = settings.DEEPSEEK_API_BASE_URL.rstrip("/")
         self.timeout = settings.DEEPSEEK_TIMEOUT
+        self.last_usage = {}
 
     def chat(self, messages, *, json_response=False, max_tokens=1800, temperature=0.7):
         if not self.api_key:
@@ -453,6 +454,7 @@ class DeepSeekClient:
 
         try:
             data = response.json()
+            self.last_usage = data.get("usage") if isinstance(data.get("usage"), dict) else {}
             return data["choices"][0]["message"]["content"].strip()
         except (ValueError, KeyError, IndexError, TypeError) as exc:
             raise AIServiceError("AI provider returned an unexpected response.") from exc
@@ -607,6 +609,9 @@ def generate_draft(manuscript, action, selected_text="", cursor_context="", user
         "memory_freshness": memory_freshness(manuscript.ai_memory_meta, manuscript.ai_memory_stale),
         "chapter_memory": normalize_chapter_memory(manuscript.ai_chapter_memory),
         "cost_mode": cost_mode,
-        "context_summary": context["context_summary"],
+        "context_summary": {
+            **context["context_summary"],
+            "provider_usage": getattr(client, "last_usage", {}) or {},
+        },
         "usage": context["usage"],
     }

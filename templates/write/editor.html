@@ -710,28 +710,178 @@ body             { overflow: hidden; }
     padding: 5px 8px;
 }
 .ai-action { justify-content: flex-start; gap: 7px; min-height: 34px; }
-.ai-prompt-box {
-    display: grid;
+.ed-floating-ai {
+    position: absolute;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 45;
+    width: min(620px, calc(100% - 48px));
+    pointer-events: none;
+}
+.ai-prompt-shell {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
     gap: 8px;
+    min-height: 52px;
+    border: 1px solid #d6d3d1;
+    border-radius: 999px;
+    background: rgba(255,255,255,.96);
+    box-shadow: 0 10px 30px rgba(41,37,36,.12);
+    padding: 9px 10px 9px 18px;
+    transition: border-radius .16s, box-shadow .16s, min-height .16s, align-items .16s;
+    backdrop-filter: blur(12px);
+}
+.ai-prompt-shell.expanded {
+    align-items: stretch;
+    border-radius: 18px;
+    min-height: 142px;
+    box-shadow: 0 18px 44px rgba(41,37,36,.16);
+}
+.ai-prompt-brand {
+    flex: 0 0 auto;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: #292524;
+    padding-top: 2px;
+}
+.ai-prompt-dash {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 1px;
+    background: #d6d3d1;
+}
+.ai-prompt-main {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 7px;
 }
 .ai-prompt-input {
-    min-height: 92px;
-    max-height: 210px;
+    width: 100%;
+    min-height: 32px;
+    max-height: 112px;
+    resize: none;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: #292524;
+    font-size: .92rem;
+    line-height: 1.35;
+    padding: 3px 0;
+}
+.ai-prompt-input::placeholder { color: #b8b2aa; }
+.ai-prompt-shell:not(.expanded) .ai-prompt-input {
+    height: 28px;
+    overflow: hidden;
+    white-space: nowrap;
 }
 .ai-prompt-meta {
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     font-size: 0.68rem;
     color: #a8a29e;
 }
+.ai-prompt-shell.expanded .ai-prompt-meta { display: flex; }
 .ai-prompt-meta span {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+.ai-prompt-send {
+    flex: 0 0 auto;
+    min-height: 30px;
+    border-radius: 999px;
+    padding: 5px 10px;
+}
+.ai-keycap {
+    flex: 0 0 auto;
+    border: 1px solid #e7e5e4;
+    border-radius: 7px;
+    background: #f8f7f4;
+    color: #a8a29e;
+    font-size: .7rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 6px 8px;
+}
+.ai-prompt-shell.expanded .ai-keycap { display: none; }
+.ai-token-pill {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 999px;
+    background: #f8f7f4;
+    color: #57534e;
+    font-size: .7rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 7px 9px;
+}
+.ai-token-pill.low { background: #fffbeb; color: #92400e; }
+.ai-token-delta {
+    color: #166534;
+    font-size: .68rem;
+    animation: token-float 1.5s ease both;
+}
+.ai-token-delta.negative { color: #991b1b; }
+.ai-token-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-radius: 7px;
+    background: #f8f7f4;
+    padding: 9px;
+}
+.ai-token-balance strong { display: block; color: #292524; font-size: 1.05rem; }
+.ai-token-balance span { display: block; color: #78716c; font-size: .7rem; }
+.ai-token-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(41,37,36,.32);
+    padding: 18px;
+}
+.ai-token-modal {
+    width: min(440px, 100%);
+    border: 1px solid #e7e5e4;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 28px 80px rgba(41,37,36,.25);
+    padding: 16px;
+}
+.ai-token-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 12px 0;
+}
+.ai-token-option {
+    border: 1px solid #e7e5e4;
+    border-radius: 7px;
+    background: #fff;
+    color: #44403c;
+    padding: 9px 7px;
+    text-align: center;
+    transition: border-color .12s, background .12s;
+}
+.ai-token-option.on {
+    border-color: #8B2635;
+    background: #fff7ed;
+    color: #8B2635;
+}
+.ai-token-option strong { display: block; }
+.ai-token-option span { font-size: .68rem; color: #78716c; }
 .ai-intent-preview {
     border-radius: 7px;
     background: #f8f7f4;
@@ -829,6 +979,11 @@ body             { overflow: hidden; }
 @keyframes ai-flow {
     0% { transform: translateX(-100%); }
     60%, 100% { transform: translateX(260%); }
+}
+@keyframes token-float {
+    0% { opacity: 0; transform: translateY(4px); }
+    20%, 75% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-5px); }
 }
 
 /* ── Sidebar collapse buttons (float at the edge of center) ───── */
@@ -932,6 +1087,17 @@ body             { overflow: hidden; }
 [data-theme="dark"] .ai-meter strong { color: #e7e5e4; }
 [data-theme="dark"] .ai-segment { background: #1e1e1e; border-color: #292524; }
 [data-theme="dark"] .ai-segment button { border-color: #292524; color: #a8a29e; }
+[data-theme="dark"] .ai-prompt-shell { background: rgba(30,30,30,.96); border-color: #44403c; }
+[data-theme="dark"] .ai-prompt-brand,
+[data-theme="dark"] .ai-prompt-input { color: #e7e5e4; }
+[data-theme="dark"] .ai-prompt-input::placeholder { color: #78716c; }
+[data-theme="dark"] .ai-keycap { background: #252525; border-color: #44403c; color: #78716c; }
+[data-theme="dark"] .ai-token-pill,
+[data-theme="dark"] .ai-token-panel,
+[data-theme="dark"] .ai-token-option,
+[data-theme="dark"] .ai-token-modal { background: #252525; border-color: #44403c; color: #e7e5e4; }
+[data-theme="dark"] .ai-token-modal-backdrop { background: rgba(0,0,0,.55); }
+[data-theme="dark"] .ai-token-option.on { background: #3a241b; border-color: #f59e0b; color: #fed7aa; }
 [data-theme="dark"] .ai-intent-preview,
 [data-theme="dark"] .ai-diff { background: #252525; color: #a8a29e; }
 [data-theme="dark"] .ai-intent-preview strong { color: #e7e5e4; }
@@ -966,6 +1132,8 @@ body             { overflow: hidden; }
 {{ ai_longform_state|json_script:"ed-ai-longform-data" }}
 {{ ai_usage|json_script:"ed-ai-usage-data" }}
 {{ ai_memory_stale|json_script:"ed-ai-stale-data" }}
+{{ ai_token_status|json_script:"ed-ai-token-status-data" }}
+{{ ai_token_purchase_options|json_script:"ed-ai-token-options-data" }}
 
 <div id="ed-root" x-data="writeEditor()" x-init="init()" class="ed"
     @mousemove.window="onDragMove($event)"
@@ -1205,6 +1373,41 @@ body             { overflow: hidden; }
                     </div>
                 </div>
 
+                <div class="ed-floating-ai" x-cloak>
+                    <div :class="['ai-prompt-shell', promptExpanded() ? 'expanded' : '']">
+                        <div class="ai-prompt-brand">{% trans "Reepls Ai" %}</div>
+                        <div class="ai-prompt-dash"></div>
+                        <div class="ai-prompt-main">
+                            <textarea
+                                class="ai-prompt-input"
+                                x-model="aiPrompt"
+                                :disabled="paidAiDisabled() || suggestion.active"
+                                maxlength="1000"
+                                rows="1"
+                                @mousedown="capturePromptSelection()"
+                                @focus="aiPromptFocused = true; capturePromptSelection()"
+                                @blur="aiPromptFocused = false; clearPromptSelectionHighlight()"
+                                @keydown.ctrl.enter.prevent="sendAiPrompt()"
+                                @keydown.meta.enter.prevent="sendAiPrompt()"
+                                placeholder="{% trans 'ask, rewrite, continue' %}"></textarea>
+                            <div class="ai-prompt-meta">
+                                <span x-text="rememberedSelection.text ? '{% trans "Selection will be considered." %}' : promptIntentPreview().label"></span>
+                                <div class="ai-row">
+                                    <span class="ai-intent-preview" x-text="`${aiPrompt.length}/1000`"></span>
+                                    <span class="ai-intent-preview"><strong x-text="promptIntentPreview().label"></strong></span>
+                                    <button class="ai-btn primary ai-prompt-send" @mousedown.prevent @click="sendAiPrompt()" :disabled="paidAiDisabled() || suggestion.active || !aiPrompt.trim()">
+                                        <template x-if="aiLoading && aiAction === 'custom'">
+                                            <span class="ai-spinner"></span>
+                                        </template>
+                                        <span>{% trans "Send" %}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ai-keycap">{% trans "send" %}</div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -1229,13 +1432,26 @@ body             { overflow: hidden; }
                                 </template>
                             </div>
                         </div>
-                        <button class="ai-btn" title="{% trans 'Uses AI to refresh profile and book memory.' %}" @click="analyzeBook()" :disabled="aiLoading || suggestion.active">
+                        <button class="ai-btn" title="{% trans 'Uses AI to refresh profile and book memory.' %}" @click="analyzeBook()" :disabled="paidAiDisabled() || suggestion.active">
                             <span>{% trans "Refresh memory" %}</span>
                         </button>
                         <button class="ai-btn" title="{% trans 'Runs local book awareness without an API call.' %}" @click="inspectBook()" :disabled="aiLoading || suggestion.active">
                             <span>{% trans "Scan book" %}</span>
                         </button>
                     </div>
+                    <div class="ai-token-panel mt-2">
+                        <div class="ai-token-balance">
+                            <strong x-text="tokenBalanceLabel()"></strong>
+                            <span x-text="tokenHelpText()"></span>
+                        </div>
+                        <button class="ai-btn primary" @click="tokenModalOpen = true">{% trans "Buy tokens" %}</button>
+                    </div>
+                    <template x-if="tokenStatus.empty">
+                        <div class="ai-warning-card mt-2">
+                            <strong>{% trans "Out of AI tokens." %}</strong>
+                            <div>{% trans "Buy more tokens to keep using paid AI writing actions. Local scan remains free." %}</div>
+                        </div>
+                    </template>
                     <div class="ai-engine-grid" x-show="aiLongform && aiLongform.readiness" x-cloak>
                         <div class="ai-meter">
                             <span>{% trans "Integrity" %}</span>
@@ -1324,49 +1540,20 @@ body             { overflow: hidden; }
                 </section>
 
                 <section class="ai-card ai-section">
-                    <label class="ai-label">{% trans "Ask Reepls" %}</label>
-                    <div class="ai-prompt-box">
-                        <textarea
-                            class="ai-textarea ai-prompt-input"
-                            x-model="aiPrompt"
-                            :disabled="aiLoading || suggestion.active"
-                            @mousedown="capturePromptSelection()"
-                            @focus="capturePromptSelection()"
-                            @blur="clearPromptSelectionHighlight()"
-                            @keydown.ctrl.enter.prevent="sendAiPrompt()"
-                            @keydown.meta.enter.prevent="sendAiPrompt()"
-                            placeholder="{% trans 'Tell Reepls what you want. Example: improve this paragraph, use this idea for the next scene, make the selected text more tense, or write a softer transition.' %}"></textarea>
-                        <div class="ai-prompt-meta">
-                            <span x-text="rememberedSelection.text ? '{% trans "Selection will be considered." %}' : '{% trans "Uses cursor context and book memory." %}'"></span>
-                            <button class="ai-btn primary" @click="sendAiPrompt()" :disabled="aiLoading || suggestion.active || !aiPrompt.trim()">
-                                <template x-if="aiLoading && aiAction === 'custom'">
-                                    <span class="ai-spinner"></span>
-                                </template>
-                                <span>{% trans "Send" %}</span>
-                            </button>
-                        </div>
-                        <div class="ai-intent-preview">
-                            <span>{% trans "Reepls will:" %}</span>
-                            <strong x-text="promptIntentPreview().label"></strong>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="ai-card ai-section">
                     <label class="ai-label">{% trans "Write" %}</label>
                     <div class="ai-actions">
-                        <button class="ai-action" @click="runAiAction('continue')" :disabled="aiLoading || suggestion.active"><span>+</span><span>{% trans "Continue from cursor" %}</span></button>
-                        <button class="ai-action" @click="runAiAction('outline')" :disabled="aiLoading || suggestion.active"><span>#</span><span>{% trans "Create outline" %}</span></button>
+                        <button class="ai-action" @click="runAiAction('continue')" :disabled="paidAiDisabled() || suggestion.active"><span>+</span><span>{% trans "Continue from cursor" %}</span></button>
+                        <button class="ai-action" @click="runAiAction('outline')" :disabled="paidAiDisabled() || suggestion.active"><span>#</span><span>{% trans "Create outline" %}</span></button>
                     </div>
                 </section>
 
                 <section class="ai-card ai-section">
                     <label class="ai-label">{% trans "Revise Selection" %}</label>
                     <div class="ai-actions">
-                        <button class="ai-action" @click="runAiAction('rewrite')" :disabled="aiLoading || suggestion.active"><span>R</span><span>{% trans "Rewrite" %}</span></button>
-                        <button class="ai-action" @click="runAiAction('expand')" :disabled="aiLoading || suggestion.active"><span>E</span><span>{% trans "Expand" %}</span></button>
-                        <button class="ai-action" @click="runAiAction('improve')" :disabled="aiLoading || suggestion.active"><span>I</span><span>{% trans "Improve style" %}</span></button>
-                        <button class="ai-action" @click="runAiAction('summarize')" :disabled="aiLoading || suggestion.active"><span>S</span><span>{% trans "Summarize" %}</span></button>
+                        <button class="ai-action" @click="runAiAction('rewrite')" :disabled="paidAiDisabled() || suggestion.active"><span>R</span><span>{% trans "Rewrite" %}</span></button>
+                        <button class="ai-action" @click="runAiAction('expand')" :disabled="paidAiDisabled() || suggestion.active"><span>E</span><span>{% trans "Expand" %}</span></button>
+                        <button class="ai-action" @click="runAiAction('improve')" :disabled="paidAiDisabled() || suggestion.active"><span>I</span><span>{% trans "Improve style" %}</span></button>
+                        <button class="ai-action" @click="runAiAction('summarize')" :disabled="paidAiDisabled() || suggestion.active"><span>S</span><span>{% trans "Summarize" %}</span></button>
                     </div>
                 </section>
 
@@ -1398,7 +1585,7 @@ body             { overflow: hidden; }
                     <div class="ai-row">
                         <button class="ai-btn primary" @click="confirmSuggestion()" :disabled="aiLoading">{% trans "Confirm" %}</button>
                         <button class="ai-btn" @click="rejectSuggestion()" :disabled="aiLoading">{% trans "Reject" %}</button>
-                        <button class="ai-btn" @click="regenerateSuggestion()" :disabled="aiLoading">
+                        <button class="ai-btn" @click="regenerateSuggestion()" :disabled="paidAiDisabled()">
                             <template x-if="aiLoading && aiAction === suggestion.action">
                                 <span class="ai-spinner"></span>
                             </template>
@@ -1406,16 +1593,62 @@ body             { overflow: hidden; }
                         </button>
                     </div>
                     <div class="ai-mini-actions">
-                        <button class="ai-btn" @click="regenerateSuggestion('Shorter')" :disabled="aiLoading">{% trans "Shorter" %}</button>
-                        <button class="ai-btn" @click="regenerateSuggestion('Closer to original')" :disabled="aiLoading">{% trans "Closer" %}</button>
-                        <button class="ai-btn" @click="regenerateSuggestion('More emotional')" :disabled="aiLoading">{% trans "Emotional" %}</button>
-                        <button class="ai-btn" @click="regenerateSuggestion('More direct')" :disabled="aiLoading">{% trans "Direct" %}</button>
-                        <button class="ai-btn" @click="regenerateSuggestion('More literary')" :disabled="aiLoading">{% trans "Literary" %}</button>
+                        <button class="ai-btn" @click="regenerateSuggestion('Shorter')" :disabled="paidAiDisabled()">{% trans "Shorter" %}</button>
+                        <button class="ai-btn" @click="regenerateSuggestion('Closer to original')" :disabled="paidAiDisabled()">{% trans "Closer" %}</button>
+                        <button class="ai-btn" @click="regenerateSuggestion('More emotional')" :disabled="paidAiDisabled()">{% trans "Emotional" %}</button>
+                        <button class="ai-btn" @click="regenerateSuggestion('More direct')" :disabled="paidAiDisabled()">{% trans "Direct" %}</button>
+                        <button class="ai-btn" @click="regenerateSuggestion('More literary')" :disabled="paidAiDisabled()">{% trans "Literary" %}</button>
                     </div>
                 </section>
             </div>
         </aside>
 
+    </div>
+
+    <div class="ai-token-modal-backdrop" x-show="tokenModalOpen" x-cloak @click.self="tokenModalOpen = false">
+        <div class="ai-token-modal">
+            <div class="ai-head">
+                <div>
+                    <div class="ai-title">{% trans "Reepls AI Tokens" %}</div>
+                    <p class="ai-subtle mt-1">{% trans "Use tokens for memory refresh, writing, rewriting, summaries, outlines, and regeneration." %}</p>
+                </div>
+                <button class="ai-btn" @click="tokenModalOpen = false">{% trans "Close" %}</button>
+            </div>
+            <div class="ai-token-panel mt-2">
+                <div class="ai-token-balance">
+                    <strong x-text="tokenBalanceLabel()"></strong>
+                    <span x-text="tokenHelpText()"></span>
+                </div>
+            </div>
+            <div class="ai-token-options">
+                <template x-for="option in tokenBundles()" :key="option.tokens">
+                    <button type="button" :class="['ai-token-option', selectedTokenAmount === option.tokens ? 'on' : '']" @click="selectedTokenAmount = option.tokens">
+                        <strong x-text="formatTokens(option.tokens)"></strong>
+                        <span x-text="`${option.price_xaf} FCFA / €${option.price_eur}`"></span>
+                    </button>
+                </template>
+            </div>
+            <label class="ai-label">{% trans "Custom tokens" %}</label>
+            <input class="ai-input" type="number" min="5000" step="1000" x-model.number="selectedTokenAmount">
+            <div class="ai-warning-card mt-2">
+                <strong x-text="formatTokens(normalizedTokenAmount())"></strong>
+                <div x-text="`${selectedTokenPrice().xaf} FCFA or €${selectedTokenPrice().eur}`"></div>
+            </div>
+            <div class="ai-row mt-2">
+                <form method="post" action="{% url 'core:ai_token_fapshi_checkout' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="token_amount" :value="normalizedTokenAmount()">
+                    <input type="hidden" name="next" :value="currentReturnPath()">
+                    <button class="ai-btn primary" type="submit">{% trans "Mobile Money (OM/MOMO)" %}</button>
+                </form>
+                <form method="post" action="{% url 'core:ai_token_stripe_checkout' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="token_amount" :value="normalizedTokenAmount()">
+                    <input type="hidden" name="next" :value="currentReturnPath()">
+                    <button class="ai-btn" type="submit">{% trans "Card" %}</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- BUBBLE MENU -->
@@ -1514,11 +1747,18 @@ function writeEditor() {
         aiLoading: false,
         aiAction: '',
         aiPrompt: '',
+        aiPromptFocused: false,
         aiError: '',
         aiNotice: '',
         agentWarnings: [],
         usageHint: '',
         contextSummary: {},
+        tokenStatus: {},
+        purchaseOptions: {},
+        tokenDelta: 0,
+        tokenDeltaTimer: null,
+        tokenModalOpen: false,
+        selectedTokenAmount: 5000,
         activityTitle: 'Ready',
         activityMessage: 'Scan the book or choose a writing action when you need help.',
         activityState: 'idle',
@@ -1581,6 +1821,9 @@ function writeEditor() {
             this.aiLongform = readEditorJson('ed-ai-longform-data', {})
             this.aiUsage = readEditorJson('ed-ai-usage-data', {})
             this.aiStale = readEditorJson('ed-ai-stale-data', {})
+            this.tokenStatus = readEditorJson('ed-ai-token-status-data', {})
+            this.purchaseOptions = readEditorJson('ed-ai-token-options-data', {})
+            this.selectedTokenAmount = this.tokenBundles()[0]?.tokens || 5000
             this.agentWarnings = []
             this.usageHint = this.aiUsage?.last_request?.usage_hint || ''
             this.setIdleActivity()
@@ -1726,12 +1969,17 @@ function writeEditor() {
             let data = {}
             try { data = await response.json() } catch(e) {}
             if (!response.ok || data.status === 'error') {
+                this.applyTokenData(data)
+                if (data.code === 'insufficient_tokens') {
+                    this.tokenModalOpen = true
+                }
                 throw new Error(data.message || 'AI request failed.')
             }
             return data
         },
 
         applyIntelligence(data) {
+            this.applyTokenData(data)
             if (data.voice) this.aiVoice = data.voice
             if (data.chapter_map) this.aiChapterMap = data.chapter_map
             if (data.entities) this.aiEntities = data.entities
@@ -1748,6 +1996,77 @@ function writeEditor() {
             this.agentWarnings = Array.isArray(warnings)
                 ? warnings.filter(w => !String(w).toLowerCase().includes('stale')).slice(0, 3)
                 : []
+        },
+
+        applyTokenData(data = {}) {
+            if (data.purchase_options) {
+                this.purchaseOptions = data.purchase_options
+            }
+            if (data.token_status) {
+                this.tokenStatus = data.token_status
+                const delta = Number(data.token_delta || data.token_status.delta || 0)
+                if (delta) {
+                    this.tokenDelta = delta
+                    clearTimeout(this.tokenDeltaTimer)
+                    this.tokenDeltaTimer = setTimeout(() => { this.tokenDelta = 0 }, 1600)
+                }
+            }
+        },
+
+        formatTokens(value) {
+            return `${Number(value || 0).toLocaleString()} tokens`
+        },
+
+        tokenBalanceLabel() {
+            return this.formatTokens(this.tokenStatus?.balance || 0)
+        },
+
+        tokenDeltaLabel() {
+            const delta = Number(this.tokenDelta || 0)
+            return `${delta > 0 ? '+' : ''}${delta.toLocaleString()}`
+        },
+
+        tokenHelpText() {
+            if (this.tokenStatus?.starter_tokens_available) return '10K starter grant ready on first AI call.'
+            if (this.tokenStatus?.empty) return 'Buy more to continue paid AI actions.'
+            if (this.tokenStatus?.low_balance) return 'Low balance.'
+            return 'Available for paid AI actions.'
+        },
+
+        paidAiDisabled() {
+            return this.aiLoading || !!this.tokenStatus?.empty
+        },
+
+        tokenBundles() {
+            return this.purchaseOptions?.bundles || [
+                { tokens: 5000, price_xaf: 1000, price_eur: '1.53' },
+                { tokens: 15000, price_xaf: 3000, price_eur: '4.58' },
+                { tokens: 30000, price_xaf: 6000, price_eur: '9.16' },
+            ]
+        },
+
+        normalizedTokenAmount() {
+            const custom = this.purchaseOptions?.custom || {}
+            const min = Number(custom.min_tokens || 5000)
+            const step = Number(custom.step_tokens || 1000)
+            let amount = Math.max(min, Number(this.selectedTokenAmount || min))
+            const remainder = amount % step
+            if (remainder) amount += step - remainder
+            return amount
+        },
+
+        selectedTokenPrice() {
+            const custom = this.purchaseOptions?.custom || {}
+            const tokens = this.normalizedTokenAmount()
+            const baseTokens = Number(custom.base_tokens || 5000)
+            const xaf = Math.ceil(Number(custom.base_price_xaf || 1000) * (tokens / baseTokens))
+            const xafPerEur = Math.max(1, Number(custom.stripe_xaf_to_eur_rate || 655))
+            const eur = (xaf / xafPerEur).toFixed(2)
+            return { xaf, eur }
+        },
+
+        currentReturnPath() {
+            return `${window.location.pathname}${window.location.search || ''}`
         },
 
         sleep(ms) {
@@ -1787,6 +2106,10 @@ function writeEditor() {
 
         memoryFreshnessLabel() {
             return this.aiMemoryFreshness?.label || (this.aiStale?.is_stale ? 'Refresh suggested' : 'Memory not refreshed')
+        },
+
+        promptExpanded() {
+            return this.aiPromptFocused || !!this.aiPrompt.trim()
         },
 
         promptIntentPreview() {
@@ -1919,6 +2242,7 @@ function writeEditor() {
                     confirmed: true,
                 })
                 await this.holdAgentCue(startedAt)
+                this.applyTokenData(data)
                 this.aiProfile = data.profile
                 this.aiMemory = data.memory || {}
                 this.aiProfileConfirmed = !!data.confirmed

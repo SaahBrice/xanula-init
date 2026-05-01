@@ -3,13 +3,20 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 
+from core.ai_tokens import (
+    InsufficientAITokens,
+    assert_can_start_ai_request,
+    deduct_ai_tokens,
+    get_purchase_options,
+    token_status_for_user,
+)
 from .ai import (
     AIConfigurationError,
     AIServiceError,
     analyze_manuscript,
+    extract_tiptap_text,
     generate_draft,
     normalize_memory,
     normalize_profile,
@@ -34,6 +41,16 @@ from .intelligence import (
     reset_stale_for,
 )
 from .models import Manuscript
+
+
+def _token_payload(request, token_data=None):
+    status = token_data or token_status_for_user(request.user, grant_if_needed=False)
+    return {
+        'token_balance': status.get('balance', 0),
+        'token_delta': status.get('delta', 0),
+        'token_status': status,
+        'purchase_options': get_purchase_options(),
+    }
 
 
 @login_required
@@ -71,6 +88,8 @@ def editor(request, manuscript_id):
         'ai_longform_state': build_longform_engine_state(manuscript),
         'ai_usage': normalize_usage(manuscript.ai_usage),
         'ai_memory_stale': normalize_stale(manuscript.ai_memory_stale),
+        'ai_token_status': token_status_for_user(request.user, grant_if_needed=False),
+        'ai_token_purchase_options': get_purchase_options(),
     })
 
 
@@ -106,11 +125,22 @@ def _ai_error_response(exc):
     return JsonResponse({'status': 'error', 'message': str(exc)}, status=status)
 
 
+def _insufficient_tokens_response(request, exc):
+    payload = _token_payload(request, token_status_for_user(request.user, grant_if_needed=False))
+    return JsonResponse({
+        'status': 'error',
+        'code': 'insufficient_tokens',
+        'message': str(exc),
+        **payload,
+    }, status=402)
+
+
 @login_required
 @require_POST
 def ai_analyze(request, manuscript_id):
     manuscript = get_object_or_404(Manuscript, pk=manuscript_id, user=request.user)
     try:
+        assert_can_start_ai_request(request.user)
         profile, memory = analyze_manuscript(manuscript)
         local = inspect_content(manuscript.content, profile=profile)
         manuscript.ai_profile = profile
@@ -134,6 +164,14 @@ def ai_analyze(request, manuscript_id):
             'ai_profile_confirmed',
             'updated_at',
         ])
+        text = extract_tiptap_text(manuscript.content, max_chars=45000)
+        _, _, charged_status = deduct_ai_tokens(
+            request.user,
+            'analyze',
+            input_chars=len(text),
+            output_chars=len(json.dumps({'profile': profile, 'memory': memory}, ensure_ascii=False)),
+            metadata={'manuscript_id': manuscript.pk, 'usage_hint': 'memory refresh'},
+        )
         return JsonResponse({
             'status': 'ok',
             'profile': profile,
@@ -152,7 +190,10 @@ def ai_analyze(request, manuscript_id):
             ],
             'warnings': local.get('warnings', []),
             'confirmed': manuscript.ai_profile_confirmed,
+            **_token_payload(request, charged_status),
         })
+    except InsufficientAITokens as exc:
+        return _insufficient_tokens_response(request, exc)
     except (AIConfigurationError, AIServiceError) as exc:
         return _ai_error_response(exc)
 
@@ -181,6 +222,7 @@ def ai_profile(request, manuscript_id):
         'chapter_memory': normalize_chapter_memory(manuscript.ai_chapter_memory),
         'cost_mode': normalize_cost_mode(manuscript.ai_cost_mode),
         'confirmed': manuscript.ai_profile_confirmed,
+        **_token_payload(request),
     })
 
 
@@ -218,6 +260,7 @@ def ai_inspect(request, manuscript_id):
         'warnings': warnings,
         'agent_steps': agent_steps_for_inspect(warnings),
         'usage_hint': 'local only',
+        **_token_payload(request),
     })
 
 
@@ -227,6 +270,7 @@ def ai_generate(request, manuscript_id):
     manuscript = get_object_or_404(Manuscript, pk=manuscript_id, user=request.user)
     try:
         data = json.loads(request.body)
+        assert_can_start_ai_request(request.user)
         result = generate_draft(
             manuscript,
             data.get('action', ''),
@@ -242,6 +286,19 @@ def ai_generate(request, manuscript_id):
         manuscript.ai_consistency = result.get('consistency_report', manuscript.ai_consistency)
         manuscript.ai_cost_mode = normalize_cost_mode(result.get('cost_mode', manuscript.ai_cost_mode))
         manuscript.save(update_fields=['ai_usage', 'ai_consistency', 'ai_cost_mode', 'updated_at'])
+        context_summary = result.get('context_summary', {})
+        _, _, charged_status = deduct_ai_tokens(
+            request.user,
+            data.get('action', ''),
+            input_chars=context_summary.get('input_chars', 0),
+            output_chars=len(result.get('draft', '')),
+            provider_usage=context_summary.get('provider_usage', {}),
+            metadata={
+                'manuscript_id': manuscript.pk,
+                'usage_hint': result.get('usage_hint', ''),
+                'cost_mode': result.get('cost_mode', normalize_cost_mode(manuscript.ai_cost_mode)),
+            },
+        )
         return JsonResponse({
             'status': 'ok',
             'draft': result.get('draft', ''),
@@ -257,10 +314,13 @@ def ai_generate(request, manuscript_id):
             'memory_freshness': result.get('memory_freshness', memory_freshness(manuscript.ai_memory_meta, manuscript.ai_memory_stale)),
             'chapter_memory': result.get('chapter_memory', normalize_chapter_memory(manuscript.ai_chapter_memory)),
             'cost_mode': result.get('cost_mode', normalize_cost_mode(manuscript.ai_cost_mode)),
-            'context_summary': result.get('context_summary', {}),
+            'context_summary': context_summary,
             'usage': manuscript.ai_usage,
+            **_token_payload(request, charged_status),
         })
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    except InsufficientAITokens as exc:
+        return _insufficient_tokens_response(request, exc)
     except (AIConfigurationError, AIServiceError) as exc:
         return _ai_error_response(exc)

@@ -5,7 +5,9 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from core.models import AITokenLedgerEntry, AITokenSettings, AITokenWallet
 from .ai import (
+    AIServiceError,
     action_output_contract,
     build_word_diff,
     clean_ai_draft,
@@ -460,7 +462,11 @@ class ManuscriptAITests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Reepls AI Editor")
-        self.assertContains(response, "Ask Reepls")
+        self.assertContains(response, "ed-floating-ai")
+        self.assertContains(response, "Reepls Ai")
+        self.assertContains(response, "ask, rewrite, continue")
+        self.assertContains(response, 'maxlength="1000"')
+        self.assertContains(response, "send")
         self.assertContains(response, "Fast")
         self.assertContains(response, "Balanced")
         self.assertContains(response, "Deep")
@@ -474,6 +480,11 @@ class ManuscriptAITests(TestCase):
         self.assertContains(response, "ed-ai-memory-freshness-data")
         self.assertContains(response, "ed-ai-chapter-memory-data")
         self.assertContains(response, "ed-ai-longform-data")
+        self.assertContains(response, "ed-ai-token-status-data")
+        self.assertContains(response, "Reepls AI Tokens")
+        self.assertContains(response, "Buy tokens")
+        self.assertContains(response, "Mobile Money (OM/MOMO)")
+        self.assertContains(response, "Card")
         self.assertNotContains(response, "ed-page-break")
 
     def test_only_owner_can_call_ai_endpoint(self):
@@ -513,6 +524,8 @@ class ManuscriptAITests(TestCase):
         self.assertEqual(self.manuscript.ai_memory_meta["version"], 1)
         self.assertTrue(self.manuscript.ai_chapter_memory["sections"])
         self.assertFalse(self.manuscript.ai_profile_confirmed)
+        self.assertLess(response.json()["token_delta"], 0)
+        self.assertEqual(AITokenLedgerEntry.objects.filter(user=self.user, entry_type=AITokenLedgerEntry.EntryType.USAGE).count(), 1)
 
     def test_profile_endpoint_saves_confirmed_edits(self):
         response = self.client.post(
@@ -551,6 +564,9 @@ class ManuscriptAITests(TestCase):
         self.assertIn("memory_freshness", data)
         self.assertIn("chapter_memory", data)
         self.assertEqual(data["engine_state"]["retrieval"]["strategy"], "section-aware local retrieval")
+        wallet = AITokenWallet.objects.get(user=self.user)
+        self.assertEqual(wallet.balance, 0)
+        self.assertIsNone(wallet.free_grant_at)
 
     def test_save_marks_memory_stale_after_large_change(self):
         response = self.client.post(
@@ -606,8 +622,41 @@ class ManuscriptAITests(TestCase):
         self.assertFalse(response.json()["diff_available"])
         self.assertEqual(response.json()["cost_mode"], "balanced")
         self.assertEqual(response.json()["usage_hint"], "chapter context")
+        self.assertLess(response.json()["token_balance"], 10000)
+        self.assertLess(response.json()["token_delta"], 0)
         self.assertEqual(response.json()["engine_state"]["readiness"], "ready")
         self.manuscript.refresh_from_db()
         self.assertEqual(self.manuscript.content, original_content)
         self.assertEqual(self.manuscript.ai_usage["request_count"], 1)
         self.assertEqual(self.manuscript.ai_consistency["status"], "clear")
+
+    @patch("write.views.generate_draft")
+    def test_failed_generate_does_not_deduct_tokens(self, generate_mock):
+        generate_mock.side_effect = AIServiceError("AI request failed.")
+
+        response = self.client.post(
+            reverse("write:ai_generate", args=[self.manuscript.pk]),
+            data=json.dumps({"action": "continue", "cursor_context": "river"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 502)
+        wallet = AITokenWallet.objects.get(user=self.user)
+        self.assertEqual(wallet.balance, 10000)
+        self.assertEqual(wallet.total_used, 0)
+
+    def test_zero_token_balance_returns_purchase_payload(self):
+        settings = AITokenSettings.get_solo()
+        settings.free_initial_tokens = 0
+        settings.minimum_request_tokens = 50
+        settings.save()
+
+        response = self.client.post(
+            reverse("write:ai_generate", args=[self.manuscript.pk]),
+            data=json.dumps({"action": "continue", "cursor_context": "river"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 402)
+        self.assertEqual(response.json()["code"], "insufficient_tokens")
+        self.assertIn("purchase_options", response.json())
