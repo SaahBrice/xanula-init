@@ -509,6 +509,21 @@ FAPSHI_BASE_URL = config('FAPSHI_BASE_URL', default='https://live.fapshi.com')
 
 
 # =============================================================================
+# AI WRITING ASSISTANT CONFIGURATION
+# =============================================================================
+
+DEEPSEEK_API_KEY = config('DEEPSEEK_API_KEY', default='')
+DEEPSEEK_MODEL = config('DEEPSEEK_MODEL', default='deepseek-v4-flash')
+DEEPSEEK_API_BASE_URL = config('DEEPSEEK_API_BASE_URL', default='https://api.deepseek.com')
+DEEPSEEK_TIMEOUT = config('DEEPSEEK_TIMEOUT', default=60, cast=int)
+REEPLS_AI_CONTEXT_POLICY = config('REEPLS_AI_CONTEXT_POLICY', default='balanced')
+REEPLS_AI_MAX_INPUT_CHARS_REWRITE = config('REEPLS_AI_MAX_INPUT_CHARS_REWRITE', default=9000, cast=int)
+REEPLS_AI_MAX_INPUT_CHARS_CONTINUE = config('REEPLS_AI_MAX_INPUT_CHARS_CONTINUE', default=16000, cast=int)
+REEPLS_AI_MAX_INPUT_CHARS_OUTLINE = config('REEPLS_AI_MAX_INPUT_CHARS_OUTLINE', default=22000, cast=int)
+REEPLS_AI_MAX_OUTPUT_TOKENS = config('REEPLS_AI_MAX_OUTPUT_TOKENS', default=1800, cast=int)
+
+
+# =============================================================================
 # EMAIL CONFIGURATION (Additional)
 # =============================================================================
 

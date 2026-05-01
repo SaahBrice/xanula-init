@@ -350,24 +350,62 @@ body             { overflow: hidden; }
 .ed-page .ProseMirror u       { text-decoration: underline; text-underline-offset: 2px; }
 .ed-page .ProseMirror s       { text-decoration: line-through; }
 
+/* ── Tables ─────────────────────────────────────────────────── */
+.ed-page .ProseMirror table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+    margin: 1.5em 0;
+    overflow: hidden;
+}
+.ed-page .ProseMirror td,
+.ed-page .ProseMirror th {
+    min-width: 1em;
+    border: 1px solid #d6d3d1;
+    padding: 8px 12px;
+    vertical-align: top;
+    box-sizing: border-box;
+    position: relative;
+}
+.ed-page .ProseMirror th {
+    font-weight: 600;
+    background: #fafaf9;
+    text-align: left;
+}
+.ed-page .ProseMirror .selectedCell::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    background: rgba(139, 38, 53, 0.08);
+    pointer-events: none;
+    z-index: 2;
+}
+.ed-page .ProseMirror .column-resize-handle {
+    position: absolute;
+    right: -2px; top: 0; bottom: 0;
+    width: 4px;
+    background: #8B2635;
+    pointer-events: none;
+}
+.ed-page .ProseMirror.resize-cursor { cursor: col-resize; }
+
+/* ── Images ─────────────────────────────────────────────────── */
+.ed-page .ProseMirror img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 1em 0;
+    display: block;
+}
+.ed-page .ProseMirror img.ProseMirror-selectednode {
+    outline: 2px solid #8B2635;
+    outline-offset: 2px;
+}
+
 /* Placeholder — only style colour; TipTap Placeholder extension handles content */
 .ed-page .ProseMirror .is-editor-empty.is-empty::before {
     color: #c7c3be;
     font-style: italic;
-}
-
-/* Page-break guides */
-.ed-page-break {
-    position: absolute; left: 88px; right: 88px;
-    border-top: 1px dashed #e7e5e4;
-    display: flex; align-items: center; justify-content: center;
-    pointer-events: none;
-}
-.ed-page-break span {
-    background: white; padding: 0 10px;
-    font-size: 0.65rem; color: #c7c3be;
-    letter-spacing: .06em; text-transform: uppercase;
-    margin-top: -1px;
 }
 
 /* ── Right sidebar (AI) ──────────────────────────────────────── */
@@ -381,18 +419,348 @@ body             { overflow: hidden; }
     height: 100%;
     display: flex;
     flex-direction: column;
+    padding: 16px 12px;
+    gap: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.ai-head {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 32px 16px;
+    justify-content: space-between;
     gap: 10px;
 }
-.ai-icon { color: #d6d3d1; }
-.ai-coming {
+.ai-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #292524;
+}
+.ai-subtle {
+    font-size: 0.72rem;
+    color: #a8a29e;
+    line-height: 1.45;
+}
+.ai-section {
+    border-top: 1px solid #e7e5e4;
+    padding-top: 12px;
+}
+.ai-section:first-child {
+    border-top: none;
+    padding-top: 0;
+}
+.ai-label {
+    display: block;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #a8a29e;
+    margin-bottom: 5px;
+}
+.ai-input,
+.ai-textarea {
+    width: 100%;
+    border: 1px solid #e7e5e4;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #292524;
     font-size: 0.78rem;
-    color: #c7c3be;
-    text-align: center;
-    font-style: italic;
-    line-height: 1.5;
+    line-height: 1.4;
+    padding: 7px 8px;
+    outline: none;
+    transition: border-color .12s, box-shadow .12s;
+}
+.ai-input:focus,
+.ai-textarea:focus {
+    border-color: #8B2635;
+    box-shadow: 0 0 0 2px rgba(139, 38, 53, .08);
+}
+.ai-textarea {
+    min-height: 62px;
+    resize: vertical;
+}
+.ai-profile-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+.ai-btn,
+.ai-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e7e5e4;
+    background: #ffffff;
+    color: #44403c;
+    border-radius: 6px;
+    min-height: 30px;
+    padding: 6px 9px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color .12s, background .12s, border-color .12s;
+}
+.ai-btn:hover,
+.ai-action:hover {
+    color: #1c1917;
+    background: #f5f4f0;
+    border-color: #d6d3d1;
+}
+.ai-btn.primary {
+    background: #8B2635;
+    border-color: #8B2635;
+    color: #ffffff;
+}
+.ai-btn.primary:hover {
+    background: #731f2c;
+    border-color: #731f2c;
+    color: #ffffff;
+}
+.ai-btn:disabled,
+.ai-action:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+.ai-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+.ai-status {
+    border-radius: 6px;
+    padding: 8px 9px;
+    background: #f5f4f0;
+    color: #78716c;
+    font-size: 0.74rem;
+    line-height: 1.4;
+}
+.ai-status.error {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+.ai-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.ai-process {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #f0eeeb;
+    border-radius: 8px;
+    background: #fffdfa;
+    padding: 11px;
+}
+.ai-process-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.ai-process-title {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #292524;
+}
+.ai-process-state {
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #a8a29e;
+}
+.ai-process-copy {
+    margin-top: 4px;
+    font-size: 0.72rem;
+    line-height: 1.35;
+    color: #78716c;
+}
+.ai-progress {
+    display: block;
+    overflow: hidden;
+    position: relative;
+    height: 4px;
+    border-radius: 999px;
+    background: #e7e5e4;
+    margin-top: 9px;
+}
+.ai-progress::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 40%;
+    border-radius: inherit;
+    background: #8B2635;
+    transform: translateX(-120%);
+}
+.ai-process.working .ai-progress::after {
+    animation: ai-flow 1.6s cubic-bezier(.45,0,.2,1) infinite;
+}
+.ai-process.done .ai-progress::after {
+    width: 100%;
+    transform: translateX(0);
+    background: #15803d;
+}
+.ai-process.error .ai-progress::after {
+    width: 100%;
+    transform: translateX(0);
+    background: #b91c1c;
+}
+.ai-process.done .ai-process-state { color: #15803d; }
+.ai-process.error .ai-process-state { color: #b91c1c; }
+.ai-meter {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-direction: column;
+    gap: 2px;
+    border-radius: 7px;
+    background: #f8f7f4;
+    padding: 8px 9px;
+    font-size: 0.72rem;
+    color: #57534e;
+    min-width: 0;
+}
+.ai-meter span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ai-meter strong { color: #292524; }
+.ai-engine-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 10px;
+}
+.ai-warning-list {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ai-warning-list li {
+    border-radius: 6px;
+    background: #fffbeb;
+    color: #92400e;
+    font-size: 0.7rem;
+    line-height: 1.35;
+    padding: 6px 8px;
+}
+
+/* Reepls AI Editor refinement */
+.ed-right { background: #fbfaf8; max-width: 620px; }
+.ai-body { padding: 14px; gap: 10px; }
+.ai-card {
+    background: #ffffff;
+    border: 1px solid #e7e5e4;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    padding: 12px;
+}
+.ai-title { font-size: 0.95rem; font-weight: 700; color: #1c1917; }
+.ai-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #8B2635;
+    margin-bottom: 3px;
+}
+.ai-section { border-top: 0; padding-top: 0; display: flex; flex-direction: column; gap: 8px; }
+.ai-profile-summary { display: flex; flex-wrap: wrap; gap: 6px; }
+.ai-chip {
+    display: inline-flex;
+    max-width: 100%;
+    border-radius: 999px;
+    background: #f5f4f0;
+    color: #57534e;
+    font-size: 0.7rem;
+    line-height: 1.2;
+    padding: 5px 8px;
+}
+.ai-action { justify-content: flex-start; gap: 7px; min-height: 34px; }
+.ai-prompt-box {
+    display: grid;
+    gap: 8px;
+}
+.ai-prompt-input {
+    min-height: 92px;
+    max-height: 210px;
+}
+.ai-prompt-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.68rem;
+    color: #a8a29e;
+}
+.ai-prompt-meta span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ai-prompt-selection {
+    background: rgba(139, 38, 53, .16);
+    box-shadow: inset 0 -2px 0 rgba(139, 38, 53, .45);
+}
+.ai-spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(139, 38, 53, .18);
+    border-top-color: #8B2635;
+    animation: ai-spin .75s linear infinite;
+}
+.ai-thinking { display: flex; align-items: center; gap: 8px; }
+.ai-suggestion-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+    border-color: #d6d3d1;
+    box-shadow: 0 -8px 20px rgba(0,0,0,.08);
+}
+.ai-ghost-original {
+    background: rgba(251, 191, 36, .18);
+    color: #78716c;
+    text-decoration: line-through;
+    text-decoration-color: rgba(120, 113, 108, .5);
+}
+.ai-ghost-suggestion {
+    display: block;
+    margin: 1em 0;
+    padding: 14px 16px;
+    border-left: 3px solid #8B2635;
+    border-radius: 6px;
+    background: #fff7ed;
+    color: #292524;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.ai-ghost-suggestion p { margin: .55em 0 0; }
+.ai-ghost-label {
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #8B2635;
+}
+@keyframes ai-spin {
+    to { transform: rotate(360deg); }
+}
+@keyframes ai-flow {
+    0% { transform: translateX(-100%); }
+    60%, 100% { transform: translateX(260%); }
 }
 
 /* ── Sidebar collapse buttons (float at the edge of center) ───── */
@@ -476,8 +844,30 @@ body             { overflow: hidden; }
 [data-theme="dark"] .ed-collapse-right  { background: #1a1a1a; border-color: #292524; color: #57534e; }
 [data-theme="dark"] .ed-collapse-left:hover,
 [data-theme="dark"] .ed-collapse-right:hover { background: #252525; color: #d6d3d1; }
-[data-theme="dark"] .ed-page-break      { border-color: #292524; }
-[data-theme="dark"] .ed-page-break span { background: #1e1e1e; color: #44403c; }
+[data-theme="dark"] .ai-title       { color: #e7e5e4; }
+[data-theme="dark"] .ai-section     { border-color: #292524; }
+[data-theme="dark"] .ai-input,
+[data-theme="dark"] .ai-textarea,
+[data-theme="dark"] .ai-btn,
+[data-theme="dark"] .ai-action      { background: #1e1e1e; border-color: #292524; color: #d6d3d1; }
+[data-theme="dark"] .ai-btn:hover,
+[data-theme="dark"] .ai-action:hover { background: #252525; color: #f5f4f0; }
+[data-theme="dark"] .ai-btn.primary { background: #8B2635; border-color: #8B2635; color: #ffffff; }
+[data-theme="dark"] .ai-status      { background: #252525; color: #a8a29e; }
+[data-theme="dark"] .ai-status.error { background: #3d1010; color: #fca5a5; }
+[data-theme="dark"] .ai-card        { background: #1a1a1a; border-color: #292524; }
+[data-theme="dark"] .ai-process     { background: #1e1e1e; border-color: #292524; }
+[data-theme="dark"] .ai-process-title { color: #e7e5e4; }
+[data-theme="dark"] .ai-process-copy { color: #a8a29e; }
+[data-theme="dark"] .ai-progress { background: #292524; }
+[data-theme="dark"] .ai-meter       { background: #252525; color: #a8a29e; }
+[data-theme="dark"] .ai-meter strong { color: #e7e5e4; }
+[data-theme="dark"] .ai-warning-list li { background: #2a2113; color: #fbbf24; }
+[data-theme="dark"] .ai-chip        { background: #252525; color: #a8a29e; }
+[data-theme="dark"] .ai-suggestion-bar { border-color: #44403c; box-shadow: 0 -8px 20px rgba(0,0,0,.35); }
+[data-theme="dark"] .ai-ghost-suggestion { background: #2a1c12; color: #e7e5e4; }
+[data-theme="dark"] .ai-ghost-original { background: rgba(251, 191, 36, .12); color: #a8a29e; }
+[data-theme="dark"] .ai-prompt-selection { background: rgba(190, 18, 60, .22); box-shadow: inset 0 -2px 0 rgba(251, 113, 133, .55); }
 
 /* ── Mobile ──────────────────────────────────────────────────── */
 @media (max-width: 768px) {
@@ -490,6 +880,15 @@ body             { overflow: hidden; }
 
 {# ── Pass content safely via json_script ── #}
 {{ manuscript.content|json_script:"ed-content-data" }}
+{{ ai_profile|json_script:"ed-ai-profile-data" }}
+{{ ai_memory|json_script:"ed-ai-memory-data" }}
+{{ ai_voice|json_script:"ed-ai-voice-data" }}
+{{ ai_chapter_map|json_script:"ed-ai-chapter-map-data" }}
+{{ ai_entities|json_script:"ed-ai-entities-data" }}
+{{ ai_consistency|json_script:"ed-ai-consistency-data" }}
+{{ ai_longform_state|json_script:"ed-ai-longform-data" }}
+{{ ai_usage|json_script:"ed-ai-usage-data" }}
+{{ ai_memory_stale|json_script:"ed-ai-stale-data" }}
 
 <div id="ed-root" x-data="writeEditor()" x-init="init()" class="ed"
     @mousemove.window="onDragMove($event)"
@@ -655,6 +1054,38 @@ body             { overflow: hidden; }
                     <div class="tb-sep"></div>
 
                     <div class="tb-group">
+                        <button @mousedown.prevent="cmd('setTextAlign','left')"
+                            :class="['tb-btn', isActive({textAlign:'left'}) ? 'on' : '']" title="Align left">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M3.75 5.25h16.5M3.75 9.75h10.5M3.75 14.25h16.5M3.75 18.75h10.5"/></svg>
+                        </button>
+                        <button @mousedown.prevent="cmd('setTextAlign','center')"
+                            :class="['tb-btn', isActive({textAlign:'center'}) ? 'on' : '']" title="Align center">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M3.75 5.25h16.5M6.75 9.75h10.5M3.75 14.25h16.5M6.75 18.75h10.5"/></svg>
+                        </button>
+                        <button @mousedown.prevent="cmd('setTextAlign','right')"
+                            :class="['tb-btn', isActive({textAlign:'right'}) ? 'on' : '']" title="Align right">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M3.75 5.25h16.5M9.75 9.75h10.5M3.75 14.25h16.5M9.75 18.75h10.5"/></svg>
+                        </button>
+                        <button @mousedown.prevent="cmd('setTextAlign','justify')"
+                            :class="['tb-btn', isActive({textAlign:'justify'}) ? 'on' : '']" title="Justify">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M3.75 5.25h16.5M3.75 9.75h16.5M3.75 14.25h16.5M3.75 18.75h16.5"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="tb-sep"></div>
+
+                    <div class="tb-group">
+                        <button @mousedown.prevent="promptImage()" class="tb-btn" title="Insert image">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21z"/></svg>
+                        </button>
+                        <button @mousedown.prevent="insertTable()" class="tb-btn" title="Insert table">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M10.875 12c-.621 0-1.125.504-1.125 1.125M12 12c0 .621.504 1.125 1.125 1.125m0-3.75c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="tb-sep"></div>
+
+                    <div class="tb-group">
                         <button @mousedown.prevent="insertChapter()" class="tb-btn" title="New Chapter" style="width:auto;padding:0 8px;gap:4px">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                             <span class="text-xs">Ch</span>
@@ -694,15 +1125,6 @@ body             { overflow: hidden; }
                         {# TipTap mount #}
                         <div id="editor-mount"></div>
 
-                        {# Page-break guides — rendered by JS, positioned absolutely #}
-                        <template x-if="pageCount > 1">
-                            <template x-for="n in pageCount - 1" :key="n">
-                                <div class="ed-page-break" :style="`top: ${72 + n * 1010}px`">
-                                    <span x-text="`{% trans 'page' %} ${n + 1}`"></span>
-                                </div>
-                            </template>
-                        </template>
-
                     </div>
                 </div>
 
@@ -717,10 +1139,161 @@ body             { overflow: hidden; }
         {# ── RIGHT SIDEBAR: AI ── #}
         <aside class="ed-sidebar ed-right" :style="`width: ${aiOpen ? aiWidth : 0}px`">
             <div class="ai-body">
-                <svg class="ai-icon w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09z"/>
-                </svg>
-                <p class="ai-coming">{% trans "AI Assistant" %}<br>{% trans "coming soon" %}</p>
+                <section class="ai-card ai-section">
+                    <div class="ai-head">
+                        <div>
+                            <div class="ai-title">{% trans "Reepls AI Editor" %}</div>
+                            <div class="ai-subtle mt-1">
+                                <template x-if="aiProfileConfirmed">
+                                    <span>{% trans "Book-aware writing help for this manuscript." %}</span>
+                                </template>
+                                <template x-if="!aiProfileConfirmed">
+                                    <span>{% trans "Scan or refresh memory before deeper writing help." %}</span>
+                                </template>
+                            </div>
+                        </div>
+                        <button class="ai-btn" title="{% trans 'Uses AI to refresh profile and book memory.' %}" @click="analyzeBook()" :disabled="aiLoading || suggestion.active">
+                            <span>{% trans "Refresh memory" %}</span>
+                        </button>
+                        <button class="ai-btn" title="{% trans 'Runs local book awareness without an API call.' %}" @click="inspectBook()" :disabled="aiLoading || suggestion.active">
+                            <span>{% trans "Scan book" %}</span>
+                        </button>
+                    </div>
+                    <div class="ai-engine-grid" x-show="aiLongform && aiLongform.readiness" x-cloak>
+                        <div class="ai-meter">
+                            <span>{% trans "Integrity" %}</span>
+                            <strong x-text="`${aiLongform.integrity_score || 0}%`"></strong>
+                        </div>
+                        <div class="ai-meter">
+                            <span>{% trans "Indexed" %}</span>
+                            <strong x-text="`${aiLongform.indexed_chunks || 0} chunks`"></strong>
+                        </div>
+                        <div class="ai-meter">
+                            <span>{% trans "Readiness" %}</span>
+                            <strong x-text="engineReadinessLabel()"></strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="ai-card ai-section" x-show="activityVisible()" x-cloak>
+                    <div class="ai-head">
+                        <label class="ai-label mb-0">{% trans "Status" %}</label>
+                    </div>
+                    <div :class="['ai-process', activityState]">
+                        <div class="ai-process-head">
+                            <div class="ai-process-title" x-text="activityTitle"></div>
+                            <div class="ai-process-state" x-text="activityStateLabel()"></div>
+                        </div>
+                        <div class="ai-process-copy" x-text="activityMessage"></div>
+                        <div class="ai-progress"></div>
+                    </div>
+                    <template x-if="agentWarnings.length">
+                        <ul class="ai-warning-list">
+                            <template x-for="warning in agentWarnings" :key="warning">
+                                <li x-text="warning"></li>
+                            </template>
+                        </ul>
+                    </template>
+                </section>
+
+                <section class="ai-card ai-section">
+                    <div class="ai-head">
+                        <label class="ai-label mb-0">{% trans "Book Profile" %}</label>
+                        <div class="ai-row">
+                            <template x-if="aiProfileConfirmed && !profileExpanded">
+                                <button class="ai-btn" @click="profileExpanded = true" :disabled="aiLoading || suggestion.active">{% trans "Edit" %}</button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <template x-if="aiProfileConfirmed && !profileExpanded">
+                        <div>
+                            <div class="ai-profile-summary">
+                                <template x-for="item in profileChips()" :key="item">
+                                    <span class="ai-chip" x-text="item"></span>
+                                </template>
+                            </div>
+                            <p class="ai-subtle mt-2" x-text="aiProfile.style_notes || '{% trans "Style memory confirmed." %}'"></p>
+                        </div>
+                    </template>
+
+                    <template x-if="!aiProfileConfirmed || profileExpanded">
+                        <div>
+                            <div class="ai-profile-grid">
+                                <input class="ai-input" x-model="aiProfile.genre" placeholder="{% trans 'Genre' %}">
+                                <input class="ai-input" x-model="aiProfile.tone" placeholder="{% trans 'Tone' %}">
+                                <input class="ai-input" x-model="aiProfile.target_audience" placeholder="{% trans 'Audience' %}">
+                                <input class="ai-input" x-model="aiProfile.language" placeholder="{% trans 'Language' %}">
+                                <input class="ai-input" x-model="aiProfile.book_type" placeholder="{% trans 'Book type' %}">
+                                <textarea class="ai-textarea" x-model="aiProfile.style_notes" placeholder="{% trans 'Style notes' %}"></textarea>
+                            </div>
+                            <div class="ai-row mt-2">
+                                <button class="ai-btn primary" @click="confirmAiProfile()" :disabled="aiLoading || suggestion.active">{% trans "Looks right" %}</button>
+                                <template x-if="aiProfileConfirmed">
+                                    <button class="ai-btn" @click="profileExpanded = false" :disabled="aiLoading">{% trans "Collapse" %}</button>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </section>
+
+                <section class="ai-card ai-section">
+                    <label class="ai-label">{% trans "Ask Reepls" %}</label>
+                    <div class="ai-prompt-box">
+                        <textarea
+                            class="ai-textarea ai-prompt-input"
+                            x-model="aiPrompt"
+                            :disabled="aiLoading || suggestion.active"
+                            @mousedown="capturePromptSelection()"
+                            @focus="capturePromptSelection()"
+                            @blur="clearPromptSelectionHighlight()"
+                            @keydown.ctrl.enter.prevent="sendAiPrompt()"
+                            @keydown.meta.enter.prevent="sendAiPrompt()"
+                            placeholder="{% trans 'Tell Reepls what you want. Example: improve this paragraph, use this idea for the next scene, make the selected text more tense, or write a softer transition.' %}"></textarea>
+                        <div class="ai-prompt-meta">
+                            <span x-text="rememberedSelection.text ? '{% trans "Selection will be considered." %}' : '{% trans "Uses cursor context and book memory." %}'"></span>
+                            <button class="ai-btn primary" @click="sendAiPrompt()" :disabled="aiLoading || suggestion.active || !aiPrompt.trim()">
+                                <template x-if="aiLoading && aiAction === 'custom'">
+                                    <span class="ai-spinner"></span>
+                                </template>
+                                <span>{% trans "Send" %}</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="ai-card ai-section">
+                    <label class="ai-label">{% trans "Write" %}</label>
+                    <div class="ai-actions">
+                        <button class="ai-action" @click="runAiAction('continue')" :disabled="aiLoading || suggestion.active"><span>+</span><span>{% trans "Continue from cursor" %}</span></button>
+                        <button class="ai-action" @click="runAiAction('outline')" :disabled="aiLoading || suggestion.active"><span>#</span><span>{% trans "Create outline" %}</span></button>
+                    </div>
+                </section>
+
+                <section class="ai-card ai-section">
+                    <label class="ai-label">{% trans "Revise Selection" %}</label>
+                    <div class="ai-actions">
+                        <button class="ai-action" @click="runAiAction('rewrite')" :disabled="aiLoading || suggestion.active"><span>R</span><span>{% trans "Rewrite" %}</span></button>
+                        <button class="ai-action" @click="runAiAction('expand')" :disabled="aiLoading || suggestion.active"><span>E</span><span>{% trans "Expand" %}</span></button>
+                        <button class="ai-action" @click="runAiAction('improve')" :disabled="aiLoading || suggestion.active"><span>I</span><span>{% trans "Improve style" %}</span></button>
+                        <button class="ai-action" @click="runAiAction('summarize')" :disabled="aiLoading || suggestion.active"><span>S</span><span>{% trans "Summarize" %}</span></button>
+                    </div>
+                </section>
+
+                <section class="ai-card ai-section ai-suggestion-bar" x-show="suggestion.active" x-cloak>
+                    <label class="ai-label">{% trans "Suggestion Preview" %}</label>
+                    <p class="ai-subtle">{% trans "The preview is in the editor. Confirm to save it, reject to restore, or regenerate another version." %}</p>
+                    <div class="ai-row">
+                        <button class="ai-btn primary" @click="confirmSuggestion()" :disabled="aiLoading">{% trans "Confirm" %}</button>
+                        <button class="ai-btn" @click="rejectSuggestion()" :disabled="aiLoading">{% trans "Reject" %}</button>
+                        <button class="ai-btn" @click="regenerateSuggestion()" :disabled="aiLoading">
+                            <template x-if="aiLoading && aiAction === suggestion.action">
+                                <span class="ai-spinner"></span>
+                            </template>
+                            <span>{% trans "Regenerate" %}</span>
+                        </button>
+                    </div>
+                </section>
             </div>
         </aside>
 
@@ -756,6 +1329,31 @@ body             { overflow: hidden; }
    Proxies which break TipTap's internal === checks (this.state vs view.state). */
 window.__xanulaEditor = null
 
+function readEditorJson(id, fallback) {
+    const el = document.getElementById(id)
+    if (!el) return fallback
+    try { return JSON.parse(el.textContent) || fallback } catch(e) { return fallback }
+}
+
+function draftToTiptapNodes(text) {
+    const blocks = String(text || '').split(/\n{2,}/).map(s => s.trim()).filter(Boolean)
+    if (!blocks.length) return []
+    return blocks.map(block => {
+        const heading = block.match(/^(#{1,3})\s+(.+)$/)
+        if (heading) {
+            return {
+                type: 'heading',
+                attrs: { level: heading[1].length },
+                content: [{ type: 'text', text: heading[2] }],
+            }
+        }
+        return {
+            type: 'paragraph',
+            content: [{ type: 'text', text: block.replace(/\n/g, ' ') }],
+        }
+    })
+}
+
 function writeEditor() {
     return {
         toc: [],
@@ -768,13 +1366,52 @@ function writeEditor() {
         tocOpen: true,
         aiOpen: true,
         tocWidth: 260,
-        aiWidth: 280,
+        aiWidth: 340,
+        aiMinWidth: 240,
+        aiMaxWidth: 620,
         drag: null,
 
         wordCount: 0,
-        pageCount: 1,
         stateVersion: 0,
+        hasSelection: false,
+        rememberedSelection: { from: null, to: null, text: '' },
         bubble: { show: false, x: 0, y: 0 },
+
+        aiProfile: {},
+        aiMemory: {},
+        aiVoice: {},
+        aiChapterMap: {},
+        aiEntities: {},
+        aiConsistency: {},
+        aiLongform: {},
+        aiUsage: {},
+        aiStale: {},
+        aiProfileConfirmed: {{ manuscript.ai_profile_confirmed|yesno:"true,false" }},
+        profileExpanded: !{{ manuscript.ai_profile_confirmed|yesno:"true,false" }},
+        aiLoading: false,
+        aiAction: '',
+        aiPrompt: '',
+        aiError: '',
+        aiNotice: '',
+        agentWarnings: [],
+        usageHint: '',
+        contextSummary: {},
+        activityTitle: 'Ready',
+        activityMessage: 'Scan the book or choose a writing action when you need help.',
+        activityState: 'idle',
+        activityTimer: null,
+        activityToken: 0,
+        minAgentMs: 2200,
+        suggestion: {
+            active: false,
+            id: null,
+            action: '',
+            text: '',
+            range: null,
+            selectedText: '',
+            cursorContext: '',
+            userPrompt: '',
+        },
 
         get ed() { return window.__xanulaEditor },
 
@@ -794,6 +1431,27 @@ function writeEditor() {
                 try { initialContent = JSON.parse(contentEl.textContent) } catch(e) {}
             }
 
+            this.aiProfile = {
+                genre: '',
+                tone: '',
+                target_audience: '',
+                language: '',
+                book_type: '',
+                style_notes: '',
+                ...readEditorJson('ed-ai-profile-data', {}),
+            }
+            this.aiMemory = readEditorJson('ed-ai-memory-data', {})
+            this.aiVoice = readEditorJson('ed-ai-voice-data', {})
+            this.aiChapterMap = readEditorJson('ed-ai-chapter-map-data', {})
+            this.aiEntities = readEditorJson('ed-ai-entities-data', {})
+            this.aiConsistency = readEditorJson('ed-ai-consistency-data', {})
+            this.aiLongform = readEditorJson('ed-ai-longform-data', {})
+            this.aiUsage = readEditorJson('ed-ai-usage-data', {})
+            this.aiStale = readEditorJson('ed-ai-stale-data', {})
+            this.agentWarnings = []
+            this.usageHint = this.aiUsage?.last_request?.usage_hint || ''
+            this.setIdleActivity()
+
             const editor = window.initTiptapEditor(mount, initialContent)
             window.__xanulaEditor = editor
 
@@ -807,11 +1465,26 @@ function writeEditor() {
 
             editor.on('selectionUpdate', ({ editor }) => {
                 self.stateVersion++
+                self.hasSelection = !editor.state.selection.empty
+                if (!editor.state.selection.empty) {
+                    const { from, to } = editor.state.selection
+                    self.rememberedSelection = {
+                        from,
+                        to,
+                        text: editor.state.doc.textBetween(from, to, '\n\n'),
+                    }
+                }
                 self.updateBubble(editor)
             })
 
             editor.on('blur', () => {
                 self.bubble.show = false
+            })
+
+            editor.on('focus', () => {
+                self.clearPromptSelectionHighlight()
+                self.rememberedSelection = { from: null, to: null, text: '' }
+                self.hasSelection = !editor.state.selection.empty
             })
 
             setTimeout(() => {
@@ -845,6 +1518,21 @@ function writeEditor() {
                 .run()
         },
 
+        promptImage() {
+            const ed = window.__xanulaEditor
+            if (!ed) return
+            const url = prompt('Image URL:')
+            if (url) {
+                ed.chain().focus().setImage({ src: url }).run()
+            }
+        },
+
+        insertTable() {
+            const ed = window.__xanulaEditor
+            if (!ed) return
+            ed.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+        },
+
         insertSection() {
             const ed = window.__xanulaEditor
             if (!ed) return
@@ -860,7 +1548,6 @@ function writeEditor() {
             if (!ed) return
             const text = ed.state.doc.textContent.trim()
             this.wordCount = text ? text.split(/\s+/).length : 0
-            this.pageCount = Math.max(1, Math.ceil(this.wordCount / 250))
         },
 
         /* ─────────────────── auto-save ─────────────── */
@@ -872,9 +1559,9 @@ function writeEditor() {
 
         save() {
             const ed = window.__xanulaEditor
-            if (!ed) return
+            if (!ed) return Promise.resolve()
             this.saveStatus = 'saving'
-            fetch(`/write/${this.manuscriptId}/save/`, {
+            return fetch(`/write/${this.manuscriptId}/save/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': this.csrfToken },
                 body: JSON.stringify({ content: ed.getJSON(), title: this.title }),
@@ -882,6 +1569,9 @@ function writeEditor() {
             .then(r => r.json())
             .then(d => {
                 this.saveStatus = d.status === 'ok' ? 'saved' : 'error'
+                if (d.stale) {
+                    this.aiStale = d.stale
+                }
                 if (this.saveStatus === 'saved')
                     setTimeout(() => { if (this.saveStatus === 'saved') this.saveStatus = '' }, 2500)
             })
@@ -889,6 +1579,386 @@ function writeEditor() {
         },
 
         /* ─────────────────── live TOC ──────────────── */
+        async ensureSavedForAi() {
+            clearTimeout(this.saveTimeout)
+            await this.save()
+        },
+
+        async postAi(path, payload = {}) {
+            const response = await fetch(`/write/${this.manuscriptId}/ai/${path}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': this.csrfToken },
+                body: JSON.stringify(payload),
+            })
+            let data = {}
+            try { data = await response.json() } catch(e) {}
+            if (!response.ok || data.status === 'error') {
+                throw new Error(data.message || 'AI request failed.')
+            }
+            return data
+        },
+
+        applyIntelligence(data) {
+            if (data.voice) this.aiVoice = data.voice
+            if (data.chapter_map) this.aiChapterMap = data.chapter_map
+            if (data.entities) this.aiEntities = data.entities
+            if (data.consistency_report) this.aiConsistency = data.consistency_report
+            if (data.engine_state) this.aiLongform = data.engine_state
+            if (data.stale) this.aiStale = data.stale
+            if (data.usage) this.aiUsage = data.usage
+            if (data.usage_hint) this.usageHint = data.usage_hint
+            if (data.context_summary) this.contextSummary = data.context_summary
+            const warnings = data.safety_warnings || data.warnings || []
+            this.agentWarnings = Array.isArray(warnings)
+                ? warnings.filter(w => !String(w).toLowerCase().includes('stale')).slice(0, 3)
+                : []
+        },
+
+        sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms))
+        },
+
+        async holdAgentCue(startedAt) {
+            const elapsed = Date.now() - startedAt
+            if (elapsed < this.minAgentMs) {
+                await this.sleep(this.minAgentMs - elapsed)
+            }
+        },
+
+        activityStateLabel() {
+            if (this.activityState === 'working') return 'working'
+            if (this.activityState === 'done') return 'ready'
+            if (this.activityState === 'error') return 'error'
+            return ''
+        },
+
+        setIdleActivity() {
+            this.activityState = this.aiProfileConfirmed || this.aiVoice?.sentence_rhythm ? 'done' : 'idle'
+            this.activityTitle = this.activityState === 'done' ? 'Book context ready' : 'Ready'
+            this.activityMessage = this.activityState === 'done'
+                ? 'Reepls has enough context to help with this manuscript.'
+                : 'Scan the book or choose a writing action when you need help.'
+        },
+
+        activityVisible() {
+            return this.aiLoading || !!this.aiError || !!this.aiNotice || this.activityState === 'working'
+        },
+
+        engineReadinessLabel() {
+            const label = String(this.aiLongform?.readiness || 'ready').replaceAll('_', ' ')
+            return label.charAt(0).toUpperCase() + label.slice(1)
+        },
+
+        startActivity(action) {
+            clearInterval(this.activityTimer)
+            const messages = {
+                analyze: ['Refreshing memory', 'Updating the manuscript memory and book profile.'],
+                inspect: ['Scanning book', 'Reading structure, voice, names, and dates locally.'],
+                continue: ['Preparing continuation', 'Matching the manuscript voice before writing the next passage.'],
+                rewrite: ['Preparing rewrite', 'Keeping the meaning while improving the selected passage.'],
+                expand: ['Preparing expansion', 'Adding useful detail while preserving the direction.'],
+                improve: ['Improving style', 'Tuning clarity, rhythm, and flow.'],
+                summarize: ['Preparing summary', 'Condensing the selected passage into a shorter version.'],
+                outline: ['Preparing outline', 'Planning the next sections from the book memory.'],
+                custom: ['Reading your instruction', 'Preparing a book-aware suggestion from your prompt.'],
+                profile: ['Saving profile', 'Updating the confirmed book profile.'],
+            }
+            const [title, message] = messages[action] || ['Working', 'Preparing the request.']
+            const token = Date.now()
+            this.activityToken = token
+            this.activityTitle = title
+            this.activityMessage = message
+            this.activityState = 'working'
+            return token
+        },
+
+        finishActivity(token, message = '') {
+            if (this.activityToken !== token) return
+            clearInterval(this.activityTimer)
+            this.activityTimer = null
+            this.activityState = 'done'
+            this.activityTitle = 'Ready'
+            this.activityMessage = message || 'The result is ready to review.'
+        },
+
+        failActivity(token, message = '') {
+            if (this.activityToken !== token) return
+            clearInterval(this.activityTimer)
+            this.activityTimer = null
+            this.activityState = 'error'
+            this.activityTitle = 'Needs attention'
+            this.activityMessage = message || 'Something interrupted the request.'
+        },
+
+        async inspectBook() {
+            this.aiLoading = true
+            this.aiAction = 'inspect'
+            this.aiError = ''
+            this.aiNotice = ''
+            const token = this.startActivity('inspect')
+            const startedAt = Date.now()
+            try {
+                await this.ensureSavedForAi()
+                const data = await this.postAi('inspect')
+                await this.holdAgentCue(startedAt)
+                this.applyIntelligence(data)
+                this.finishActivity(token, 'Book scan complete. Local awareness is ready.')
+                this.aiNotice = 'Book awareness ready without an API call.'
+            } catch (error) {
+                await this.holdAgentCue(startedAt)
+                this.failActivity(token, error.message)
+                this.aiError = error.message
+            } finally {
+                this.aiLoading = false
+                this.aiAction = ''
+            }
+        },
+
+        async analyzeBook() {
+            this.aiLoading = true
+            this.aiAction = 'analyze'
+            this.aiError = ''
+            this.aiNotice = ''
+            const token = this.startActivity('analyze')
+            const startedAt = Date.now()
+            try {
+                await this.ensureSavedForAi()
+                const data = await this.postAi('analyze')
+                await this.holdAgentCue(startedAt)
+                this.aiProfile = { ...this.aiProfile, ...data.profile }
+                this.aiMemory = data.memory || {}
+                this.applyIntelligence(data)
+                this.aiProfileConfirmed = !!data.confirmed
+                this.finishActivity(token, 'Memory refresh complete. Review the profile below.')
+                this.aiNotice = 'Book profile drafted. Review it, then click Looks right.'
+            } catch (error) {
+                await this.holdAgentCue(startedAt)
+                this.failActivity(token, error.message)
+                this.aiError = error.message
+            } finally {
+                this.aiLoading = false
+                this.aiAction = ''
+            }
+        },
+
+        async confirmAiProfile() {
+            this.aiLoading = true
+            this.aiAction = 'profile'
+            this.aiError = ''
+            this.aiNotice = ''
+            const token = this.startActivity('profile')
+            const startedAt = Date.now()
+            try {
+                const data = await this.postAi('profile', {
+                    profile: this.aiProfile,
+                    memory: this.aiMemory,
+                    confirmed: true,
+                })
+                await this.holdAgentCue(startedAt)
+                this.aiProfile = data.profile
+                this.aiMemory = data.memory || {}
+                this.aiProfileConfirmed = !!data.confirmed
+                this.profileExpanded = !this.aiProfileConfirmed
+                this.finishActivity(token, 'Book profile saved.')
+                this.aiNotice = 'Book profile saved.'
+            } catch (error) {
+                await this.holdAgentCue(startedAt)
+                this.failActivity(token, error.message)
+                this.aiError = error.message
+            } finally {
+                this.aiLoading = false
+                this.aiAction = ''
+            }
+        },
+
+        selectedText() {
+            const ed = window.__xanulaEditor
+            if (!ed) return ''
+            const { from, to, empty } = ed.state.selection
+            if (!empty) {
+                return ed.state.doc.textBetween(from, to, '\n\n')
+            }
+            return this.rememberedSelection.text || ''
+        },
+
+        cursorContext() {
+            const ed = window.__xanulaEditor
+            if (!ed) return ''
+            const pos = ed.state.selection.from
+            const start = Math.max(0, pos - 1200)
+            const end = Math.min(ed.state.doc.content.size, pos + 1200)
+            return ed.state.doc.textBetween(start, end, '\n\n')
+        },
+
+        profileChips() {
+            return [
+                this.aiProfile.genre,
+                this.aiProfile.tone,
+                this.aiProfile.target_audience,
+                this.aiProfile.language,
+                this.aiProfile.book_type,
+            ].filter(Boolean)
+        },
+
+        currentSuggestionRange(action) {
+            const ed = window.__xanulaEditor
+            if (!ed) return { from: 0, to: 0 }
+            const { from, to, empty } = ed.state.selection
+            const replacementActions = ['rewrite', 'expand', 'improve', 'summarize']
+            if (!empty && replacementActions.includes(action)) {
+                return { from, to }
+            }
+            if (replacementActions.includes(action) && this.rememberedSelection.text) {
+                return { from: this.rememberedSelection.from, to: this.rememberedSelection.to }
+            }
+            return { from, to: from }
+        },
+
+        currentInsertionRange() {
+            const ed = window.__xanulaEditor
+            if (!ed) return { from: 0, to: 0 }
+            const { from, to, empty } = ed.state.selection
+            const pos = empty ? from : to
+            return { from: pos, to: pos }
+        },
+
+        currentReplacementRange() {
+            const ed = window.__xanulaEditor
+            if (!ed) return { from: 0, to: 0 }
+            const { from, to, empty } = ed.state.selection
+            if (empty && this.rememberedSelection.text) {
+                return { from: this.rememberedSelection.from, to: this.rememberedSelection.to }
+            }
+            return empty ? { from, to: from } : { from, to }
+        },
+
+        capturePromptSelection() {
+            const ed = window.__xanulaEditor
+            if (!ed) return
+            const { from, to, empty } = ed.state.selection
+            if (!empty) {
+                this.rememberedSelection = {
+                    from,
+                    to,
+                    text: ed.state.doc.textBetween(from, to, '\n\n'),
+                }
+            }
+            if (this.rememberedSelection.text) {
+                window.xanulaPromptSelection?.show(ed, {
+                    from: this.rememberedSelection.from,
+                    to: this.rememberedSelection.to,
+                })
+                this.hasSelection = true
+            }
+        },
+
+        clearPromptSelectionHighlight() {
+            window.xanulaPromptSelection?.clear(window.__xanulaEditor)
+        },
+
+        async sendAiPrompt() {
+            const prompt = this.aiPrompt.trim()
+            if (!prompt || this.aiLoading || this.suggestion.active) return
+            this.capturePromptSelection()
+            await this.runAiAction('custom', prompt)
+        },
+
+        async runAiAction(action, userPrompt = '') {
+            this.aiLoading = true
+            this.aiAction = action
+            this.aiError = ''
+            this.aiNotice = ''
+            const token = this.startActivity(action)
+            const startedAt = Date.now()
+            const selectedText = this.suggestion.active ? this.suggestion.selectedText : this.selectedText()
+            const cursorContext = this.suggestion.active ? this.suggestion.cursorContext : this.cursorContext()
+            const storedPrompt = this.suggestion.active ? this.suggestion.userPrompt : ''
+            const promptToSend = userPrompt || storedPrompt
+            const defaultRange = this.suggestion.active ? this.suggestion.range : this.currentSuggestionRange(action)
+            const insertionRange = this.suggestion.active ? this.suggestion.range : this.currentInsertionRange()
+            const replacementRange = this.suggestion.active ? this.suggestion.range : this.currentReplacementRange()
+            try {
+                await this.ensureSavedForAi()
+                const data = await this.postAi('generate', {
+                    action,
+                    selected_text: selectedText,
+                    cursor_context: cursorContext,
+                    user_prompt: promptToSend,
+                })
+                await this.holdAgentCue(startedAt)
+                const draft = data.draft || ''
+                if (draft) {
+                    this.applyIntelligence(data)
+                    const range = action === 'custom'
+                        ? (data.placement === 'replace_selection' ? replacementRange : insertionRange)
+                        : defaultRange
+                    this.clearPromptSelectionHighlight()
+                    this.showSuggestion(action, draft, range, selectedText, cursorContext, promptToSend)
+                    this.finishActivity(token, 'Preview is ready in the editor.')
+                    this.aiNotice = 'Preview ready in the editor.'
+                    if (action === 'custom') this.aiPrompt = ''
+                } else {
+                    this.applyIntelligence(data)
+                    this.finishActivity(token, 'Request finished.')
+                    this.aiNotice = ''
+                }
+            } catch (error) {
+                await this.holdAgentCue(startedAt)
+                this.failActivity(token, error.message)
+                this.aiError = error.message
+            } finally {
+                this.aiLoading = false
+                this.aiAction = ''
+            }
+        },
+
+        showSuggestion(action, text, range, selectedText, cursorContext, userPrompt = '') {
+            const ed = window.__xanulaEditor
+            if (!ed || !text) return
+            this.suggestion = {
+                active: true,
+                id: Date.now(),
+                action,
+                text,
+                range,
+                selectedText,
+                cursorContext,
+                userPrompt,
+            }
+            window.xanulaGhostSuggestion?.show(ed, this.suggestion)
+        },
+
+        confirmSuggestion() {
+            const ed = window.__xanulaEditor
+            if (!ed || !this.suggestion.active) return
+            const nodes = draftToTiptapNodes(this.suggestion.text)
+            if (!nodes.length) return
+            const confirmed = window.xanulaGhostSuggestion?.confirm(ed, nodes)
+            if (confirmed) {
+                this.suggestion = { active: false, id: null, action: '', text: '', range: null, selectedText: '', cursorContext: '', userPrompt: '' }
+                this.activityState = 'done'
+                this.activityTitle = 'Ready'
+                this.activityMessage = 'Suggestion confirmed and queued for autosave.'
+                this.aiNotice = 'Suggestion confirmed.'
+                this.scheduleSave()
+            }
+        },
+
+        rejectSuggestion() {
+            const ed = window.__xanulaEditor
+            window.xanulaGhostSuggestion?.clear(ed)
+            this.suggestion = { active: false, id: null, action: '', text: '', range: null, selectedText: '', cursorContext: '', userPrompt: '' }
+            this.activityState = 'done'
+            this.activityTitle = 'Ready'
+            this.activityMessage = 'Suggestion rejected. The manuscript was not changed.'
+            this.aiNotice = 'Suggestion rejected.'
+        },
+
+        regenerateSuggestion() {
+            if (!this.suggestion.active || this.aiLoading) return
+            this.runAiAction(this.suggestion.action, this.suggestion.userPrompt)
+        },
+
         updateToc() {
             const ed = window.__xanulaEditor
             if (!ed) return
@@ -945,7 +2015,7 @@ function writeEditor() {
             if (this.drag.side === 'toc') {
                 this.tocWidth = Math.max(180, Math.min(380, this.drag.startW + dx))
             } else {
-                this.aiWidth  = Math.max(180, Math.min(380, this.drag.startW - dx))
+                this.aiWidth = Math.max(this.aiMinWidth, Math.min(this.aiMaxWidth, this.drag.startW - dx))
             }
         },
 
