@@ -10,7 +10,7 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view'
 const ghostSuggestionKey = new PluginKey('xanulaGhostSuggestion')
 const promptSelectionKey = new PluginKey('xanulaPromptSelection')
 
-function createGhostNode(text) {
+function createGhostNode(suggestion) {
     const wrapper = document.createElement('div')
     wrapper.className = 'ai-ghost-suggestion'
     wrapper.setAttribute('contenteditable', 'false')
@@ -20,7 +20,20 @@ function createGhostNode(text) {
     label.textContent = 'Reepls suggestion'
     wrapper.appendChild(label)
 
-    String(text || '')
+    if (suggestion?.view === 'changes' && Array.isArray(suggestion.diff) && suggestion.diff.length) {
+        const diff = document.createElement('div')
+        diff.className = 'ai-ghost-diff'
+        suggestion.diff.forEach(part => {
+            const span = document.createElement('span')
+            span.className = part.type || 'same'
+            span.textContent = part.text || ''
+            diff.appendChild(span)
+        })
+        wrapper.appendChild(diff)
+        return wrapper
+    }
+
+    String(suggestion?.text || '')
         .split(/\n{2,}/)
         .map(block => block.trim())
         .filter(Boolean)
@@ -60,13 +73,15 @@ const GhostSuggestion = Extension.create({
 
                         const decorations = []
                         const { from, to } = suggestion.range
+                        const isReplacement = to > from
+                        const widgetPosition = isReplacement ? from : to
                         if (to > from) {
                             decorations.push(Decoration.inline(from, to, { class: 'ai-ghost-original' }))
                         }
                         decorations.push(
-                            Decoration.widget(to || from, () => createGhostNode(suggestion.text), {
-                                key: `ghost-${suggestion.id}`,
-                                side: 1,
+                            Decoration.widget(widgetPosition || from, () => createGhostNode(suggestion), {
+                                key: `ghost-${suggestion.id}-${suggestion.view || 'clean'}`,
+                                side: isReplacement ? -1 : 1,
                             }),
                         )
                         return DecorationSet.create(state.doc, decorations)

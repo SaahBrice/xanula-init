@@ -554,6 +554,8 @@ def _generate_single_draft(
     client=None,
     chunk_instruction="",
     coverage=None,
+    cursor_block_index=None,
+    cursor_heading="",
 ):
     if action not in ACTION_INSTRUCTIONS:
         raise AIServiceError("Unknown AI action.")
@@ -570,6 +572,8 @@ def _generate_single_draft(
         cursor_context=cursor_context,
         user_prompt=user_prompt,
         cost_mode=cost_mode,
+        cursor_block_index=cursor_block_index,
+        cursor_heading=cursor_heading,
     )
     payload = context["payload"]
     payload["instruction"] = ACTION_INSTRUCTIONS[action]
@@ -695,7 +699,7 @@ def _merge_provider_usage(usages):
     return merged
 
 
-def _generate_chunked_draft(manuscript, action, selected_text="", cursor_context="", user_prompt="", regeneration_instruction="", cost_mode="", client=None, coverage=None):
+def _generate_chunked_draft(manuscript, action, selected_text="", cursor_context="", user_prompt="", regeneration_instruction="", cost_mode="", client=None, coverage=None, cursor_block_index=None, cursor_heading=""):
     chunks = sentence_aware_chunks(selected_text, coverage.get("chunk_chars") if coverage else 12000)
     if not chunks:
         raise AIServiceError("The selected text is empty.")
@@ -724,6 +728,8 @@ def _generate_chunked_draft(manuscript, action, selected_text="", cursor_context
             client=client,
             chunk_instruction=chunk_instruction,
             coverage={**(coverage or {}), "chunk_index": index, "chunk_count": len(chunks)},
+            cursor_block_index=cursor_block_index,
+            cursor_heading=cursor_heading,
         )
         draft = result.get("draft", "").strip()
         if not draft:
@@ -792,7 +798,7 @@ def _generate_chunked_draft(manuscript, action, selected_text="", cursor_context
     }
 
 
-def generate_draft(manuscript, action, selected_text="", cursor_context="", user_prompt="", regeneration_instruction="", cost_mode="", client=None):
+def generate_draft(manuscript, action, selected_text="", cursor_context="", user_prompt="", regeneration_instruction="", cost_mode="", client=None, cursor_block_index=None, cursor_heading=""):
     if action not in ACTION_INSTRUCTIONS:
         raise AIServiceError("Unknown AI action.")
     cost_mode = normalize_cost_mode(cost_mode or getattr(manuscript, "ai_cost_mode", "balanced"))
@@ -810,6 +816,8 @@ def generate_draft(manuscript, action, selected_text="", cursor_context="", user
             cost_mode=cost_mode,
             client=client,
             coverage=coverage,
+            cursor_block_index=cursor_block_index,
+            cursor_heading=cursor_heading,
         )
     return _generate_single_draft(
         manuscript,
@@ -821,4 +829,6 @@ def generate_draft(manuscript, action, selected_text="", cursor_context="", user
         cost_mode=cost_mode,
         client=client,
         coverage=coverage,
+        cursor_block_index=cursor_block_index,
+        cursor_heading=cursor_heading,
     )

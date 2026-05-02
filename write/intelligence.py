@@ -839,6 +839,34 @@ def _current_section(chapter_map, cursor_context):
     return best or sections[-1]
 
 
+def _section_for_cursor(chapter_map, cursor_block_index=None, cursor_heading="", cursor_context=""):
+    sections = chapter_map.get("sections", [])
+    if not sections:
+        return {}
+    try:
+        block_index = int(cursor_block_index)
+    except (TypeError, ValueError):
+        block_index = None
+    if block_index is not None:
+        for section in sections:
+            start = int(section.get("start_block") or 0)
+            end = int(section.get("end_block") or start)
+            if start <= block_index <= end:
+                return section
+        previous_sections = [
+            section for section in sections
+            if int(section.get("start_block") or 0) <= block_index
+        ]
+        if previous_sections:
+            return previous_sections[-1]
+    heading = (cursor_heading or "").strip().lower()
+    if heading:
+        for section in sections:
+            if str(section.get("title") or "").strip().lower() == heading:
+                return section
+    return _current_section(chapter_map, cursor_context)
+
+
 def _keywords(text, limit=80):
     words = []
     stop = {
@@ -1206,7 +1234,16 @@ def _chapter_memory_for_section(chapter_memory, current_section):
     return {}
 
 
-def build_generation_context(manuscript, action, selected_text="", cursor_context="", user_prompt="", cost_mode=None):
+def build_generation_context(
+    manuscript,
+    action,
+    selected_text="",
+    cursor_context="",
+    user_prompt="",
+    cost_mode=None,
+    cursor_block_index=None,
+    cursor_heading="",
+):
     text = extract_text(manuscript.content)
     original_selected_chars = len((selected_text or "").strip())
     profile = normalize_profile_language(manuscript.ai_profile if isinstance(manuscript.ai_profile, dict) else {}, text)
@@ -1223,7 +1260,7 @@ def build_generation_context(manuscript, action, selected_text="", cursor_contex
     selection_budget, _ = _selection_limit(action, policy)
     selected_text = _truncate(selected_text, selection_budget)
     cursor_context = _truncate(cursor_context, min(4000, limit // 3))
-    current_section = _current_section(chapter_map, cursor_context)
+    current_section = _section_for_cursor(chapter_map, cursor_block_index, cursor_heading, cursor_context)
     retrieval_query = "\n\n".join(part for part in [user_prompt, selected_text, cursor_context, current_section.get("preview", "")] if part)
     retrieve_limit = 3 if policy == "fast" else 7 if policy == "deep" else 5
     retrieved_sections = retrieve_relevant_sections(
@@ -1249,6 +1286,12 @@ def build_generation_context(manuscript, action, selected_text="", cursor_contex
     elif action == "summarize" and selected_text:
         manuscript_excerpt = ""
         usage_hint = "small context"
+    elif action == "continue":
+        excerpt_budget = max(2500, limit - len(cursor_context) - 4200)
+        local_excerpt_parts = [current_section.get("preview", "")]
+        local_excerpt_parts.extend(section.get("snippet", "") for section in retrieved_sections[:3])
+        manuscript_excerpt = _truncate("\n\n".join(part for part in local_excerpt_parts if part), excerpt_budget)
+        usage_hint = "chapter context"
     else:
         excerpt_budget = max(3500, limit - len(cursor_context) - 4200)
         manuscript_excerpt = _truncate(text, excerpt_budget)
@@ -1332,6 +1375,8 @@ def build_generation_context(manuscript, action, selected_text="", cursor_contex
             "prompt_chars": len(user_prompt),
             "excerpt_chars": len(manuscript_excerpt),
             "current_section": current_section.get("title", ""),
+            "cursor_block_index": cursor_block_index,
+            "cursor_heading": cursor_heading,
             "book_lens": voice.get("book_lens") or lens["lens"],
             "retrieved_sections": len(retrieved_sections),
             "chapter_memory_title": chapter_memory.get("title", ""),

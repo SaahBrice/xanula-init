@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from docx import Document
 from PIL import Image
 
 from core.models import AITokenLedgerEntry, AITokenSettings, AITokenWallet, Book
@@ -190,6 +191,32 @@ class BookIntelligenceTests(TestCase):
             rewrite_context["context_summary"]["excerpt_chars"],
             outline_context["context_summary"]["excerpt_chars"],
         )
+
+    def test_continue_context_uses_exact_cursor_section_when_available(self):
+        manuscript = Manuscript.objects.create(
+            user=get_user_model().objects.create_user(email="cursor@example.com", password="pass12345"),
+            title="Cursor Book",
+            content={
+                "type": "doc",
+                "content": [
+                    {"type": "heading", "attrs": {"level": 1}, "content": [{"type": "text", "text": "Introduction"}]},
+                    {"type": "paragraph", "content": [{"type": "text", "text": "Intro river promise. " * 20}]},
+                    {"type": "heading", "attrs": {"level": 1}, "content": [{"type": "text", "text": "Market Scene"}]},
+                    {"type": "paragraph", "content": [{"type": "text", "text": "Market lantern betrayal. " * 20}]},
+                ],
+            },
+        )
+
+        context = build_generation_context(
+            manuscript,
+            "continue",
+            cursor_context="Market lantern betrayal appears in nearby text.",
+            cursor_block_index=1,
+            cursor_heading="Introduction",
+        )
+
+        self.assertEqual(context["context_summary"]["current_section"], "Introduction")
+        self.assertEqual(context["payload"]["chapter_map"]["current_section"]["title"], "Introduction")
 
     @override_settings(
         REEPLS_AI_CONTEXT_POLICY="balanced",
@@ -547,6 +574,149 @@ class ManuscriptAITests(TestCase):
         )
         self.client.force_login(self.user)
 
+    def make_docx_upload(self, name="imported.docx"):
+        document = Document()
+        document.add_heading("Imported Chapter", level=1)
+        document.add_paragraph("The imported river remembered its first sentence.")
+        buffer = BytesIO()
+        document.save(buffer)
+        return SimpleUploadedFile(
+            name,
+            buffer.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        )
+
+    def test_create_blank_manuscript_still_works(self):
+        response = self.client.post(reverse("write:create"), {"title": "Blank Draft", "create_mode": "scratch"})
+
+        manuscript = Manuscript.objects.get(title="Blank Draft")
+        self.assertRedirects(response, reverse("write:editor", args=[manuscript.pk]))
+        self.assertEqual(manuscript.content, {})
+
+    def test_create_manuscript_from_docx_upload(self):
+        upload = self.make_docx_upload()
+
+        response = self.client.post(
+            reverse("write:create"),
+            {"title": "Imported Draft", "create_mode": "upload", "manuscript_file": upload},
+        )
+
+        manuscript = Manuscript.objects.get(title="Imported Draft")
+        self.assertRedirects(response, reverse("write:editor", args=[manuscript.pk]))
+        nodes = manuscript.content["content"]
+        self.assertEqual(nodes[0]["type"], "heading")
+        self.assertIn("Imported Chapter", nodes[0]["content"][0]["text"])
+        self.assertIn("imported river", nodes[1]["content"][0]["text"])
+
+    @patch("write.views.default_storage.save")
+    def test_uploaded_source_file_is_not_saved(self, storage_save):
+        response = self.client.post(
+            reverse("write:create"),
+            {"title": "No Storage", "create_mode": "upload", "manuscript_file": self.make_docx_upload("no-storage.docx")},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        storage_save.assert_not_called()
+
+    @patch("write.imports.PdfReader")
+    def test_create_manuscript_from_pdf_upload(self, reader_mock):
+        class Page:
+            def extract_text(self):
+                return "PDF opening paragraph.\n\nSecond PDF paragraph."
+
+        reader_mock.return_value.pages = [Page()]
+        upload = SimpleUploadedFile("imported.pdf", b"%PDF-1.4", content_type="application/pdf")
+
+        response = self.client.post(
+            reverse("write:create"),
+            {"title": "PDF Draft", "create_mode": "upload", "manuscript_file": upload},
+        )
+
+        manuscript = Manuscript.objects.get(title="PDF Draft")
+        self.assertRedirects(response, reverse("write:editor", args=[manuscript.pk]))
+        text = json.dumps(manuscript.content)
+        self.assertIn("PDF opening paragraph", text)
+        self.assertIn("Second PDF paragraph", text)
+
+    def test_create_rejects_unsupported_upload_type(self):
+        upload = SimpleUploadedFile("notes.txt", b"hello", content_type="text/plain")
+
+        response = self.client.post(
+            reverse("write:create"),
+            {"title": "Bad Upload", "create_mode": "upload", "manuscript_file": upload},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(response, "Only DOCX and PDF files", status_code=400)
+        self.assertFalse(Manuscript.objects.filter(title="Bad Upload").exists())
+
+    def test_create_rejects_large_upload(self):
+        upload = SimpleUploadedFile(
+            "large.pdf",
+            b"x" * (10 * 1024 * 1024 + 1),
+            content_type="application/pdf",
+        )
+
+        response = self.client.post(
+            reverse("write:create"),
+            {"title": "Too Large", "create_mode": "upload", "manuscript_file": upload},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(response, "smaller than 10 MB", status_code=400)
+        self.assertFalse(Manuscript.objects.filter(title="Too Large").exists())
+
+    @patch("write.imports.PdfReader")
+    def test_create_rejects_empty_extraction(self, reader_mock):
+        reader_mock.return_value.pages = []
+        upload = SimpleUploadedFile("empty.pdf", b"%PDF-1.4", content_type="application/pdf")
+
+        response = self.client.post(
+            reverse("write:create"),
+            {"title": "Empty Import", "create_mode": "upload", "manuscript_file": upload},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(response, "No readable text", status_code=400)
+        self.assertFalse(Manuscript.objects.filter(title="Empty Import").exists())
+
+    def test_landing_renders_delete_action_with_confirmation(self):
+        response = self.client.get(reverse("write:landing"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse("write:delete", args=[self.manuscript.pk]))
+        self.assertContains(response, "Delete manuscript")
+        self.assertContains(response, "Delete manuscript?")
+        self.assertContains(response, "Delete forever")
+        self.assertContains(response, "deleteTarget")
+        self.assertContains(response, "This cannot be undone")
+        self.assertNotContains(response, "return confirm")
+
+    def test_delete_manuscript_removes_owned_manuscript(self):
+        response = self.client.post(reverse("write:delete", args=[self.manuscript.pk]))
+
+        self.assertRedirects(response, reverse("write:landing"))
+        self.assertFalse(Manuscript.objects.filter(pk=self.manuscript.pk).exists())
+
+    def test_delete_manuscript_is_owner_only(self):
+        self.client.force_login(self.other_user)
+
+        response = self.client.post(reverse("write:delete", args=[self.manuscript.pk]))
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Manuscript.objects.filter(pk=self.manuscript.pk).exists())
+
+    def test_walkthrough_seen_endpoint_is_owner_only_and_marks_seen(self):
+        response = self.client.post(reverse("write:walkthrough_seen", args=[self.manuscript.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.manuscript.refresh_from_db()
+        self.assertTrue(self.manuscript.editor_walkthrough_seen)
+
+        self.client.force_login(self.other_user)
+        response = self.client.post(reverse("write:walkthrough_seen", args=[self.manuscript.pk]))
+        self.assertEqual(response.status_code, 404)
+
     @override_settings(DEEPSEEK_API_KEY="")
     def test_missing_api_key_returns_clear_error(self):
         response = self.client.post(reverse("write:ai_analyze", args=[self.manuscript.pk]))
@@ -569,6 +739,20 @@ class ManuscriptAITests(TestCase):
         self.assertContains(response, "Deep")
         self.assertContains(response, "Clean")
         self.assertContains(response, "Changes")
+        self.assertContains(response, "ai-floating-suggestion")
+        self.assertContains(response, "Suggestion ready")
+        self.assertContains(response, "setSuggestionView")
+        self.assertContains(response, "ai-mode-segment")
+        self.assertContains(response, "ai-action-square")
+        self.assertContains(response, "Agents working")
+        self.assertContains(response, "ai-agent-loader")
+        self.assertNotContains(response, "ai-suggestion-bar")
+        self.assertNotContains(response, "ai-floating-suggestion-warning")
+        self.assertNotContains(response, "ai-floating-suggestion-title::before")
+        self.assertContains(response, "Quickly reads your chapters and writing style. Free.")
+        self.assertContains(response, "Updates the deeper understanding of your book. Uses AI tokens.")
+        self.assertContains(response, "https://wa.me/237682268375")
+        self.assertContains(response, "WhatsApp help")
         self.assertContains(response, "capturePromptSelection")
         self.assertContains(response, "ai-prompt-selection")
         self.assertContains(response, "Status")
@@ -586,6 +770,8 @@ class ManuscriptAITests(TestCase):
         self.assertContains(response, reverse("write:submit_to_xanula", args=[self.manuscript.pk]))
         self.assertContains(response, "Submit to Xanula")
         self.assertNotContains(response, "ed-page-break")
+        self.assertContains(response, "ed-walkthrough-data")
+        self.assertContains(response, "Welcome to Reepls Editor AI")
 
     def test_download_manuscript_as_docx(self):
         response = self.client.get(reverse("write:download_docx", args=[self.manuscript.pk]))

@@ -22,6 +22,7 @@ class Manuscript(models.Model):
     ai_memory_stale = models.JSONField(default=dict, blank=True)
     ai_cost_mode = models.CharField(max_length=20, default='balanced')
     ai_profile_confirmed = models.BooleanField(default=False)
+    editor_walkthrough_seen = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

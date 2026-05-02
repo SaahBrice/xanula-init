@@ -45,6 +45,7 @@ from .intelligence import (
     selection_coverage_for,
 )
 from .docx_export import manuscript_docx_filename, manuscript_to_docx_bytes, submission_prefill_for
+from .imports import ManuscriptImportError, import_uploaded_manuscript, title_from_upload_name
 from .models import Manuscript
 
 
@@ -64,14 +65,53 @@ def write_landing(request):
     return render(request, 'write/landing.html', {'manuscripts': manuscripts})
 
 
+def _render_landing_with_create_error(request, message, title="", mode="upload"):
+    manuscripts = Manuscript.objects.filter(user=request.user)
+    return render(request, 'write/landing.html', {
+        'manuscripts': manuscripts,
+        'create_error': message,
+        'create_title': title,
+        'create_mode': mode,
+    }, status=400)
+
+
 @login_required
 @require_POST
 def create_manuscript(request):
     title = request.POST.get('title', '').strip()
+    mode = request.POST.get('create_mode', 'scratch')
+    uploaded_file = request.FILES.get('manuscript_file')
+    content = None
+
+    if mode == 'upload' and not uploaded_file:
+        return _render_landing_with_create_error(
+            request,
+            'Choose a DOCX or PDF file, or switch to Start from scratch.',
+            title=title,
+            mode=mode,
+        )
+
+    if uploaded_file:
+        try:
+            content = import_uploaded_manuscript(uploaded_file)
+        except ManuscriptImportError as exc:
+            return _render_landing_with_create_error(request, str(exc), title=title, mode='upload')
+        if not title:
+            title = title_from_upload_name(uploaded_file.name)
+
     if not title:
         title = 'Untitled'
-    manuscript = Manuscript.objects.create(user=request.user, title=title)
+
+    manuscript = Manuscript.objects.create(user=request.user, title=title, content=content or {})
     return redirect('write:editor', manuscript_id=manuscript.pk)
+
+
+@login_required
+@require_POST
+def delete_manuscript(request, manuscript_id):
+    manuscript = get_object_or_404(Manuscript, pk=manuscript_id, user=request.user)
+    manuscript.delete()
+    return redirect('write:landing')
 
 
 @login_required
@@ -96,7 +136,18 @@ def editor(request, manuscript_id):
         'ai_memory_stale': normalize_stale(manuscript.ai_memory_stale),
         'ai_token_status': token_status_for_user(request.user, grant_if_needed=False),
         'ai_token_purchase_options': get_purchase_options(),
+        'show_editor_walkthrough': not manuscript.editor_walkthrough_seen,
     })
+
+
+@login_required
+@require_POST
+def mark_walkthrough_seen(request, manuscript_id):
+    manuscript = get_object_or_404(Manuscript, pk=manuscript_id, user=request.user)
+    if not manuscript.editor_walkthrough_seen:
+        manuscript.editor_walkthrough_seen = True
+        manuscript.save(update_fields=['editor_walkthrough_seen', 'updated_at'])
+    return JsonResponse({'status': 'ok'})
 
 
 @login_required
@@ -339,6 +390,8 @@ def ai_generate(request, manuscript_id):
             user_prompt=data.get('user_prompt', ''),
             regeneration_instruction=data.get('regeneration_instruction', ''),
             cost_mode=data.get('cost_mode', manuscript.ai_cost_mode),
+            cursor_block_index=data.get('cursor_block_index'),
+            cursor_heading=data.get('cursor_heading', ''),
         )
         if isinstance(result, str):
             return JsonResponse({'status': 'ok', 'draft': result})

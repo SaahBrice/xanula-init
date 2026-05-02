@@ -141,6 +141,47 @@ body             { overflow: hidden; }
 .ed-sidebar-inner::-webkit-scrollbar       { width: 4px; }
 .ed-sidebar-inner::-webkit-scrollbar-track { background: transparent; }
 .ed-sidebar-inner::-webkit-scrollbar-thumb { background: #e7e5e4; border-radius: 2px; }
+.ed-left .ed-sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+}
+.ed-left nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: #e7e5e4 transparent;
+}
+.ed-left-help {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid #e7e5e4;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #57534e;
+    font-size: 0.74rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: 9px 10px;
+    text-decoration: none;
+    transition: background .12s, border-color .12s, color .12s;
+}
+.ed-left-help:hover {
+    background: #f5f4f0;
+    border-color: #d6d3d1;
+    color: #1c1917;
+}
+.ed-left-help svg {
+    width: 14px;
+    height: 14px;
+}
 
 /* ── Left sidebar (TOC) ──────────────────────────────────────── */
 .ed-left {
@@ -797,7 +838,8 @@ body             { overflow: hidden; }
     padding-inline: 6px;
 }
 .ai-actions-quick {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
 }
 .ai-action {
     justify-content: flex-start;
@@ -809,6 +851,28 @@ body             { overflow: hidden; }
 .ai-action span:last-child {
     min-width: 0;
     line-height: 1.2;
+}
+.ai-action-square {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 68px;
+    gap: 5px;
+    padding: 7px 5px;
+    text-align: center;
+}
+.ai-action-square .ai-action-icon {
+    width: 22px;
+    height: 22px;
+}
+.ai-action-square .ai-action-icon svg {
+    width: 13px;
+    height: 13px;
+}
+.ai-action-square span:last-child {
+    font-size: 0.66rem;
+    font-weight: 600;
+    line-height: 1.12;
 }
 .ai-action-icon {
     flex: 0 0 auto;
@@ -838,6 +902,43 @@ body             { overflow: hidden; }
     z-index: 45;
     width: min(620px, calc(100% - 48px));
     pointer-events: none;
+    display: grid;
+    gap: 8px;
+}
+.ai-floating-suggestion {
+    pointer-events: auto;
+    display: grid;
+    gap: 8px;
+    border: 1px solid #d6d3d1;
+    border-radius: 12px;
+    background: rgba(255,255,255,.97);
+    box-shadow: 0 16px 42px rgba(41,37,36,.16);
+    padding: 10px;
+    backdrop-filter: blur(12px);
+}
+.ai-floating-suggestion-head,
+.ai-floating-suggestion-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.ai-floating-suggestion-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #292524;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+.ai-floating-suggestion-copy {
+    color: #78716c;
+    font-size: 0.72rem;
+    line-height: 1.35;
+}
+.ai-floating-suggestion .ai-mini-actions {
+    justify-content: flex-end;
 }
 .ai-prompt-shell {
     pointer-events: auto;
@@ -1016,35 +1117,218 @@ body             { overflow: hidden; }
     padding: 18px;
 }
 .ai-token-modal {
-    width: min(440px, 100%);
+    width: min(540px, 100%);
     border: 1px solid #e7e5e4;
-    border-radius: 8px;
+    border-radius: 12px;
     background: #fff;
     box-shadow: 0 28px 80px rgba(41,37,36,.25);
-    padding: 16px;
+    padding: 0;
+    overflow: hidden;
+}
+.ai-token-modal-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: start;
+    padding: 18px;
+    border-bottom: 1px solid #f0eeeb;
+    background: linear-gradient(180deg, #fff, #fffdfa);
+}
+.ai-token-modal-body {
+    display: grid;
+    gap: 14px;
+    padding: 16px 18px 18px;
+}
+.ai-token-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.ai-token-modal-icon,
+.ai-pay-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    background: #f8f7f4;
+    color: #8B2635;
+}
+.ai-token-modal-icon {
+    width: 32px;
+    height: 32px;
+}
+.ai-token-modal-icon svg,
+.ai-pay-icon svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 .ai-token-options {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    margin: 12px 0;
+    gap: 9px;
 }
 .ai-token-option {
     border: 1px solid #e7e5e4;
-    border-radius: 7px;
+    border-radius: 9px;
     background: #fff;
     color: #44403c;
-    padding: 9px 7px;
-    text-align: center;
-    transition: border-color .12s, background .12s;
+    padding: 11px 9px;
+    text-align: left;
+    transition: border-color .12s, background .12s, box-shadow .12s;
 }
 .ai-token-option.on {
     border-color: #8B2635;
-    background: #fff7ed;
+    background: #fff8f4;
     color: #8B2635;
+    box-shadow: 0 0 0 2px rgba(139,38,53,.08);
 }
-.ai-token-option strong { display: block; }
-.ai-token-option span { font-size: .68rem; color: #78716c; }
+.ai-token-option strong { display: block; font-size: .88rem; line-height: 1.15; }
+.ai-token-option span { display: block; margin-top: 6px; font-size: .68rem; color: #78716c; line-height: 1.35; }
+.ai-token-custom-card,
+.ai-token-checkout-card {
+    border: 1px solid #f0eeeb;
+    border-radius: 10px;
+    background: #fffdfa;
+    padding: 12px;
+}
+.ai-token-custom-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(145px, .75fr);
+    gap: 10px;
+    align-items: end;
+}
+.ai-token-price-preview {
+    border-radius: 8px;
+    background: #fff7ed;
+    color: #7c2d12;
+    padding: 10px;
+    line-height: 1.3;
+}
+.ai-token-price-preview strong { display: block; color: #8B2635; font-size: .86rem; }
+.ai-token-price-preview span { display: block; margin-top: 3px; font-size: .72rem; color: #92400e; }
+.ai-payment-methods {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+.ai-payment-methods form { min-width: 0; }
+.ai-pay-button {
+    width: 100%;
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 9px;
+    text-align: left;
+}
+.ai-pay-button strong {
+    display: block;
+    font-size: .8rem;
+    line-height: 1.1;
+}
+.ai-pay-button span:last-child {
+    display: block;
+    margin-top: 2px;
+    font-size: .66rem;
+    font-weight: 500;
+    opacity: .78;
+    line-height: 1.25;
+}
+.ai-pay-button.primary .ai-pay-icon {
+    background: rgba(255,255,255,.14);
+    color: #ffffff;
+}
+.ai-pay-button:not(.primary) .ai-pay-icon {
+    background: #f8f7f4;
+}
+.ed-walkthrough-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 480;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(41,37,36,.34);
+    padding: 18px;
+}
+.ed-walkthrough {
+    width: min(560px, 100%);
+    border: 1px solid #e7e5e4;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 28px 80px rgba(41,37,36,.24);
+    padding: 20px;
+}
+.ed-walkthrough-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+.ed-walkthrough-title {
+    color: #1c1917;
+    font-size: 1.08rem;
+    font-weight: 800;
+}
+.ed-walkthrough-copy {
+    color: #78716c;
+    font-size: .82rem;
+    line-height: 1.45;
+    margin-top: 4px;
+}
+.ed-walkthrough-steps {
+    display: grid;
+    gap: 9px;
+}
+.ed-walkthrough-step {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    border: 1px solid #f0eeeb;
+    border-radius: 10px;
+    background: #fffdfa;
+    padding: 10px;
+}
+.ed-walkthrough-step strong {
+    display: block;
+    color: #292524;
+    font-size: .82rem;
+}
+.ed-walkthrough-step span:last-child {
+    display: block;
+    color: #78716c;
+    font-size: .74rem;
+    line-height: 1.35;
+    margin-top: 2px;
+}
+.ed-walkthrough-num {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #8B2635;
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 800;
+}
+.ed-walkthrough-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
 .ai-intent-preview {
     border-radius: 7px;
     background: #f8f7f4;
@@ -1104,18 +1388,51 @@ body             { overflow: hidden; }
     animation: ai-spin .75s linear infinite;
 }
 .ai-thinking { display: flex; align-items: center; gap: 8px; }
-.ai-suggestion-bar {
-    position: sticky;
-    bottom: 0;
-    z-index: 30;
-    border-color: #d6d3d1;
-    box-shadow: 0 -8px 20px rgba(0,0,0,.08);
+.ai-agent-status {
+    border: 1px solid #f0eeeb;
+    border-radius: 8px;
+    background: #fffdfa;
+    padding: 11px;
+}
+.ai-agent-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.ai-agent-loader {
+    display: inline-grid;
+    grid-template-columns: repeat(4, 8px);
+    gap: 4px;
+    align-items: center;
+}
+.ai-agent-loader span {
+    display: block;
+    width: 8px;
+    height: 18px;
+    border-radius: 999px;
+    background: #d6d3d1;
+}
+.ai-agent-status.working .ai-agent-loader span {
+    animation: ai-agent-step 1.1s ease-in-out infinite;
+}
+.ai-agent-status.working .ai-agent-loader span:nth-child(2) { animation-delay: .12s; }
+.ai-agent-status.working .ai-agent-loader span:nth-child(3) { animation-delay: .24s; }
+.ai-agent-status.working .ai-agent-loader span:nth-child(4) { animation-delay: .36s; }
+.ai-agent-status.done .ai-agent-loader span { background: #86efac; }
+.ai-agent-status.error .ai-agent-loader span { background: #fca5a5; }
+.ai-agent-title {
+    color: #292524;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+.ai-agent-copy {
+    margin-top: 2px;
+    color: #78716c;
+    font-size: 0.72rem;
+    line-height: 1.35;
 }
 .ai-ghost-original {
-    background: rgba(251, 191, 36, .18);
-    color: #78716c;
-    text-decoration: line-through;
-    text-decoration-color: rgba(120, 113, 108, .5);
+    display: none;
 }
 .ai-ghost-suggestion {
     display: block;
@@ -1128,6 +1445,7 @@ body             { overflow: hidden; }
     box-shadow: 0 1px 4px rgba(0,0,0,.06);
 }
 .ai-ghost-suggestion p { margin: .55em 0 0; }
+.ai-ghost-suggestion p:first-of-type { margin-top: .35em; }
 .ai-ghost-label {
     font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
     font-size: 0.62rem;
@@ -1135,6 +1453,28 @@ body             { overflow: hidden; }
     letter-spacing: .08em;
     text-transform: uppercase;
     color: #8B2635;
+}
+.ai-ghost-diff {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: .55em;
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size: .86rem;
+    line-height: 1.8;
+}
+.ai-ghost-diff span {
+    border-radius: 4px;
+    padding: 0 3px;
+}
+.ai-ghost-diff .added {
+    background: #dcfce7;
+    color: #166534;
+}
+.ai-ghost-diff .removed {
+    background: #fee2e2;
+    color: #991b1b;
+    text-decoration: line-through;
 }
 @keyframes ai-spin {
     to { transform: rotate(360deg); }
@@ -1147,6 +1487,10 @@ body             { overflow: hidden; }
     0% { opacity: 0; transform: translateY(4px); }
     20%, 75% { opacity: 1; transform: translateY(0); }
     100% { opacity: 0; transform: translateY(-5px); }
+}
+@keyframes ai-agent-step {
+    0%, 100% { transform: scaleY(.55); background: #d6d3d1; }
+    45% { transform: scaleY(1); background: #8B2635; }
 }
 
 /* ── Sidebar collapse buttons (float at the edge of center) ───── */
@@ -1198,6 +1542,8 @@ body             { overflow: hidden; }
 [data-theme="dark"] .ed-toolbar    { background: #1a1a1a; border-color: #292524; }
 [data-theme="dark"] .ed-left,
 [data-theme="dark"] .ed-right      { background: #141414; border-color: #292524; }
+[data-theme="dark"] .ed-left-help  { background: #1e1e1e; border-color: #292524; color: #a8a29e; }
+[data-theme="dark"] .ed-left-help:hover { background: #252525; color: #f5f4f0; }
 [data-theme="dark"] .ed-desk       { background: #111; }
 [data-theme="dark"] .ed-page       { background: #1e1e1e; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
 [data-theme="dark"] .ed-doc-title  { color: #f5f4f0; }
@@ -1254,10 +1600,16 @@ body             { overflow: hidden; }
 [data-theme="dark"] .ai-mode-panel { background: #252525; color: #a8a29e; }
 [data-theme="dark"] .ai-status-note span,
 [data-theme="dark"] .ai-action-icon { background: #1e1e1e; color: #a8a29e; }
+[data-theme="dark"] .ai-agent-status { background: #1e1e1e; border-color: #292524; }
+[data-theme="dark"] .ai-agent-title { color: #e7e5e4; }
+[data-theme="dark"] .ai-agent-copy { color: #a8a29e; }
 [data-theme="dark"] .ai-meter       { background: #252525; color: #a8a29e; }
 [data-theme="dark"] .ai-meter strong { color: #e7e5e4; }
 [data-theme="dark"] .ai-segment { background: #1e1e1e; border-color: #292524; }
 [data-theme="dark"] .ai-segment button { border-color: #292524; color: #a8a29e; }
+[data-theme="dark"] .ai-floating-suggestion { background: rgba(30,30,30,.96); border-color: #44403c; }
+[data-theme="dark"] .ai-floating-suggestion-title { color: #e7e5e4; }
+[data-theme="dark"] .ai-floating-suggestion-copy { color: #a8a29e; }
 [data-theme="dark"] .ai-prompt-shell { background: rgba(30,30,30,.96); border-color: #44403c; }
 [data-theme="dark"] .ai-prompt-brand,
 [data-theme="dark"] .ai-prompt-input { color: #e7e5e4; }
@@ -1266,21 +1618,35 @@ body             { overflow: hidden; }
 [data-theme="dark"] .ai-token-pill,
 [data-theme="dark"] .ai-token-panel,
 [data-theme="dark"] .ai-token-card,
+[data-theme="dark"] .ai-token-modal-header,
+[data-theme="dark"] .ai-token-custom-card,
+[data-theme="dark"] .ai-token-checkout-card,
 [data-theme="dark"] .ai-token-option,
 [data-theme="dark"] .ai-token-modal { background: #252525; border-color: #44403c; color: #e7e5e4; }
 [data-theme="dark"] .ai-token-card-main strong { color: #e7e5e4; }
 [data-theme="dark"] .ai-token-card-main span { color: #a8a29e; }
 [data-theme="dark"] .ai-token-modal-backdrop { background: rgba(0,0,0,.55); }
 [data-theme="dark"] .ai-token-option.on { background: #3a241b; border-color: #f59e0b; color: #fed7aa; }
+[data-theme="dark"] .ai-token-modal-icon,
+[data-theme="dark"] .ai-pay-button:not(.primary) .ai-pay-icon { background: #1e1e1e; color: #fed7aa; }
+[data-theme="dark"] .ai-token-price-preview { background: #2a2113; color: #fbbf24; }
+[data-theme="dark"] .ai-token-price-preview strong,
+[data-theme="dark"] .ai-token-price-preview span { color: #fbbf24; }
+[data-theme="dark"] .ed-walkthrough { background: #1a1a1a; border-color: #292524; }
+[data-theme="dark"] .ed-walkthrough-title,
+[data-theme="dark"] .ed-walkthrough-step strong { color: #e7e5e4; }
+[data-theme="dark"] .ed-walkthrough-copy,
+[data-theme="dark"] .ed-walkthrough-step span:last-child { color: #a8a29e; }
+[data-theme="dark"] .ed-walkthrough-step { background: #1e1e1e; border-color: #292524; }
 [data-theme="dark"] .ai-intent-preview,
 [data-theme="dark"] .ai-diff { background: #252525; color: #a8a29e; }
 [data-theme="dark"] .ai-intent-preview strong { color: #e7e5e4; }
 [data-theme="dark"] .ai-warning-card { background: #2a2113; color: #fbbf24; }
 [data-theme="dark"] .ai-warning-list li { background: #2a2113; color: #fbbf24; }
 [data-theme="dark"] .ai-chip        { background: #252525; color: #a8a29e; }
-[data-theme="dark"] .ai-suggestion-bar { border-color: #44403c; box-shadow: 0 -8px 20px rgba(0,0,0,.35); }
 [data-theme="dark"] .ai-ghost-suggestion { background: #2a1c12; color: #e7e5e4; }
-[data-theme="dark"] .ai-ghost-original { background: rgba(251, 191, 36, .12); color: #a8a29e; }
+[data-theme="dark"] .ai-ghost-diff .added { background: #12351f; color: #86efac; }
+[data-theme="dark"] .ai-ghost-diff .removed { background: #3d1010; color: #fca5a5; }
 [data-theme="dark"] .ai-prompt-selection { background: rgba(190, 18, 60, .22); box-shadow: inset 0 -2px 0 rgba(251, 113, 133, .55); }
 
 /* ── Mobile ──────────────────────────────────────────────────── */
@@ -1289,6 +1655,14 @@ body             { overflow: hidden; }
     .ed-page { padding: 32px 24px 60px; }
     .ed-desk  { padding: 16px 8px 80px; }
     .ed-doc-title { font-size: 1.75rem; }
+    .ai-token-modal-backdrop { align-items: flex-end; padding: 10px; }
+    .ai-token-modal { width: 100%; max-height: calc(100vh - 20px); overflow-y: auto; }
+    .ai-token-modal-header,
+    .ai-token-custom-grid,
+    .ai-payment-methods { grid-template-columns: 1fr; }
+    .ai-token-options { grid-template-columns: 1fr; }
+    .ed-walkthrough-backdrop { align-items: flex-end; padding: 10px; }
+    .ed-walkthrough { max-height: calc(100vh - 20px); overflow-y: auto; }
 }
 </style>
 
@@ -1308,6 +1682,7 @@ body             { overflow: hidden; }
 {{ ai_memory_stale|json_script:"ed-ai-stale-data" }}
 {{ ai_token_status|json_script:"ed-ai-token-status-data" }}
 {{ ai_token_purchase_options|json_script:"ed-ai-token-options-data" }}
+{{ show_editor_walkthrough|json_script:"ed-walkthrough-data" }}
 
 <div id="ed-root" x-data="writeEditor()" x-init="init()" class="ed"
     @mousemove.window="onDragMove($event)"
@@ -1388,6 +1763,10 @@ body             { overflow: hidden; }
                         ></button>
                     </template>
                 </nav>
+                <a class="ed-left-help" href="https://wa.me/237682268375" target="_blank" rel="noopener noreferrer">
+                    <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                    <span>{% trans "WhatsApp help" %}</span>
+                </a>
             </div>
         </aside>
 
@@ -1563,6 +1942,48 @@ body             { overflow: hidden; }
                 </div>
 
                 <div class="ed-floating-ai" x-cloak>
+                    <section
+                        class="ai-floating-suggestion"
+                        x-show="suggestion.active"
+                        x-transition:enter="transition ease-out duration-180"
+                        x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                        x-transition:leave="transition ease-in duration-120"
+                        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                        x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                        x-cloak>
+                        <div class="ai-floating-suggestion-head">
+                            <div>
+                                <div class="ai-floating-suggestion-title">{% trans "Suggestion ready" %}</div>
+                                <div class="ai-floating-suggestion-copy">{% trans "Review it in the editor, then confirm or reject." %}</div>
+                            </div>
+                            <template x-if="suggestion.diffAvailable">
+                                <div class="ai-segment">
+                                    <button :class="suggestion.view === 'clean' ? 'on' : ''" @click="setSuggestionView('clean')">{% trans "Clean" %}</button>
+                                    <button :class="suggestion.view === 'changes' ? 'on' : ''" @click="setSuggestionView('changes')">{% trans "Changes" %}</button>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="ai-floating-suggestion-actions">
+                            <div class="ai-row">
+                                <button class="ai-btn primary" @click="confirmSuggestion()" :disabled="aiLoading">{% trans "Confirm" %}</button>
+                                <button class="ai-btn" @click="rejectSuggestion()" :disabled="aiLoading">{% trans "Reject" %}</button>
+                                <button class="ai-btn" @click="regenerateSuggestion()" :disabled="paidAiDisabled() || aiLoading">
+                                    <template x-if="aiLoading && aiAction === suggestion.action">
+                                        <span class="ai-spinner"></span>
+                                    </template>
+                                    <span>{% trans "Regenerate" %}</span>
+                                </button>
+                            </div>
+                            <div class="ai-mini-actions">
+                                <button class="ai-btn" @click="regenerateSuggestion('Shorter')" :disabled="paidAiDisabled() || aiLoading">{% trans "Shorter" %}</button>
+                                <button class="ai-btn" @click="regenerateSuggestion('Closer to original')" :disabled="paidAiDisabled() || aiLoading">{% trans "Closer" %}</button>
+                                <button class="ai-btn" @click="regenerateSuggestion('More emotional')" :disabled="paidAiDisabled() || aiLoading">{% trans "Emotional" %}</button>
+                                <button class="ai-btn" @click="regenerateSuggestion('More direct')" :disabled="paidAiDisabled() || aiLoading">{% trans "Direct" %}</button>
+                                <button class="ai-btn" @click="regenerateSuggestion('More literary')" :disabled="paidAiDisabled() || aiLoading">{% trans "Literary" %}</button>
+                            </div>
+                        </div>
+                    </section>
                     <div :class="['ai-prompt-shell', promptExpanded() ? 'expanded' : '']">
                         <div class="ai-prompt-brand">{% trans "Reepls Ai" %}</div>
                         <div class="ai-prompt-dash"></div>
@@ -1676,21 +2097,28 @@ body             { overflow: hidden; }
                     <div class="ai-head">
                         <label class="ai-label mb-0">{% trans "Status" %}</label>
                         <div class="ai-status-actions">
-                            <button class="ai-btn ai-btn-small" title="{% trans 'Runs local book awareness without an API call.' %}" @click="inspectBook()" :disabled="aiLoading || suggestion.active">
+                            <button class="ai-btn ai-btn-small" title="{% trans 'Quickly reads your chapters and writing style. Free.' %}" @click="inspectBook()" :disabled="aiLoading || suggestion.active">
                                 <span>{% trans "Scan book" %}</span>
                             </button>
-                            <button class="ai-btn ai-btn-small" title="{% trans 'Uses AI to refresh profile and book memory.' %}" @click="analyzeBook()" :disabled="paidAiDisabled() || suggestion.active">
+                            <button class="ai-btn ai-btn-small" title="{% trans 'Updates the deeper understanding of your book. Uses AI tokens.' %}" @click="analyzeBook()" :disabled="paidAiDisabled() || suggestion.active">
                                 <span>{% trans "Refresh memory" %}</span>
                             </button>
                         </div>
                     </div>
                     <template x-if="activityVisible()">
-                        <div :class="['ai-process', activityState]">
-                            <div class="ai-process-head">
-                                <div class="ai-process-title" x-text="activityTitle"></div>
+                        <div :class="['ai-agent-status', activityState]">
+                            <div class="ai-agent-row">
+                                <div class="ai-agent-loader" aria-hidden="true">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <div>
+                                    <div class="ai-agent-title" x-text="activityState === 'working' ? '{% trans "Agents working" %}' : activityTitle"></div>
+                                    <div class="ai-agent-copy" x-text="activityMessage"></div>
+                                </div>
                             </div>
-                            <div class="ai-process-copy" x-text="activityMessage"></div>
-                            <div class="ai-progress"></div>
                         </div>
                     </template>
                     <template x-if="!activityVisible()">
@@ -1742,74 +2170,30 @@ body             { overflow: hidden; }
                         <p class="ai-subtle" x-text="coverageHint()"></p>
                     </div>
                     <div class="ai-actions ai-actions-quick">
-                        <button class="ai-action" @click="runAiAction('continue')" :disabled="paidAiDisabled() || suggestion.active">
+                        <button class="ai-action ai-action-square" @click="runAiAction('continue')" :disabled="paidAiDisabled() || suggestion.active">
                             <span class="ai-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h13"></path><path d="m13 6 6 6-6 6"></path></svg></span>
                             <span>{% trans "Continue from cursor" %}</span>
                         </button>
-                        <button class="ai-action" @click="runAiAction('outline')" :disabled="paidAiDisabled() || suggestion.active">
+                        <button class="ai-action ai-action-square" @click="runAiAction('outline')" :disabled="paidAiDisabled() || suggestion.active">
                             <span class="ai-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 6h12"></path><path d="M8 12h12"></path><path d="M8 18h12"></path><path d="M4 6h.01"></path><path d="M4 12h.01"></path><path d="M4 18h.01"></path></svg></span>
                             <span>{% trans "Create outline" %}</span>
                         </button>
-                        <button class="ai-action" @click="runAiAction('rewrite')" :disabled="paidAiDisabled() || suggestion.active">
+                        <button class="ai-action ai-action-square" @click="runAiAction('rewrite')" :disabled="paidAiDisabled() || suggestion.active">
                             <span class="ai-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3Z"></path><path d="m14 7 3 3"></path></svg></span>
                             <span>{% trans "Rewrite" %}</span>
                         </button>
-                        <button class="ai-action" @click="runAiAction('improve')" :disabled="paidAiDisabled() || suggestion.active">
+                        <button class="ai-action ai-action-square" @click="runAiAction('improve')" :disabled="paidAiDisabled() || suggestion.active">
                             <span class="ai-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"></path><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"></path></svg></span>
                             <span>{% trans "Improve style" %}</span>
                         </button>
-                        <button class="ai-action" @click="runAiAction('expand')" :disabled="paidAiDisabled() || suggestion.active">
+                        <button class="ai-action ai-action-square" @click="runAiAction('expand')" :disabled="paidAiDisabled() || suggestion.active">
                             <span class="ai-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3H3v5"></path><path d="M16 3h5v5"></path><path d="M8 21H3v-5"></path><path d="M16 21h5v-5"></path><path d="M3 3l7 7"></path><path d="m21 3-7 7"></path><path d="m3 21 7-7"></path><path d="m21 21-7-7"></path></svg></span>
                             <span>{% trans "Expand" %}</span>
                         </button>
-                        <button class="ai-action" @click="runAiAction('summarize')" :disabled="paidAiDisabled() || suggestion.active">
+                        <button class="ai-action ai-action-square" @click="runAiAction('summarize')" :disabled="paidAiDisabled() || suggestion.active">
                             <span class="ai-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14"></path><path d="M5 12h9"></path><path d="M5 17h6"></path></svg></span>
                             <span>{% trans "Summarize" %}</span>
                         </button>
-                    </div>
-                </section>
-
-                <section class="ai-card ai-section ai-suggestion-bar" x-show="suggestion.active" x-cloak>
-                    <div class="ai-head">
-                        <label class="ai-label mb-0">{% trans "Suggestion Preview" %}</label>
-                        <template x-if="suggestion.diffAvailable">
-                            <div class="ai-segment">
-                                <button :class="suggestion.view === 'clean' ? 'on' : ''" @click="suggestion.view = 'clean'">{% trans "Clean" %}</button>
-                                <button :class="suggestion.view === 'changes' ? 'on' : ''" @click="suggestion.view = 'changes'">{% trans "Changes" %}</button>
-                            </div>
-                        </template>
-                    </div>
-                    <p class="ai-subtle">{% trans "The preview is in the editor. Confirm to save it, reject to restore, or regenerate another version." %}</p>
-                    <template x-if="suggestion.view === 'changes' && suggestion.diffAvailable">
-                        <div class="ai-diff">
-                            <template x-for="(part, index) in suggestion.diff" :key="index">
-                                <span :class="part.type" x-text="part.text"></span>
-                            </template>
-                        </div>
-                    </template>
-                    <template x-if="suggestionWarnings().length">
-                        <div class="ai-warning-card">
-                            <template x-for="warning in suggestionWarnings()" :key="warning">
-                                <div x-text="warning"></div>
-                            </template>
-                        </div>
-                    </template>
-                    <div class="ai-row">
-                        <button class="ai-btn primary" @click="confirmSuggestion()" :disabled="aiLoading">{% trans "Confirm" %}</button>
-                        <button class="ai-btn" @click="rejectSuggestion()" :disabled="aiLoading">{% trans "Reject" %}</button>
-                        <button class="ai-btn" @click="regenerateSuggestion()" :disabled="paidAiDisabled()">
-                            <template x-if="aiLoading && aiAction === suggestion.action">
-                                <span class="ai-spinner"></span>
-                            </template>
-                            <span>{% trans "Regenerate" %}</span>
-                        </button>
-                    </div>
-                    <div class="ai-mini-actions">
-                        <button class="ai-btn" @click="regenerateSuggestion('Shorter')" :disabled="paidAiDisabled()">{% trans "Shorter" %}</button>
-                        <button class="ai-btn" @click="regenerateSuggestion('Closer to original')" :disabled="paidAiDisabled()">{% trans "Closer" %}</button>
-                        <button class="ai-btn" @click="regenerateSuggestion('More emotional')" :disabled="paidAiDisabled()">{% trans "Emotional" %}</button>
-                        <button class="ai-btn" @click="regenerateSuggestion('More direct')" :disabled="paidAiDisabled()">{% trans "Direct" %}</button>
-                        <button class="ai-btn" @click="regenerateSuggestion('More literary')" :disabled="paidAiDisabled()">{% trans "Literary" %}</button>
                     </div>
                 </section>
             </div>
@@ -1819,48 +2203,113 @@ body             { overflow: hidden; }
 
     <div class="ai-token-modal-backdrop" x-show="tokenModalOpen" x-cloak @click.self="tokenModalOpen = false">
         <div class="ai-token-modal">
-            <div class="ai-head">
-                <div>
-                    <div class="ai-title">{% trans "Reepls AI Tokens" %}</div>
-                    <p class="ai-subtle mt-1">{% trans "Use tokens for memory refresh, writing, rewriting, summaries, outlines, and regeneration." %}</p>
+            <div class="ai-token-modal-header">
+                <div class="ai-token-modal-title">
+                    <span class="ai-token-modal-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 3 14.2 8.8 20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2L12 3Z"></path><path d="M19 3v4"></path><path d="M21 5h-4"></path></svg>
+                    </span>
+                    <div>
+                        <div class="ai-title">{% trans "Reepls AI Tokens" %}</div>
+                        <p class="ai-subtle mt-1">{% trans "Choose a bundle or enter a custom amount. Tokens power memory refresh, writing, summaries, outlines, and regeneration." %}</p>
+                    </div>
                 </div>
                 <button class="ai-btn" @click="tokenModalOpen = false">{% trans "Close" %}</button>
             </div>
-            <div class="ai-token-panel mt-2">
-                <div class="ai-token-balance">
-                    <strong x-text="tokenBalanceLabel()"></strong>
-                    <span x-text="tokenHelpText()"></span>
+            <div class="ai-token-modal-body">
+                <div class="ai-token-panel">
+                    <div class="ai-token-balance">
+                        <strong x-text="tokenBalanceLabel()"></strong>
+                        <span x-text="tokenHelpText()"></span>
+                    </div>
+                </div>
+                <div>
+                    <label class="ai-label">{% trans "Quick bundles" %}</label>
+                    <div class="ai-token-options mt-2">
+                        <template x-for="option in tokenBundles()" :key="option.tokens">
+                            <button type="button" :class="['ai-token-option', selectedTokenAmount === option.tokens ? 'on' : '']" @click="selectedTokenAmount = option.tokens">
+                                <strong x-text="formatTokens(option.tokens)"></strong>
+                                <span x-text="`${option.price_xaf} FCFA / €${option.price_eur}`"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+                <div class="ai-token-custom-card">
+                    <div class="ai-token-custom-grid">
+                        <div>
+                            <label class="ai-label">{% trans "Custom tokens" %}</label>
+                            <input class="ai-input mt-2" type="number" min="5000" step="1000" x-model.number="selectedTokenAmount">
+                            <p class="ai-subtle mt-1">{% trans "Minimum 5,000 tokens. Adjust in steps of 1,000." %}</p>
+                        </div>
+                        <div class="ai-token-price-preview">
+                            <strong x-text="formatTokens(normalizedTokenAmount())"></strong>
+                            <span x-text="`${selectedTokenPrice().xaf} FCFA or €${selectedTokenPrice().eur}`"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ai-token-checkout-card">
+                    <label class="ai-label">{% trans "Payment method" %}</label>
+                    <div class="ai-payment-methods mt-2">
+                        <form method="post" action="{% url 'core:ai_token_fapshi_checkout' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="token_amount" :value="normalizedTokenAmount()">
+                            <input type="hidden" name="next" :value="currentReturnPath()">
+                            <button class="ai-btn primary ai-pay-button" type="submit" aria-label="{% trans 'Mobile Money (OM/MOMO)' %}">
+                                <span class="ai-pay-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"></path><path d="M10 18h4"></path><path d="M9 6h6"></path></svg></span>
+                                <span>
+                                    <strong>{% trans "Mobile Money" %}</strong>
+                                    <span>{% trans "OM / MOMO" %}</span>
+                                </span>
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'core:ai_token_stripe_checkout' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="token_amount" :value="normalizedTokenAmount()">
+                            <input type="hidden" name="next" :value="currentReturnPath()">
+                            <button class="ai-btn ai-pay-button" type="submit">
+                                <span class="ai-pay-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path><path d="M7 15h4"></path><path d="M14 15h3"></path></svg></span>
+                                <span>
+                                    <strong>{% trans "Card" %}</strong>
+                                    <span>{% trans "Visa / Mastercard" %}</span>
+                                </span>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
-            <div class="ai-token-options">
-                <template x-for="option in tokenBundles()" :key="option.tokens">
-                    <button type="button" :class="['ai-token-option', selectedTokenAmount === option.tokens ? 'on' : '']" @click="selectedTokenAmount = option.tokens">
-                        <strong x-text="formatTokens(option.tokens)"></strong>
-                        <span x-text="`${option.price_xaf} FCFA / €${option.price_eur}`"></span>
-                    </button>
-                </template>
-            </div>
-            <label class="ai-label">{% trans "Custom tokens" %}</label>
-            <input class="ai-input" type="number" min="5000" step="1000" x-model.number="selectedTokenAmount">
-            <div class="ai-warning-card mt-2">
-                <strong x-text="formatTokens(normalizedTokenAmount())"></strong>
-                <div x-text="`${selectedTokenPrice().xaf} FCFA or €${selectedTokenPrice().eur}`"></div>
-            </div>
-            <div class="ai-row mt-2">
-                <form method="post" action="{% url 'core:ai_token_fapshi_checkout' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="token_amount" :value="normalizedTokenAmount()">
-                    <input type="hidden" name="next" :value="currentReturnPath()">
-                    <button class="ai-btn primary" type="submit">{% trans "Mobile Money (OM/MOMO)" %}</button>
-                </form>
-                <form method="post" action="{% url 'core:ai_token_stripe_checkout' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="token_amount" :value="normalizedTokenAmount()">
-                    <input type="hidden" name="next" :value="currentReturnPath()">
-                    <button class="ai-btn" type="submit">{% trans "Card" %}</button>
-                </form>
-            </div>
         </div>
+    </div>
+
+    <div class="ed-walkthrough-backdrop" x-show="walkthroughOpen" x-cloak @click.self="dismissWalkthrough()">
+        <section class="ed-walkthrough" role="dialog" aria-modal="true" aria-labelledby="reepls-walkthrough-title">
+            <div class="ed-walkthrough-head">
+                <div>
+                    <div id="reepls-walkthrough-title" class="ed-walkthrough-title">{% trans "Welcome to Reepls Editor AI" %}</div>
+                    <p class="ed-walkthrough-copy">{% trans "A quick tour before you start writing with the assistant." %}</p>
+                </div>
+                <button class="ai-btn" type="button" @click="dismissWalkthrough()">{% trans "Skip" %}</button>
+            </div>
+            <div class="ed-walkthrough-steps">
+                <div class="ed-walkthrough-step">
+                    <span class="ed-walkthrough-num">1</span>
+                    <span><strong>{% trans "Write in the page" %}</strong><span>{% trans "Click the manuscript and type naturally. Autosave keeps your draft updated." %}</span></span>
+                </div>
+                <div class="ed-walkthrough-step">
+                    <span class="ed-walkthrough-num">2</span>
+                    <span><strong>{% trans "Use the floating prompt" %}</strong><span>{% trans "Ask Reepls to continue, rewrite, use an idea, or work with selected text." %}</span></span>
+                </div>
+                <div class="ed-walkthrough-step">
+                    <span class="ed-walkthrough-num">3</span>
+                    <span><strong>{% trans "Manage memory and tokens" %}</strong><span>{% trans "The right panel holds your book profile, token balance, memory tools, and quick actions." %}</span></span>
+                </div>
+                <div class="ed-walkthrough-step">
+                    <span class="ed-walkthrough-num">4</span>
+                    <span><strong>{% trans "Preview before saving" %}</strong><span>{% trans "AI suggestions appear as ghost text. Confirm to insert them, or reject to leave the manuscript unchanged." %}</span></span>
+                </div>
+            </div>
+            <div class="ed-walkthrough-actions">
+                <button class="ai-btn primary" type="button" @click="dismissWalkthrough()">{% trans "Start writing" %}</button>
+            </div>
+        </section>
     </div>
 
     <!-- BUBBLE MENU -->
@@ -1974,6 +2423,7 @@ function writeEditor() {
         tokenDeltaTimer: null,
         tokenModalOpen: false,
         selectedTokenAmount: 5000,
+        walkthroughOpen: false,
         activityTitle: 'Ready',
         activityMessage: 'Scan the book or choose a writing action when you need help.',
         activityState: 'idle',
@@ -1988,6 +2438,7 @@ function writeEditor() {
             range: null,
             selectedText: '',
             cursorContext: '',
+            cursorMeta: {},
             userPrompt: '',
             regenerationInstruction: '',
             intentPreview: {},
@@ -2038,6 +2489,7 @@ function writeEditor() {
             this.aiStale = readEditorJson('ed-ai-stale-data', {})
             this.tokenStatus = readEditorJson('ed-ai-token-status-data', {})
             this.purchaseOptions = readEditorJson('ed-ai-token-options-data', {})
+            this.walkthroughOpen = !!readEditorJson('ed-walkthrough-data', false)
             this.selectedTokenAmount = this.tokenBundles()[0]?.tokens || 5000
             this.agentWarnings = []
             this.usageHint = this.aiUsage?.last_request?.usage_hint || ''
@@ -2064,6 +2516,9 @@ function writeEditor() {
                         to,
                         text: editor.state.doc.textBetween(from, to, '\n\n'),
                     }
+                } else if (editor.isFocused) {
+                    self.rememberedSelection = { from: null, to: null, text: '' }
+                    self.clearPromptSelectionHighlight()
                 }
                 self.updateBubble(editor)
             })
@@ -2085,6 +2540,16 @@ function writeEditor() {
         },
 
         /* ─────────────────── commands ─────────────── */
+        dismissWalkthrough() {
+            if (!this.walkthroughOpen) return
+            this.walkthroughOpen = false
+            fetch(`/write/${this.manuscriptId}/walkthrough-seen/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': this.csrfToken },
+                body: JSON.stringify({ seen: true }),
+            }).catch(() => {})
+        },
+
         cmd(name, attrs) {
             const ed = window.__xanulaEditor
             if (!ed) return
@@ -2323,6 +2788,7 @@ function writeEditor() {
         },
 
         activityVisible() {
+            if (this.suggestion.active && !this.aiLoading && !this.aiError) return false
             return this.aiLoading || !!this.aiError || !!this.aiNotice || this.activityState === 'working'
         },
 
@@ -2556,13 +3022,60 @@ function writeEditor() {
             return this.rememberedSelection.text || ''
         },
 
-        cursorContext() {
+        liveSelectedText() {
             const ed = window.__xanulaEditor
             if (!ed) return ''
-            const pos = ed.state.selection.from
-            const start = Math.max(0, pos - 1200)
-            const end = Math.min(ed.state.doc.content.size, pos + 1200)
-            return ed.state.doc.textBetween(start, end, '\n\n')
+            const { from, to, empty } = ed.state.selection
+            return empty ? '' : ed.state.doc.textBetween(from, to, '\n\n')
+        },
+
+        selectedTextForAction(action) {
+            if (['continue', 'outline'].includes(action)) return ''
+            const liveText = this.liveSelectedText()
+            if (liveText) return liveText
+            if (['rewrite', 'expand', 'improve', 'summarize', 'custom'].includes(action)) {
+                return this.rememberedSelection.text || ''
+            }
+            return ''
+        },
+
+        cursorMeta(position = null) {
+            const ed = window.__xanulaEditor
+            if (!ed) return { position: 0, blockIndex: null, heading: '' }
+            const docSize = ed.state.doc.content.size
+            const selection = ed.state.selection
+            const rawPos = Number.isFinite(position) ? position : (selection.empty ? selection.from : selection.to)
+            const pos = Math.max(0, Math.min(docSize, rawPos))
+            let blockIndex = null
+            let heading = ''
+            ed.state.doc.forEach((node, offset, index) => {
+                const start = offset + 1
+                const end = offset + node.nodeSize
+                if (blockIndex === null && pos >= start && pos <= end) {
+                    blockIndex = index
+                }
+                if (offset < pos && node.type?.name === 'heading') {
+                    heading = node.textContent || heading
+                }
+            })
+            return { position: pos, blockIndex, heading }
+        },
+
+        cursorContext(position = null) {
+            const ed = window.__xanulaEditor
+            if (!ed) return ''
+            const docSize = ed.state.doc.content.size
+            const selection = ed.state.selection
+            const rawPos = Number.isFinite(position) ? position : (selection.empty ? selection.from : selection.to)
+            const pos = Math.max(0, Math.min(docSize, rawPos))
+            const beforeStart = Math.max(0, pos - 2200)
+            const before = ed.state.doc.textBetween(beforeStart, pos, '\n\n')
+            const afterEnd = Math.min(docSize, pos + 450)
+            const after = ed.state.doc.textBetween(pos, afterEnd, '\n\n')
+            if (after.trim()) {
+                return `Before cursor:\n${before}\n\nAfter cursor:\n${after}`.trim()
+            }
+            return `Before cursor:\n${before}`.trim()
         },
 
         profileChips() {
@@ -2586,7 +3099,7 @@ function writeEditor() {
             if (replacementActions.includes(action) && this.rememberedSelection.text) {
                 return { from: this.rememberedSelection.from, to: this.rememberedSelection.to }
             }
-            return { from, to: from }
+            return this.currentInsertionRange()
         },
 
         currentInsertionRange() {
@@ -2640,18 +3153,21 @@ function writeEditor() {
 
         async runAiAction(action, userPrompt = '', options = {}) {
             const optionSnapshot = options.snapshot || null
-            const selectedText = optionSnapshot?.selectedText ?? (this.suggestion.active ? this.suggestion.selectedText : this.selectedText())
-            const cursorContext = optionSnapshot?.cursorContext ?? (this.suggestion.active ? this.suggestion.cursorContext : this.cursorContext())
             const storedPrompt = this.suggestion.active ? this.suggestion.userPrompt : ''
             const promptToSend = optionSnapshot?.userPrompt ?? (userPrompt || storedPrompt)
             const defaultRange = optionSnapshot?.defaultRange ?? (this.suggestion.active ? this.suggestion.range : this.currentSuggestionRange(action))
             const insertionRange = optionSnapshot?.insertionRange ?? (this.suggestion.active ? this.suggestion.range : this.currentInsertionRange())
             const replacementRange = optionSnapshot?.replacementRange ?? (this.suggestion.active ? this.suggestion.range : this.currentReplacementRange())
+            const selectedText = optionSnapshot?.selectedText ?? (this.suggestion.active ? this.suggestion.selectedText : this.selectedTextForAction(action))
+            const cursorPosition = ['continue', 'outline'].includes(action) ? insertionRange.from : null
+            const cursorContext = optionSnapshot?.cursorContext ?? (this.suggestion.active ? this.suggestion.cursorContext : this.cursorContext(cursorPosition))
+            const cursorMeta = optionSnapshot?.cursorMeta ?? (this.suggestion.active ? (this.suggestion.cursorMeta || {}) : this.cursorMeta(cursorPosition))
             const snapshot = {
                 action,
                 userPrompt: promptToSend,
                 selectedText,
                 cursorContext,
+                cursorMeta,
                 defaultRange,
                 insertionRange,
                 replacementRange,
@@ -2684,8 +3200,11 @@ function writeEditor() {
                     action,
                     selected_text: selectedText,
                     cursor_context: cursorContext,
+                    cursor_position: cursorMeta.position,
+                    cursor_block_index: cursorMeta.blockIndex,
+                    cursor_heading: cursorMeta.heading,
                     user_prompt: promptToSend,
-                    regeneration_instruction: this.suggestion.active ? this.suggestion.regenerationInstruction : '',
+                    regeneration_instruction: options.regenerationInstruction ?? (this.suggestion.active ? this.suggestion.regenerationInstruction : ''),
                     cost_mode: this.costMode,
                 })
                 await this.holdAgentCue(startedAt)
@@ -2696,9 +3215,9 @@ function writeEditor() {
                         ? (data.placement === 'replace_selection' ? replacementRange : insertionRange)
                         : defaultRange
                     this.clearPromptSelectionHighlight()
-                    this.showSuggestion(action, draft, range, selectedText, cursorContext, promptToSend, data)
-                    this.finishActivity(token, 'Preview is ready in the editor.')
-                    this.aiNotice = 'Preview ready in the editor.'
+                    this.showSuggestion(action, draft, range, selectedText, cursorContext, promptToSend, data, cursorMeta)
+                    this.finishActivity(token, '')
+                    this.aiNotice = ''
                     if (action === 'custom') this.aiPrompt = ''
                 } else {
                     this.applyIntelligence(data)
@@ -2718,7 +3237,7 @@ function writeEditor() {
             }
         },
 
-        showSuggestion(action, text, range, selectedText, cursorContext, userPrompt = '', data = {}) {
+        showSuggestion(action, text, range, selectedText, cursorContext, userPrompt = '', data = {}, cursorMeta = {}) {
             const ed = window.__xanulaEditor
             if (!ed || !text) return
             this.suggestion = {
@@ -2729,6 +3248,7 @@ function writeEditor() {
                 range,
                 selectedText,
                 cursorContext,
+                cursorMeta,
                 userPrompt,
                 regenerationInstruction: '',
                 intentPreview: data.intent_preview || {},
@@ -2741,6 +3261,13 @@ function writeEditor() {
             window.xanulaGhostSuggestion?.show(ed, this.suggestion)
         },
 
+        setSuggestionView(view) {
+            const ed = window.__xanulaEditor
+            if (!ed || !this.suggestion.active) return
+            this.suggestion = { ...this.suggestion, view }
+            window.xanulaGhostSuggestion?.show(ed, this.suggestion)
+        },
+
         confirmSuggestion() {
             const ed = window.__xanulaEditor
             if (!ed || !this.suggestion.active) return
@@ -2748,7 +3275,7 @@ function writeEditor() {
             if (!nodes.length) return
             const confirmed = window.xanulaGhostSuggestion?.confirm(ed, nodes)
             if (confirmed) {
-                this.suggestion = { active: false, id: null, action: '', text: '', range: null, selectedText: '', cursorContext: '', userPrompt: '', regenerationInstruction: '', intentPreview: {}, diffAvailable: false, diff: [], warnings: [], consistencyIssues: [], view: 'clean' }
+                this.suggestion = { active: false, id: null, action: '', text: '', range: null, selectedText: '', cursorContext: '', cursorMeta: {}, userPrompt: '', regenerationInstruction: '', intentPreview: {}, diffAvailable: false, diff: [], warnings: [], consistencyIssues: [], view: 'clean' }
                 this.activityState = 'done'
                 this.activityTitle = 'Ready'
                 this.activityMessage = 'Suggestion confirmed and queued for autosave.'
@@ -2760,7 +3287,7 @@ function writeEditor() {
         rejectSuggestion() {
             const ed = window.__xanulaEditor
             window.xanulaGhostSuggestion?.clear(ed)
-            this.suggestion = { active: false, id: null, action: '', text: '', range: null, selectedText: '', cursorContext: '', userPrompt: '', regenerationInstruction: '', intentPreview: {}, diffAvailable: false, diff: [], warnings: [], consistencyIssues: [], view: 'clean' }
+            this.suggestion = { active: false, id: null, action: '', text: '', range: null, selectedText: '', cursorContext: '', cursorMeta: {}, userPrompt: '', regenerationInstruction: '', intentPreview: {}, diffAvailable: false, diff: [], warnings: [], consistencyIssues: [], view: 'clean' }
             this.activityState = 'done'
             this.activityTitle = 'Ready'
             this.activityMessage = 'Suggestion rejected. The manuscript was not changed.'
@@ -2769,8 +3296,20 @@ function writeEditor() {
 
         regenerateSuggestion(direction = '') {
             if (!this.suggestion.active || this.aiLoading) return
-            this.suggestion.regenerationInstruction = direction
-            this.runAiAction(this.suggestion.action, this.suggestion.userPrompt)
+            const previous = { ...this.suggestion }
+            const snapshot = {
+                action: previous.action,
+                selectedText: previous.selectedText,
+                cursorContext: previous.cursorContext,
+                cursorMeta: previous.cursorMeta || {},
+                userPrompt: previous.userPrompt,
+                defaultRange: previous.range,
+                insertionRange: previous.range,
+                replacementRange: previous.range,
+            }
+            window.xanulaGhostSuggestion?.clear(window.__xanulaEditor)
+            this.suggestion = { active: false, id: null, action: '', text: '', range: null, selectedText: '', cursorContext: '', cursorMeta: {}, userPrompt: '', regenerationInstruction: '', intentPreview: {}, diffAvailable: false, diff: [], warnings: [], consistencyIssues: [], view: 'clean' }
+            this.runAiAction(previous.action, previous.userPrompt, { snapshot, regenerationInstruction: direction })
         },
 
         updateToc() {
