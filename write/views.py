@@ -77,10 +77,11 @@ def create_manuscript(request):
 @login_required
 def editor(request, manuscript_id):
     manuscript = get_object_or_404(Manuscript, pk=manuscript_id, user=request.user)
+    manuscript_text = extract_tiptap_text(manuscript.content, max_chars=12000)
     return render(request, 'write/editor.html', {
         'manuscript': manuscript,
         'content_json': json.dumps(manuscript.content or {}),
-        'ai_profile': normalize_profile(manuscript.ai_profile),
+        'ai_profile': normalize_profile(manuscript.ai_profile, manuscript_text),
         'ai_memory': normalize_memory(manuscript.ai_memory),
         'ai_voice': normalize_voice(manuscript.ai_voice),
         'ai_chapter_map': normalize_chapter_map(manuscript.ai_chapter_map),
@@ -243,7 +244,8 @@ def ai_profile(request, manuscript_id):
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
 
-    manuscript.ai_profile = normalize_profile(data.get('profile', {}))
+    manuscript_text = extract_tiptap_text(manuscript.content, max_chars=12000)
+    manuscript.ai_profile = normalize_profile(data.get('profile', {}), manuscript_text)
     if 'memory' in data:
         manuscript.ai_memory = normalize_memory(data.get('memory', {}))
     manuscript.ai_memory_meta = next_memory_meta(manuscript.ai_memory_meta, manuscript.content, 'profile edit', timezone.now())

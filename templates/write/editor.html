@@ -1586,7 +1586,10 @@ body             { overflow: hidden; }
                                 <input class="ai-input" x-model="aiProfile.genre" placeholder="{% trans 'Genre' %}">
                                 <input class="ai-input" x-model="aiProfile.tone" placeholder="{% trans 'Tone' %}">
                                 <input class="ai-input" x-model="aiProfile.target_audience" placeholder="{% trans 'Audience' %}">
-                                <input class="ai-input" x-model="aiProfile.language" placeholder="{% trans 'Language' %}">
+                                <select class="ai-input" x-model="aiProfile.language">
+                                    <option value="English">{% trans "English" %}</option>
+                                    <option value="French">{% trans "French" %}</option>
+                                </select>
                                 <input class="ai-input" x-model="aiProfile.book_type" placeholder="{% trans 'Book type' %}">
                                 <textarea class="ai-textarea" x-model="aiProfile.style_notes" placeholder="{% trans 'Style notes' %}"></textarea>
                             </div>
@@ -1778,7 +1781,7 @@ function writeEditor() {
 
         tocOpen: true,
         aiOpen: true,
-        tocWidth: 260,
+        tocWidth: 320,
         aiWidth: 340,
         aiMinWidth: 240,
         aiMaxWidth: 620,
@@ -2676,7 +2679,7 @@ function writeEditor() {
             if (!this.drag) return
             const dx = e.clientX - this.drag.startX
             if (this.drag.side === 'toc') {
-                this.tocWidth = Math.max(180, Math.min(380, this.drag.startW + dx))
+                this.tocWidth = Math.max(180, Math.min(440, this.drag.startW + dx))
             } else {
                 this.aiWidth = Math.max(this.aiMinWidth, Math.min(this.aiMaxWidth, this.drag.startW - dx))
             }

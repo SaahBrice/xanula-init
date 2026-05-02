@@ -39,6 +39,8 @@ from .intelligence import (
     sentence_aware_clip,
     validate_output,
 )
+from .docx_export import submission_prefill_for
+from .language import normalize_language_code
 from .models import Manuscript
 
 
@@ -596,6 +598,24 @@ class ManuscriptAITests(TestCase):
         self.assertIn("The River House", document_xml)
         self.assertIn("The river remembered everything.", document_xml)
 
+    def test_submission_prefill_detects_french_and_avoids_wrong_language_summary(self):
+        self.manuscript.content = {
+            "type": "doc",
+            "content": [
+                {"type": "heading", "attrs": {"level": 1}, "content": [{"type": "text", "text": "Ouverture"}]},
+                {"type": "paragraph", "content": [{"type": "text", "text": "La riviere garde les secrets des familles. Elle raconte une histoire dans la nuit pour les enfants."}]},
+            ],
+        }
+        self.manuscript.ai_profile = {"language": "Francais", "genre": "Roman"}
+        self.manuscript.ai_memory = {"book_summary": "A story about a river and old family secrets."}
+
+        prefill = submission_prefill_for(self.manuscript)
+
+        self.assertEqual(prefill["language"], Book.Language.FRENCH)
+        self.assertIn("La riviere", prefill["long_description"])
+        self.assertNotIn("A story about", prefill["long_description"])
+        self.assertEqual(normalize_language_code("anglais"), Book.Language.ENGLISH)
+
     def test_submit_to_xanula_prefills_publish_form_and_attaches_docx(self):
         file_storage = {
             "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
@@ -695,8 +715,30 @@ class ManuscriptAITests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.manuscript.refresh_from_db()
         self.assertEqual(self.manuscript.ai_profile["genre"], "Memoir")
+        self.assertEqual(self.manuscript.ai_profile["language"], "English")
         self.assertEqual(self.manuscript.ai_memory_meta["version"], 1)
         self.assertTrue(self.manuscript.ai_profile_confirmed)
+
+    def test_profile_endpoint_normalizes_french_language(self):
+        response = self.client.post(
+            reverse("write:ai_profile", args=[self.manuscript.pk]),
+            data=json.dumps({
+                "profile": {
+                    "genre": "Roman",
+                    "tone": "Lyrical",
+                    "target_audience": "Adultes",
+                    "language": "francais",
+                    "book_type": "Roman",
+                    "style_notes": "Sobre.",
+                },
+                "confirmed": True,
+            }),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.manuscript.refresh_from_db()
+        self.assertEqual(self.manuscript.ai_profile["language"], "French")
 
     @override_settings(DEEPSEEK_API_KEY="")
     def test_inspect_endpoint_runs_without_api_key(self):

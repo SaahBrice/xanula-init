@@ -5,6 +5,8 @@ from collections import Counter
 
 from django.conf import settings
 
+from .language import language_instruction, normalize_profile_language
+
 
 DEFAULT_VOICE = {
     "sentence_rhythm": "",
@@ -566,6 +568,7 @@ def normalize_stale(stale):
 def build_chapter_memory(content, existing_memory=None, version=0):
     chapter_map = analyze_structure(content)
     text = extract_text(content)
+    memory_language_instruction = language_instruction({}, text)
     sections = []
     indexed = build_section_index(content, max_sections=120)
     summary_lookup = {}
@@ -596,7 +599,10 @@ def build_chapter_memory(content, existing_memory=None, version=0):
             "locations": entities.get("locations", [])[:8],
             "dates": entities.get("dates", [])[:8],
             "open_threads": _memory_items(existing_memory, "open_threads")[:6],
-            "continuity_notes": _memory_items(existing_memory, "consistency_notes")[:6],
+            "continuity_notes": [
+                *_memory_items(existing_memory, "consistency_notes")[:6],
+                memory_language_instruction,
+            ],
         })
 
     if not sections and text:
@@ -610,7 +616,10 @@ def build_chapter_memory(content, existing_memory=None, version=0):
             "locations": entities.get("locations", [])[:8],
             "dates": entities.get("dates", [])[:8],
             "open_threads": _memory_items(existing_memory, "open_threads")[:6],
-            "continuity_notes": _memory_items(existing_memory, "consistency_notes")[:6],
+            "continuity_notes": [
+                *_memory_items(existing_memory, "consistency_notes")[:6],
+                memory_language_instruction,
+            ],
         })
     return {
         "sections": sections,
@@ -1200,8 +1209,9 @@ def _chapter_memory_for_section(chapter_memory, current_section):
 def build_generation_context(manuscript, action, selected_text="", cursor_context="", user_prompt="", cost_mode=None):
     text = extract_text(manuscript.content)
     original_selected_chars = len((selected_text or "").strip())
-    voice = normalize_voice(manuscript.ai_voice) if manuscript.ai_voice else analyze_voice(text, profile=manuscript.ai_profile)
-    lens = infer_book_lens(manuscript.ai_profile, text)
+    profile = normalize_profile_language(manuscript.ai_profile if isinstance(manuscript.ai_profile, dict) else {}, text)
+    voice = normalize_voice(manuscript.ai_voice) if manuscript.ai_voice else analyze_voice(text, profile=profile)
+    lens = infer_book_lens(profile, text)
     if not voice.get("book_lens"):
         voice["book_lens"] = lens["lens"]
         voice["continuity_priorities"] = lens["priorities"]
@@ -1258,7 +1268,7 @@ def build_generation_context(manuscript, action, selected_text="", cursor_contex
         "action": action,
         "title": manuscript.title,
         "context_policy": policy,
-        "profile": manuscript.ai_profile or {},
+        "profile": profile,
         "memory": manuscript.ai_memory or {},
         "voice": voice,
         "book_lens": {
@@ -1293,6 +1303,7 @@ def build_generation_context(manuscript, action, selected_text="", cursor_contex
             "Use retrieved_context to preserve continuity. If the requested draft would contradict an earlier "
             "section, prefer the earlier established fact unless the user's selected text clearly changes it."
         ),
+        "language_instruction": language_instruction(profile, selected_text or cursor_context or text),
         "selected_text": selected_text,
         "cursor_context": cursor_context,
         "user_prompt": _truncate(user_prompt, 3000),

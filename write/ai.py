@@ -16,6 +16,7 @@ from .intelligence import (
     sentence_aware_chunks,
     validate_output,
 )
+from .language import language_instruction, normalize_profile_language
 
 
 class AIConfigurationError(Exception):
@@ -68,13 +69,13 @@ ACTION_INSTRUCTIONS = {
 }
 
 
-def normalize_profile(profile):
+def normalize_profile(profile, text=""):
     data = dict(DEFAULT_PROFILE)
     if isinstance(profile, dict):
         for key in data:
             value = profile.get(key, "")
             data[key] = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
-    return data
+    return normalize_profile_language(data, text)
 
 
 def normalize_memory(memory):
@@ -510,6 +511,7 @@ def analyze_manuscript(manuscript, client=None):
     text = extract_tiptap_text(manuscript.content, max_chars=45000)
     headings = extract_tiptap_headings(manuscript.content)
     client = client or DeepSeekClient()
+    language_guard = language_instruction(getattr(manuscript, "ai_profile", {}) or {}, text)
 
     messages = [
         {
@@ -523,7 +525,8 @@ def analyze_manuscript(manuscript, client=None):
                 "fiction should emphasize character, scene, timeline, and open plot threads; nonfiction should "
                 "emphasize claims, definitions, examples, reader promises, and argument flow; memoir should "
                 "emphasize chronology, relationships, reflection, and factual care; poetry should emphasize "
-                "imagery, form, motifs, rhythm, and recurring language."
+                "imagery, form, motifs, rhythm, and recurring language. "
+                f"{language_guard} The ai_profile.language value must be exactly English or French."
             ),
         },
         {
@@ -537,7 +540,7 @@ def analyze_manuscript(manuscript, client=None):
     ]
     content = client.chat(messages, json_response=True, max_tokens=2200, temperature=0.2)
     data = _extract_json_object(content)
-    return normalize_profile(data.get("ai_profile", {})), normalize_memory(data.get("ai_memory", {}))
+    return normalize_profile(data.get("ai_profile", {}), text), normalize_memory(data.get("ai_memory", {}))
 
 
 def _generate_single_draft(
@@ -570,6 +573,7 @@ def _generate_single_draft(
     )
     payload = context["payload"]
     payload["instruction"] = ACTION_INSTRUCTIONS[action]
+    payload["language_instruction"] = language_instruction(payload.get("profile", {}), selected_text or cursor_context or user_prompt)
     if custom_intent:
         payload["custom_prompt_intent"] = custom_intent
         payload["instruction"] = f"{payload['instruction']} {custom_intent['instruction']}"
@@ -596,6 +600,7 @@ def _generate_single_draft(
                 "You are Xanula's book-writing assistant. Write useful manuscript-ready prose. "
                 "Respect the author's confirmed book profile, memory, voice profile, chapter map, and continuity clues. "
                 "Use the supplied book_lens to adapt to the genre or book type. "
+                "Respect the supplied language_instruction exactly. "
                 "Do not mention that you are an AI. Return only the requested draft text, without explanations unless "
                 "the requested action is a summary or outline. Do not include internal thoughts, reasoning, analysis, "
                 "planning notes, prefaces, or labels like Thought/Reasoning/Analysis. Do not invent major facts that "

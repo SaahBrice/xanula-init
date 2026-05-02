@@ -1,8 +1,11 @@
 from io import BytesIO
+import re
 from xml.sax.saxutils import escape
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from django.utils.text import slugify
+
+from .language import ENGLISH_MARKERS, FRENCH_MARKERS, detect_text_language, language_code_from_profile
 
 
 def manuscript_docx_filename(manuscript):
@@ -36,18 +39,16 @@ def submission_prefill_for(manuscript):
 
     profile = manuscript.ai_profile if isinstance(manuscript.ai_profile, dict) else {}
     memory = manuscript.ai_memory if isinstance(manuscript.ai_memory, dict) else {}
-    long_description = (
-        memory.get("book_summary")
-        or memory.get("summary")
-        or summary[:1200]
-        or f"Manuscript for {manuscript.title}."
-    )
+    language = language_code_from_profile(profile, text)
+    memory_summary = memory.get("book_summary") or memory.get("summary") or ""
+    long_description = memory_summary if _matches_language(memory_summary, language) else ""
+    long_description = long_description or summary[:1200] or f"Manuscript for {manuscript.title}."
 
     return {
         "title": manuscript.title,
         "short_description": short or manuscript.title,
         "long_description": long_description,
-        "language": _language_from_profile(profile, text),
+        "language": language,
         "category": _category_from_profile(profile),
     }
 
@@ -242,14 +243,23 @@ def _styles_xml():
 
 
 def _language_from_profile(profile, text):
-    value = str(profile.get("language") or "").strip().lower()
-    if value.startswith("fr") or "french" in value or "francais" in value:
-        return "fr"
-    if value.startswith("en") or "english" in value:
-        return "en"
-    french_markers = [" le ", " la ", " les ", " des ", " une ", " dans ", " pour ", " avec "]
-    sample = f" {text[:2000].lower()} "
-    return "fr" if sum(marker in sample for marker in french_markers) >= 3 else "en"
+    return language_code_from_profile(profile, text)
+
+
+def _matches_language(text, expected_code):
+    text = str(text or "").strip()
+    if not text:
+        return False
+    if len(text) < 80:
+        sample = f" {text.lower()} "
+        english_hits = sum(marker in sample for marker in ENGLISH_MARKERS)
+        french_hits = sum(marker in sample for marker in FRENCH_MARKERS) + len(re.findall(r"[àâçéèêëîïôùûüÿœ]", sample))
+        if expected_code == "fr" and english_hits > french_hits:
+            return False
+        if expected_code == "en" and french_hits > english_hits:
+            return False
+        return True
+    return detect_text_language(text) == expected_code
 
 
 def _category_from_profile(profile):
