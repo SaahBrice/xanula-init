@@ -558,7 +558,7 @@ class ManuscriptAITests(TestCase):
         response = self.client.get(reverse("write:editor", args=[self.manuscript.pk]))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Reepls AI Editor")
+        self.assertContains(response, "Reepls Editor AI")
         self.assertContains(response, "ed-floating-ai")
         self.assertContains(response, "Reepls Ai")
         self.assertContains(response, "ask, rewrite, continue")
@@ -579,7 +579,7 @@ class ManuscriptAITests(TestCase):
         self.assertContains(response, "ed-ai-longform-data")
         self.assertContains(response, "ed-ai-token-status-data")
         self.assertContains(response, "Reepls AI Tokens")
-        self.assertContains(response, "Buy tokens")
+        self.assertContains(response, "Add tokens")
         self.assertContains(response, "Mobile Money (OM/MOMO)")
         self.assertContains(response, "Card")
         self.assertContains(response, reverse("write:download_docx", args=[self.manuscript.pk]))

@@ -699,6 +699,16 @@ body             { overflow: hidden; }
 /* Reepls AI Editor refinement */
 .ed-right { background: #fbfaf8; max-width: 620px; }
 .ai-body { padding: 14px; gap: 10px; }
+.ai-panel-title {
+    padding: 2px 2px 1px;
+}
+.ai-panel-title h2 {
+    margin: 0;
+    color: #1c1917;
+    font-size: 1.08rem;
+    font-weight: 750;
+    letter-spacing: 0;
+}
 .ai-card {
     background: #ffffff;
     border: 1px solid #e7e5e4;
@@ -719,6 +729,7 @@ body             { overflow: hidden; }
     margin-bottom: 3px;
 }
 .ai-section { border-top: 0; padding-top: 0; display: flex; flex-direction: column; gap: 8px; }
+.ai-profile-card { gap: 10px; }
 .ai-profile-summary { display: flex; flex-wrap: wrap; gap: 6px; }
 .ai-chip {
     display: inline-flex;
@@ -730,7 +741,95 @@ body             { overflow: hidden; }
     line-height: 1.2;
     padding: 5px 8px;
 }
-.ai-action { justify-content: flex-start; gap: 7px; min-height: 34px; }
+.ai-btn-small {
+    min-height: 28px;
+    padding: 5px 8px;
+    font-size: 0.7rem;
+}
+.ai-status-card,
+.ai-actions-card { gap: 10px; }
+.ai-status-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+.ai-status-note {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    border-radius: 7px;
+    background: #f8f7f4;
+    color: #78716c;
+    font-size: 0.72rem;
+    line-height: 1.35;
+    padding: 8px;
+}
+.ai-status-note span {
+    display: inline-flex;
+    max-width: 100%;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #57534e;
+    padding: 4px 8px;
+}
+.ai-coverage-card {
+    display: grid;
+    gap: 5px;
+    line-height: 1.45;
+}
+.ai-mode-panel {
+    display: grid;
+    gap: 7px;
+    border-radius: 7px;
+    background: #f8f7f4;
+    padding: 8px;
+}
+.ai-mode-segment {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+}
+.ai-mode-segment button {
+    min-width: 0;
+    padding-inline: 6px;
+}
+.ai-actions-quick {
+    grid-template-columns: 1fr;
+}
+.ai-action {
+    justify-content: flex-start;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px;
+    text-align: left;
+}
+.ai-action span:last-child {
+    min-width: 0;
+    line-height: 1.2;
+}
+.ai-action-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: #f8f7f4;
+    color: #57534e;
+}
+.ai-action-icon svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
 .ed-floating-ai {
     position: absolute;
     left: 50%;
@@ -863,6 +962,49 @@ body             { overflow: hidden; }
 }
 .ai-token-balance strong { display: block; color: #292524; font-size: 1.05rem; }
 .ai-token-balance span { display: block; color: #78716c; font-size: .7rem; }
+.ai-token-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #e7e5e4;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8f7f4 100%);
+    box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    padding: 12px;
+}
+.ai-token-card-main {
+    min-width: 0;
+}
+.ai-token-card-main strong {
+    display: block;
+    color: #1c1917;
+    font-size: 1.35rem;
+    line-height: 1.1;
+}
+.ai-token-card-main span {
+    display: block;
+    color: #78716c;
+    font-size: 0.72rem;
+    line-height: 1.35;
+}
+.ai-token-label {
+    margin-bottom: 3px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+.ai-token-add {
+    align-self: start;
+    white-space: nowrap;
+}
+.ai-token-card .ai-token-delta {
+    grid-column: 1 / -1;
+    justify-self: start;
+}
+.ai-token-warning {
+    grid-column: 1 / -1;
+}
 .ai-token-modal-backdrop {
     position: fixed;
     inset: 0;
@@ -1091,6 +1233,7 @@ body             { overflow: hidden; }
 [data-theme="dark"] .ed-collapse-right  { background: #1a1a1a; border-color: #292524; color: #57534e; }
 [data-theme="dark"] .ed-collapse-left:hover,
 [data-theme="dark"] .ed-collapse-right:hover { background: #252525; color: #d6d3d1; }
+[data-theme="dark"] .ai-panel-title h2 { color: #e7e5e4; }
 [data-theme="dark"] .ai-title       { color: #e7e5e4; }
 [data-theme="dark"] .ai-section     { border-color: #292524; }
 [data-theme="dark"] .ai-input,
@@ -1107,6 +1250,10 @@ body             { overflow: hidden; }
 [data-theme="dark"] .ai-process-title { color: #e7e5e4; }
 [data-theme="dark"] .ai-process-copy { color: #a8a29e; }
 [data-theme="dark"] .ai-progress { background: #292524; }
+[data-theme="dark"] .ai-status-note,
+[data-theme="dark"] .ai-mode-panel { background: #252525; color: #a8a29e; }
+[data-theme="dark"] .ai-status-note span,
+[data-theme="dark"] .ai-action-icon { background: #1e1e1e; color: #a8a29e; }
 [data-theme="dark"] .ai-meter       { background: #252525; color: #a8a29e; }
 [data-theme="dark"] .ai-meter strong { color: #e7e5e4; }
 [data-theme="dark"] .ai-segment { background: #1e1e1e; border-color: #292524; }
@@ -1118,8 +1265,11 @@ body             { overflow: hidden; }
 [data-theme="dark"] .ai-keycap { background: #252525; border-color: #44403c; color: #78716c; }
 [data-theme="dark"] .ai-token-pill,
 [data-theme="dark"] .ai-token-panel,
+[data-theme="dark"] .ai-token-card,
 [data-theme="dark"] .ai-token-option,
 [data-theme="dark"] .ai-token-modal { background: #252525; border-color: #44403c; color: #e7e5e4; }
+[data-theme="dark"] .ai-token-card-main strong { color: #e7e5e4; }
+[data-theme="dark"] .ai-token-card-main span { color: #a8a29e; }
 [data-theme="dark"] .ai-token-modal-backdrop { background: rgba(0,0,0,.55); }
 [data-theme="dark"] .ai-token-option.on { background: #3a241b; border-color: #f59e0b; color: #fed7aa; }
 [data-theme="dark"] .ai-intent-preview,
@@ -1458,115 +1608,34 @@ body             { overflow: hidden; }
         {# ── RIGHT SIDEBAR: AI ── #}
         <aside class="ed-sidebar ed-right" :style="`width: ${aiOpen ? aiWidth : 0}px`">
             <div class="ai-body">
-                <section class="ai-card ai-section">
-                    <div class="ai-head">
-                        <div>
-                            <div class="ai-title">{% trans "Reepls AI Editor" %}</div>
-                            <div class="ai-subtle mt-1">
-                                <template x-if="aiProfileConfirmed">
-                                    <span>{% trans "Book-aware writing help for this manuscript." %}</span>
-                                </template>
-                                <template x-if="!aiProfileConfirmed">
-                                    <span>{% trans "Scan or refresh memory before deeper writing help." %}</span>
-                                </template>
-                            </div>
-                        </div>
-                        <button class="ai-btn" title="{% trans 'Uses AI to refresh profile and book memory.' %}" @click="analyzeBook()" :disabled="paidAiDisabled() || suggestion.active">
-                            <span>{% trans "Refresh memory" %}</span>
-                        </button>
-                        <button class="ai-btn" title="{% trans 'Runs local book awareness without an API call.' %}" @click="inspectBook()" :disabled="aiLoading || suggestion.active">
-                            <span>{% trans "Scan book" %}</span>
-                        </button>
+                <div class="ai-panel-title">
+                    <h2>{% trans "Reepls Editor AI" %}</h2>
+                </div>
+
+                <section class="ai-token-card">
+                    <div class="ai-token-card-main">
+                        <span class="ai-token-label">{% trans "AI tokens" %}</span>
+                        <strong x-text="tokenBalanceLabel()"></strong>
+                        <span x-text="tokenHelpText()"></span>
                     </div>
-                    <div class="ai-token-panel mt-2">
-                        <div class="ai-token-balance">
-                            <strong x-text="tokenBalanceLabel()"></strong>
-                            <span x-text="tokenHelpText()"></span>
-                        </div>
-                        <button class="ai-btn primary" @click="tokenModalOpen = true">{% trans "Buy tokens" %}</button>
-                    </div>
+                    <button class="ai-btn primary ai-token-add" @click="tokenModalOpen = true">{% trans "Add tokens" %}</button>
+                    <template x-if="tokenDelta">
+                        <span :class="['ai-token-delta', tokenDelta < 0 ? 'negative' : '']" x-text="tokenDeltaLabel()"></span>
+                    </template>
                     <template x-if="tokenStatus.empty">
-                        <div class="ai-warning-card mt-2">
+                        <div class="ai-warning-card ai-token-warning">
                             <strong>{% trans "Out of AI tokens." %}</strong>
                             <div>{% trans "Buy more tokens to keep using paid AI writing actions. Local scan remains free." %}</div>
                         </div>
                     </template>
-                    <div class="ai-engine-grid" x-show="aiLongform && aiLongform.readiness" x-cloak>
-                        <div class="ai-meter">
-                            <span>{% trans "Integrity" %}</span>
-                            <strong x-text="`${aiLongform.integrity_score || 0}%`"></strong>
-                        </div>
-                        <div class="ai-meter">
-                            <span>{% trans "Indexed" %}</span>
-                            <strong x-text="`${aiLongform.indexed_chunks || 0} chunks`"></strong>
-                        </div>
-                        <div class="ai-meter">
-                            <span>{% trans "Readiness" %}</span>
-                            <strong x-text="engineReadinessLabel()"></strong>
-                        </div>
-                    </div>
-                    <div class="ai-row mt-2">
-                        <span class="ai-chip" x-text="memoryFreshnessLabel()"></span>
-                        <span class="ai-chip" x-text="usageHint || 'balanced context'"></span>
-                        <div class="ai-segment" title="{% trans 'Controls how much context Reepls sends.' %}">
-                            <button :class="costMode === 'fast' ? 'on' : ''" @click="costMode = 'fast'" :disabled="aiLoading || suggestion.active">{% trans "Fast" %}</button>
-                            <button :class="costMode === 'balanced' ? 'on' : ''" @click="costMode = 'balanced'" :disabled="aiLoading || suggestion.active">{% trans "Balanced" %}</button>
-                            <button :class="costMode === 'deep' ? 'on' : ''" @click="costMode = 'deep'" :disabled="aiLoading || suggestion.active">{% trans "Deep" %}</button>
-                        </div>
-                    </div>
-                    <p class="ai-subtle mt-2" x-text="coverageHint()"></p>
-                    <template x-if="coverageWarning">
-                        <div class="ai-warning-card mt-2">
-                            <strong>{% trans "Selection coverage" %}</strong>
-                            <div x-text="coverageWarning.coverage_message"></div>
-                            <template x-if="coverageWarning.stop_sentence && !coverageWarning.allowed">
-                                <div class="mt-1" x-text="`Stop point: &quot;${coverageWarning.stop_sentence}&quot;`"></div>
-                            </template>
-                            <div class="ai-row mt-2">
-                                <template x-if="coverageWarning.recommended_mode === 'balanced'">
-                                    <button class="ai-btn primary" @click="switchCoverageMode('balanced')">{% trans "Use Balanced" %}</button>
-                                </template>
-                                <template x-if="coverageWarning.recommended_mode === 'deep' || coverageWarning.recommended_mode === 'balanced'">
-                                    <button class="ai-btn" @click="switchCoverageMode('deep')">{% trans "Use Deep" %}</button>
-                                </template>
-                                <template x-if="coverageWarning.requires_confirmation">
-                                    <button class="ai-btn primary" @click="confirmCoverageRun()" x-text="coverageRunLabel()"></button>
-                                </template>
-                                <button class="ai-btn" @click="coverageWarning = null; pendingCoverageRequest = null">{% trans "Cancel" %}</button>
-                            </div>
-                        </div>
-                    </template>
                 </section>
 
-                <section class="ai-card ai-section" x-show="activityVisible()" x-cloak>
-                    <div class="ai-head">
-                        <label class="ai-label mb-0">{% trans "Status" %}</label>
-                    </div>
-                    <div :class="['ai-process', activityState]">
-                        <div class="ai-process-head">
-                            <div class="ai-process-title" x-text="activityTitle"></div>
-                            <div class="ai-process-state" x-text="activityStateLabel()"></div>
-                        </div>
-                        <div class="ai-process-copy" x-text="activityMessage"></div>
-                        <div class="ai-progress"></div>
-                    </div>
-                    <template x-if="agentWarnings.length">
-                        <ul class="ai-warning-list">
-                            <template x-for="warning in agentWarnings" :key="warning">
-                                <li x-text="warning"></li>
-                            </template>
-                        </ul>
-                    </template>
-                </section>
-
-                <section class="ai-card ai-section">
+                <section class="ai-card ai-section ai-profile-card">
                     <div class="ai-head">
                         <label class="ai-label mb-0">{% trans "Book Profile" %}</label>
-                        <div class="ai-row">
-                            <template x-if="aiProfileConfirmed && !profileExpanded">
-                                <button class="ai-btn" @click="profileExpanded = true" :disabled="aiLoading || suggestion.active">{% trans "Edit" %}</button>
-                            </template>
-                        </div>
+                        <template x-if="aiProfileConfirmed && !profileExpanded">
+                            <button class="ai-btn ai-btn-small" @click="profileExpanded = true" :disabled="aiLoading || suggestion.active">{% trans "Edit" %}</button>
+                        </template>
                     </div>
 
                     <template x-if="aiProfileConfirmed && !profileExpanded">
@@ -1603,21 +1672,100 @@ body             { overflow: hidden; }
                     </template>
                 </section>
 
-                <section class="ai-card ai-section">
-                    <label class="ai-label">{% trans "Write" %}</label>
-                    <div class="ai-actions">
-                        <button class="ai-action" @click="runAiAction('continue')" :disabled="paidAiDisabled() || suggestion.active"><span>+</span><span>{% trans "Continue from cursor" %}</span></button>
-                        <button class="ai-action" @click="runAiAction('outline')" :disabled="paidAiDisabled() || suggestion.active"><span>#</span><span>{% trans "Create outline" %}</span></button>
+                <section class="ai-card ai-section ai-status-card">
+                    <div class="ai-head">
+                        <label class="ai-label mb-0">{% trans "Status" %}</label>
+                        <div class="ai-status-actions">
+                            <button class="ai-btn ai-btn-small" title="{% trans 'Runs local book awareness without an API call.' %}" @click="inspectBook()" :disabled="aiLoading || suggestion.active">
+                                <span>{% trans "Scan book" %}</span>
+                            </button>
+                            <button class="ai-btn ai-btn-small" title="{% trans 'Uses AI to refresh profile and book memory.' %}" @click="analyzeBook()" :disabled="paidAiDisabled() || suggestion.active">
+                                <span>{% trans "Refresh memory" %}</span>
+                            </button>
+                        </div>
                     </div>
+                    <template x-if="activityVisible()">
+                        <div :class="['ai-process', activityState]">
+                            <div class="ai-process-head">
+                                <div class="ai-process-title" x-text="activityTitle"></div>
+                            </div>
+                            <div class="ai-process-copy" x-text="activityMessage"></div>
+                            <div class="ai-progress"></div>
+                        </div>
+                    </template>
+                    <template x-if="!activityVisible()">
+                        <div class="ai-status-note">
+                            <span x-text="memoryFreshnessLabel()"></span>
+                            <span x-text="usageHint || 'balanced context'"></span>
+                        </div>
+                    </template>
+                    <template x-if="coverageWarning">
+                        <div class="ai-warning-card ai-coverage-card">
+                            <strong>{% trans "Selection coverage" %}</strong>
+                            <div x-text="coverageWarning.coverage_message"></div>
+                            <template x-if="coverageWarning.stop_sentence && !coverageWarning.allowed">
+                                <div class="mt-1" x-text="`Stop point: &quot;${coverageWarning.stop_sentence}&quot;`"></div>
+                            </template>
+                            <div class="ai-row mt-2">
+                                <template x-if="coverageWarning.recommended_mode === 'balanced'">
+                                    <button class="ai-btn primary" @click="switchCoverageMode('balanced')">{% trans "Use Balanced" %}</button>
+                                </template>
+                                <template x-if="coverageWarning.recommended_mode === 'deep' || coverageWarning.recommended_mode === 'balanced'">
+                                    <button class="ai-btn" @click="switchCoverageMode('deep')">{% trans "Use Deep" %}</button>
+                                </template>
+                                <template x-if="coverageWarning.requires_confirmation">
+                                    <button class="ai-btn primary" @click="confirmCoverageRun()" x-text="coverageRunLabel()"></button>
+                                </template>
+                                <button class="ai-btn" @click="coverageWarning = null; pendingCoverageRequest = null">{% trans "Cancel" %}</button>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="agentWarnings.length">
+                        <ul class="ai-warning-list">
+                            <template x-for="warning in agentWarnings" :key="warning">
+                                <li x-text="warning"></li>
+                            </template>
+                        </ul>
+                    </template>
                 </section>
 
-                <section class="ai-card ai-section">
-                    <label class="ai-label">{% trans "Revise Selection" %}</label>
-                    <div class="ai-actions">
-                        <button class="ai-action" @click="runAiAction('rewrite')" :disabled="paidAiDisabled() || suggestion.active"><span>R</span><span>{% trans "Rewrite" %}</span></button>
-                        <button class="ai-action" @click="runAiAction('expand')" :disabled="paidAiDisabled() || suggestion.active"><span>E</span><span>{% trans "Expand" %}</span></button>
-                        <button class="ai-action" @click="runAiAction('improve')" :disabled="paidAiDisabled() || suggestion.active"><span>I</span><span>{% trans "Improve style" %}</span></button>
-                        <button class="ai-action" @click="runAiAction('summarize')" :disabled="paidAiDisabled() || suggestion.active"><span>S</span><span>{% trans "Summarize" %}</span></button>
+                <section class="ai-card ai-section ai-actions-card">
+                    <div class="ai-head">
+                        <label class="ai-label mb-0">{% trans "Quick actions" %}</label>
+                    </div>
+                    <div class="ai-mode-panel">
+                        <div class="ai-segment ai-mode-segment" title="{% trans 'Controls how much context Reepls sends.' %}">
+                            <button :class="costMode === 'fast' ? 'on' : ''" @click="costMode = 'fast'" :disabled="aiLoading || suggestion.active">{% trans "Fast" %}</button>
+                            <button :class="costMode === 'balanced' ? 'on' : ''" @click="costMode = 'balanced'" :disabled="aiLoading || suggestion.active">{% trans "Balanced" %}</button>
+                            <button :class="costMode === 'deep' ? 'on' : ''" @click="costMode = 'deep'" :disabled="aiLoading || suggestion.active">{% trans "Deep" %}</button>
+                        </div>
+                        <p class="ai-subtle" x-text="coverageHint()"></p>
+                    </div>
+                    <div class="ai-actions ai-actions-quick">
+                        <button class="ai-action" @click="runAiAction('continue')" :disabled="paidAiDisabled() || suggestion.active">
+                            <span class="ai-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h13"></path><path d="m13 6 6 6-6 6"></path></svg></span>
+                            <span>{% trans "Continue from cursor" %}</span>
+                        </button>
+                        <button class="ai-action" @click="runAiAction('outline')" :disabled="paidAiDisabled() || suggestion.active">
+                            <span class="ai-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 6h12"></path><path d="M8 12h12"></path><path d="M8 18h12"></path><path d="M4 6h.01"></path><path d="M4 12h.01"></path><path d="M4 18h.01"></path></svg></span>
+                            <span>{% trans "Create outline" %}</span>
+                        </button>
+                        <button class="ai-action" @click="runAiAction('rewrite')" :disabled="paidAiDisabled() || suggestion.active">
+                            <span class="ai-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3Z"></path><path d="m14 7 3 3"></path></svg></span>
+                            <span>{% trans "Rewrite" %}</span>
+                        </button>
+                        <button class="ai-action" @click="runAiAction('improve')" :disabled="paidAiDisabled() || suggestion.active">
+                            <span class="ai-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"></path><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"></path></svg></span>
+                            <span>{% trans "Improve style" %}</span>
+                        </button>
+                        <button class="ai-action" @click="runAiAction('expand')" :disabled="paidAiDisabled() || suggestion.active">
+                            <span class="ai-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3H3v5"></path><path d="M16 3h5v5"></path><path d="M8 21H3v-5"></path><path d="M16 21h5v-5"></path><path d="M3 3l7 7"></path><path d="m21 3-7 7"></path><path d="m3 21 7-7"></path><path d="m21 21-7-7"></path></svg></span>
+                            <span>{% trans "Expand" %}</span>
+                        </button>
+                        <button class="ai-action" @click="runAiAction('summarize')" :disabled="paidAiDisabled() || suggestion.active">
+                            <span class="ai-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14"></path><path d="M5 12h9"></path><path d="M5 17h6"></path></svg></span>
+                            <span>{% trans "Summarize" %}</span>
+                        </button>
                     </div>
                 </section>
 
