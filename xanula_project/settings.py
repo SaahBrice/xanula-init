@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     # Local apps
     "core",
     "users",
+    "write",
 ]
 
 # Required for django-allauth
@@ -231,16 +232,17 @@ AWS_QUERYSTRING_AUTH = False  # Don't add auth params to URLs (public bucket)
 # Custom domain for serving files (optional, uses B2 URL by default)
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.eu-central-003.backblazeb2.com'
 
-# Use Django 4.2+ STORAGES configuration
-# This sets Backblaze B2 as the default storage for all FileField/ImageField uploads
-STORAGES = {
-    "default": {
-        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-    },
-    "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-    },
-}
+# Use Backblaze B2 only when credentials are configured. Local development falls
+# back to MEDIA_ROOT so generated manuscript submissions do not crash without S3.
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
 
 
 # =============================================================================
@@ -505,6 +507,24 @@ STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
 FAPSHI_API_USER = config('FAPSHI_API_USER', default='')
 FAPSHI_API_KEY = config('FAPSHI_API_KEY', default='')
 FAPSHI_BASE_URL = config('FAPSHI_BASE_URL', default='https://live.fapshi.com')
+
+
+# =============================================================================
+# AI WRITING ASSISTANT CONFIGURATION
+# =============================================================================
+
+DEEPSEEK_API_KEY = config('DEEPSEEK_API_KEY', default='')
+DEEPSEEK_MODEL = config('DEEPSEEK_MODEL', default='deepseek-v4-flash')
+DEEPSEEK_API_BASE_URL = config('DEEPSEEK_API_BASE_URL', default='https://api.deepseek.com')
+DEEPSEEK_TIMEOUT = config('DEEPSEEK_TIMEOUT', default=60, cast=int)
+REEPLS_AI_CONTEXT_POLICY = config('REEPLS_AI_CONTEXT_POLICY', default='balanced')
+REEPLS_AI_MAX_INPUT_CHARS_REWRITE = config('REEPLS_AI_MAX_INPUT_CHARS_REWRITE', default=9000, cast=int)
+REEPLS_AI_MAX_INPUT_CHARS_CONTINUE = config('REEPLS_AI_MAX_INPUT_CHARS_CONTINUE', default=16000, cast=int)
+REEPLS_AI_MAX_INPUT_CHARS_OUTLINE = config('REEPLS_AI_MAX_INPUT_CHARS_OUTLINE', default=22000, cast=int)
+REEPLS_AI_DEEP_SELECTION_CHUNK_CHARS = config('REEPLS_AI_DEEP_SELECTION_CHUNK_CHARS', default=12000, cast=int)
+REEPLS_AI_DEEP_MAX_SELECTION_CHARS = config('REEPLS_AI_DEEP_MAX_SELECTION_CHARS', default=60000, cast=int)
+REEPLS_AI_BALANCED_MAX_SELECTION_CHARS = config('REEPLS_AI_BALANCED_MAX_SELECTION_CHARS', default=18000, cast=int)
+REEPLS_AI_MAX_OUTPUT_TOKENS = config('REEPLS_AI_MAX_OUTPUT_TOKENS', default=1800, cast=int)
 
 
 # =============================================================================

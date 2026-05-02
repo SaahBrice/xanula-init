@@ -39,6 +39,15 @@ urlpatterns = [
     path('purchase/fapshi/<int:book_id>/', views.create_fapshi_checkout, name='create_fapshi_checkout'),
     path('purchase/fapshi/return/<int:purchase_id>/', views.fapshi_return, name='fapshi_return'),
     path('api/check-purchase-status/<int:purchase_id>/', views.check_purchase_status_api, name='check_purchase_status_api'),
+
+    # Reepls AI Tokens
+    path('ai-tokens/status/', views.ai_token_status_api, name='ai_token_status'),
+    path('ai-tokens/success/<int:purchase_id>/', views.ai_token_success_page, name='ai_token_success'),
+    path('ai-tokens/stripe/', views.create_ai_token_stripe_checkout, name='ai_token_stripe_checkout'),
+    path('ai-tokens/stripe/success/<int:purchase_id>/', views.ai_token_stripe_success, name='ai_token_stripe_success'),
+    path('ai-tokens/fapshi/', views.create_ai_token_fapshi_checkout, name='ai_token_fapshi_checkout'),
+    path('ai-tokens/fapshi/return/<int:purchase_id>/', views.ai_token_fapshi_return, name='ai_token_fapshi_return'),
+    path('api/ai-tokens/purchase-status/<int:purchase_id>/', views.check_ai_token_purchase_status_api, name='ai_token_purchase_status'),
     
     # User Library
     path('library/', views.user_library, name='library'),

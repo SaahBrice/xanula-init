@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Write" %} — Xanula{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-10" x-data="{ showCreate: {% if create_error %}true{% else %}false{% endif %}, createMode: '{{ create_mode|default:'scratch' }}', deleteTarget: null }">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="font-display text-3xl font-bold text-gray-900 dark:text-white">{% trans "Your Manuscripts" %}</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">{% trans "Write, draft, and craft your books." %}</p>
+        </div>
+        <button @click="showCreate = true; $nextTick(() => $refs.titleInput.focus())"
+            class="btn btn-primary flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            {% trans "New Book" %}
+        </button>
+    </div>
+
+    <!-- Create modal -->
+    <div x-show="showCreate" x-cloak @keydown.escape.window="showCreate = false"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50" @click="showCreate = false"></div>
+        <div class="relative bg-white dark:bg-dark-100 rounded-2xl shadow-2xl w-full max-w-xl p-6" @click.stop>
+            <div class="mb-5">
+                <h2 class="font-display text-xl font-semibold text-gray-900 dark:text-white">{% trans "New Manuscript" %}</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{% trans "Start with a blank page or import an existing DOCX/PDF manuscript." %}</p>
+            </div>
+            {% if create_error %}
+            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">
+                {{ create_error }}
+            </div>
+            {% endif %}
+            <form method="post" action="{% url 'write:create' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{% trans "Book Title" %}</label>
+                <input
+                    type="text"
+                    name="title"
+                    x-ref="titleInput"
+                    value="{{ create_title|default:'' }}"
+                    placeholder="{% trans 'Enter a title...' %}"
+                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-200 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-burgundy-500 focus:border-transparent"
+                    required
+                >
+                <input type="hidden" name="create_mode" :value="createMode">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+                    <button type="button"
+                        @click="createMode = 'scratch'"
+                        :class="createMode === 'scratch' ? 'border-burgundy-500 bg-burgundy-50 dark:bg-burgundy-900/20 text-burgundy-700 dark:text-burgundy-200' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300'"
+                        class="text-left rounded-xl border p-4 transition-colors">
+                        <span class="flex items-center gap-2 font-semibold">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m7-7H5"/>
+                            </svg>
+                            {% trans "Start from scratch" %}
+                        </span>
+                        <span class="block text-xs text-gray-500 dark:text-gray-400 mt-2">{% trans "Open a clean editor and begin writing." %}</span>
+                    </button>
+                    <button type="button"
+                        @click="createMode = 'upload'"
+                        :class="createMode === 'upload' ? 'border-burgundy-500 bg-burgundy-50 dark:bg-burgundy-900/20 text-burgundy-700 dark:text-burgundy-200' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300'"
+                        class="text-left rounded-xl border p-4 transition-colors">
+                        <span class="flex items-center gap-2 font-semibold">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4-4 4M4 20h16"/>
+                            </svg>
+                            {% trans "Upload manuscript" %}
+                        </span>
+                        <span class="block text-xs text-gray-500 dark:text-gray-400 mt-2">{% trans "Import DOCX or PDF text without saving the file." %}</span>
+                    </button>
+                </div>
+                <div x-show="createMode === 'upload'" x-cloak class="mt-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-dark-200 p-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{% trans "Manuscript file" %}</label>
+                    <input
+                        type="file"
+                        name="manuscript_file"
+                        accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        class="block w-full text-sm text-gray-700 dark:text-gray-300 file:mr-4 file:rounded-lg file:border-0 file:bg-burgundy-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-burgundy-700"
+                    >
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">{% trans "DOCX or readable PDF only. Maximum size: 10 MB. The original file is processed then discarded." %}</p>
+                </div>
+                <div class="flex justify-end gap-3 mt-5">
+                    <button type="button" @click="showCreate = false" class="btn btn-secondary">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span x-text="createMode === 'upload' ? '{% trans "Import and open" %}' : '{% trans "Create" %}'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manuscript list -->
+    {% if manuscripts %}
+    <div class="grid gap-4">
+        {% for ms in manuscripts %}
+        <div class="group bg-white dark:bg-dark-100 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-burgundy-400 hover:shadow-md transition-all p-5">
+            <div class="flex items-start justify-between gap-4">
+                <a href="{% url 'write:editor' ms.pk %}" class="min-w-0 flex-1">
+                    <h3 class="font-display text-lg font-semibold text-gray-900 dark:text-white group-hover:text-burgundy-600 dark:group-hover:text-burgundy-400 truncate">
+                        {{ ms.title }}
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {% trans "Last edited" %} {{ ms.updated_at|timesince }} {% trans "ago" %}
+                    </p>
+                </a>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <a href="{% url 'write:editor' ms.pk %}" class="p-2 rounded-lg text-gray-400 group-hover:text-burgundy-500 hover:bg-gray-100 dark:hover:bg-dark-200 transition-colors" title="{% trans 'Open manuscript' %}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                        </svg>
+                    </a>
+                    <button type="button"
+                        @click="deleteTarget = { title: '{{ ms.title|escapejs }}', url: '{% url 'write:delete' ms.pk %}' }"
+                        class="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                        title="{% trans 'Delete manuscript' %}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12m-9 0V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-.7 11.2A2 2 0 0 1 14.3 20H9.7a2 2 0 0 1-2-1.8L7 7m3 4v5m4-5v5"/>
+                        </svg>
+                        <span class="sr-only">{% trans "Delete manuscript" %}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty state -->
+    <div class="text-center py-20">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-burgundy-50 dark:bg-burgundy-900/20 flex items-center justify-center">
+            <svg class="w-8 h-8 text-burgundy-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+            </svg>
+        </div>
+        <h3 class="font-display text-xl font-semibold text-gray-900 dark:text-white mb-2">{% trans "No manuscripts yet" %}</h3>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">{% trans "Start writing your first book." %}</p>
+        <button @click="showCreate = true; $nextTick(() => $refs.titleInput.focus())"
+            class="btn btn-primary">{% trans "Create New Book" %}</button>
+    </div>
+    {% endif %}
+
+    <div x-show="deleteTarget" x-cloak @keydown.escape.window="deleteTarget = null"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50" @click="deleteTarget = null"></div>
+        <div class="relative bg-white dark:bg-dark-100 rounded-2xl shadow-2xl w-full max-w-md p-6" @click.stop>
+            <div class="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-300 flex items-center justify-center mb-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12m-9 0V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-.7 11.2A2 2 0 0 1 14.3 20H9.7a2 2 0 0 1-2-1.8L7 7m3 4v5m4-5v5"/>
+                </svg>
+            </div>
+            <h2 class="font-display text-xl font-semibold text-gray-900 dark:text-white">{% trans "Delete manuscript?" %}</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                {% trans "You are about to permanently delete" %}
+                <strong class="text-gray-900 dark:text-white" x-text="deleteTarget?.title"></strong>.
+                {% trans "This cannot be undone." %}
+            </p>
+            <form method="post" :action="deleteTarget?.url" class="flex justify-end gap-3 mt-6">
+                {% csrf_token %}
+                <button type="button" @click="deleteTarget = null" class="btn btn-secondary">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn bg-red-600 text-white hover:bg-red-700">{% trans "Delete forever" %}</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

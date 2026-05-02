@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% if success %}{% trans "AI Tokens Added" %}{% else %}{% trans "AI Token Payment" %}{% endif %} - Xanula{% endblock %}
+
+{% block content %}
+<div class="container py-12 max-w-lg mx-auto text-center">
+    {% if success %}
+    <div class="mb-8">
+        <div class="w-20 h-20 bg-forest-100 dark:bg-forest-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-forest-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+        <h1 class="font-display text-3xl font-bold text-gray-900 dark:text-white mb-2">{% trans "AI tokens added" %}</h1>
+        <p class="text-gray-600 dark:text-gray-400">{% trans "Your Reepls AI balance has been updated." %}</p>
+    </div>
+    {% else %}
+    <div class="mb-8">
+        <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </div>
+        <h1 class="font-display text-3xl font-bold text-gray-900 dark:text-white mb-2">{% trans "Payment not completed" %}</h1>
+        <p class="text-gray-600 dark:text-gray-400">{{ error_message|default:_("We could not complete this token purchase.") }}</p>
+    </div>
+    {% endif %}
+
+    <div class="bg-white dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-8 text-left">
+        <div class="text-center border-b border-gray-100 dark:border-gray-700 pb-5 mb-5">
+            <p class="text-sm uppercase tracking-wide text-gray-500">{% trans "Purchased" %}</p>
+            <p class="font-display text-4xl font-bold text-gray-900 dark:text-white">{{ purchase.token_amount|floatformat:0 }}</p>
+            <p class="text-sm text-gray-500">{% trans "Reepls AI tokens" %}</p>
+        </div>
+        <div class="space-y-3 text-sm">
+            <div class="flex justify-between gap-4">
+                <span class="text-gray-500">{% trans "Amount" %}</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{ purchase.amount_xaf|floatformat:0 }} FCFA / €{{ purchase.amount_eur }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+                <span class="text-gray-500">{% trans "Payment method" %}</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{ payment_method_label }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+                <span class="text-gray-500">{% trans "Token balance" %}</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{ token_status.balance_display }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+                <span class="text-gray-500">{% trans "Transaction" %}</span>
+                <span class="font-mono text-xs text-gray-600 dark:text-gray-400">{{ purchase.payment_transaction_id|truncatechars:24 }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-3">
+        <a href="{{ return_path }}" class="btn btn-primary btn-lg btn-block">{% trans "Back to writing" %}</a>
+        <a href="{% url 'write:landing' %}" class="btn btn-secondary btn-block">{% trans "My manuscripts" %}</a>
+    </div>
+
+    {% if not success %}
+    <p class="text-sm text-gray-500 mt-6">
+        {% trans "If you were charged, please" %} <a href="mailto:support@xanula.com" class="text-burgundy-500 hover:underline">{% trans "contact support" %}</a>.
+    </p>
+    {% endif %}
+</div>
+{% endblock %}

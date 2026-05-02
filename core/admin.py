@@ -7,7 +7,23 @@ from django.contrib import messages
 from datetime import date
 from django.utils import timezone
 
-from .models import Book, Purchase, LibraryEntry, Review, PayoutRequest, HardCopyRequest, UpfrontPaymentApplication, Donation, ReferralSettings, FeaturedBook, Notification
+from .models import (
+    AITokenLedgerEntry,
+    AITokenPurchase,
+    AITokenSettings,
+    AITokenWallet,
+    Book,
+    Purchase,
+    LibraryEntry,
+    Review,
+    PayoutRequest,
+    HardCopyRequest,
+    UpfrontPaymentApplication,
+    Donation,
+    ReferralSettings,
+    FeaturedBook,
+    Notification,
+)
 
 
 @admin.register(Book)
@@ -288,6 +304,118 @@ class PurchaseAdmin(admin.ModelAdmin):
     def author_earning_display(self, obj):
         return f"{obj.author_earning:,.0f} XAF"
     author_earning_display.short_description = _('Author Earning')
+
+
+@admin.register(AITokenSettings)
+class AITokenSettingsAdmin(admin.ModelAdmin):
+    list_display = (
+        'free_initial_tokens',
+        'usage_multiplier',
+        'minimum_request_tokens',
+        'low_balance_threshold',
+        'input_context_weight',
+        'output_chars_per_token',
+        'analyze_flat_tokens',
+        'base_bundle_tokens',
+        'base_price_xaf',
+    )
+
+    fieldsets = (
+        (_('Free Tokens'), {
+            'fields': ('free_initial_tokens',),
+        }),
+        (_('Usage Deduction'), {
+            'fields': (
+                'usage_multiplier',
+                'minimum_request_tokens',
+                'low_balance_threshold',
+                'input_context_weight',
+                'output_chars_per_token',
+                'analyze_flat_tokens',
+                'analyze_multiplier',
+                'generate_multiplier',
+            ),
+            'description': _('Reepls tokens are writing credits: output costs normally, context is heavily discounted, and memory refresh has a flat bounded charge.'),
+        }),
+        (_('Bundle Pricing'), {
+            'fields': (
+                'base_bundle_tokens',
+                'base_price_xaf',
+                'custom_min_tokens',
+                'custom_step_tokens',
+            ),
+            'description': _('Set token price in FCFA/XAF. Mobile Money uses FCFA directly; card checkout converts FCFA to EUR using the platform fixed rate of 655 XAF per EUR.'),
+        }),
+    )
+
+    field_help_texts = {
+        'free_initial_tokens': _('Tokens granted once, automatically, the first time a user starts a paid AI action.'),
+        'usage_multiplier': _('Global speed of token deduction. Lower values make tokens last longer; higher values spend tokens faster.'),
+        'minimum_request_tokens': _('Smallest charge for any successful paid AI request. Failed requests and local scans are free.'),
+        'low_balance_threshold': _('Balance at or below this number is shown as low in the editor.'),
+        'input_context_weight': _('How much prompt/context text counts toward usage. Keep this low because book context can be large.'),
+        'output_chars_per_token': _('How generated text is charged when provider token usage is unavailable. Higher values make generated output cheaper.'),
+        'analyze_flat_tokens': _('Fixed charge for memory refresh/analyze requests, regardless of manuscript size.'),
+        'analyze_multiplier': _('Extra multiplier for memory refresh/analyze charges.'),
+        'generate_multiplier': _('Extra multiplier for writing, rewrite, summary, outline, and regenerate charges.'),
+        'base_bundle_tokens': _('Token bundle size used as the pricing base, for example 5000 tokens.'),
+        'base_price_xaf': _('FCFA/XAF price for the base token bundle. This is the source of truth for both Mobile Money and Card prices.'),
+        'custom_min_tokens': _('Minimum custom purchase amount users can enter.'),
+        'custom_step_tokens': _('Custom purchase amounts are rounded up to this token step.'),
+    }
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        formfield = super().formfield_for_dbfield(db_field, request, **kwargs)
+        if formfield and db_field.name in self.field_help_texts:
+            formfield.help_text = self.field_help_texts[db_field.name]
+        return formfield
+
+    def has_add_permission(self, request):
+        return not AITokenSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(AITokenWallet)
+class AITokenWalletAdmin(admin.ModelAdmin):
+    list_display = ('user', 'balance', 'total_granted', 'total_purchased', 'total_used', 'free_grant_at', 'updated_at')
+    search_fields = ('user__email', 'user__display_name')
+    readonly_fields = ('user', 'balance', 'total_granted', 'total_purchased', 'total_used', 'free_grant_at', 'created_at', 'updated_at')
+    list_filter = ('free_grant_at',)
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(AITokenLedgerEntry)
+class AITokenLedgerEntryAdmin(admin.ModelAdmin):
+    list_display = ('user', 'entry_type', 'delta', 'balance_after', 'action', 'reference', 'created_at')
+    list_filter = ('entry_type', 'action', 'created_at')
+    search_fields = ('user__email', 'user__display_name', 'reference')
+    readonly_fields = ('wallet', 'user', 'entry_type', 'delta', 'balance_after', 'action', 'reference', 'metadata', 'created_at')
+    date_hierarchy = 'created_at'
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(AITokenPurchase)
+class AITokenPurchaseAdmin(admin.ModelAdmin):
+    list_display = ('user', 'token_amount', 'amount_xaf', 'amount_eur', 'payment_method', 'payment_status', 'credited_at', 'created_at')
+    list_filter = ('payment_method', 'payment_status', 'credited_at', 'created_at')
+    search_fields = ('user__email', 'user__display_name', 'payment_transaction_id')
+    readonly_fields = ('user', 'token_amount', 'amount_xaf', 'amount_eur', 'payment_method', 'payment_transaction_id', 'credited_at', 'return_path', 'created_at', 'updated_at')
+    date_hierarchy = 'created_at'
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(LibraryEntry)

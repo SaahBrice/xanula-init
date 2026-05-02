@@ -31,6 +31,9 @@ urlpatterns = [
     
     # Core app (book-related functionality) - must be before PWA for homepage
     path("", include("core.urls")),
+
+    # Write app (manuscript writing interface)
+    path("write/", include("write.urls")),
     
     # CKEditor 5
     path("ckeditor5/", include("django_ckeditor_5.urls")),
