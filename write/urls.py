@@ -13,5 +13,6 @@ urlpatterns = [
     path('<int:manuscript_id>/ai/analyze/', views.ai_analyze, name='ai_analyze'),
     path('<int:manuscript_id>/ai/profile/', views.ai_profile, name='ai_profile'),
     path('<int:manuscript_id>/ai/inspect/', views.ai_inspect, name='ai_inspect'),
+    path('<int:manuscript_id>/ai/preflight/', views.ai_preflight, name='ai_preflight'),
     path('<int:manuscript_id>/ai/generate/', views.ai_generate, name='ai_generate'),
 ]

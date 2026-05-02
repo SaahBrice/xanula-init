@@ -76,6 +76,14 @@ LONGFORM_TARGET_CHARS = 700000
 SECTION_CHUNK_CHARS = 2400
 MAX_INDEXED_CHUNKS = 360
 COST_MODES = {"fast", "balanced", "deep"}
+SELECTION_TRANSFORM_ACTIONS = {"rewrite", "expand", "improve", "summarize"}
+DEEP_SELECTION_CHUNK_CHARS = 12000
+DEEP_SELECTION_MAX_CHARS = 60000
+BALANCED_SELECTION_MAX_CHARS = 18000
+CUSTOM_SELECTION_REPLACEMENT_TERMS = {
+    "rewrite", "improve", "polish", "shorten", "condense", "summarize", "summary",
+    "expand this", "expand it", "fix", "edit", "revise", "change this", "replace",
+}
 
 ACTION_AGENT_LABELS = {
     "continue": "Continuing from cursor",
@@ -188,6 +196,171 @@ def _truncate(text, max_chars):
         return text
     cut = text[:max_chars].rsplit(" ", 1)[0].strip()
     return cut or text[:max_chars].strip()
+
+
+def _sentence_stop(text):
+    text = (text or "").strip()
+    if not text:
+        return ""
+    matches = list(re.finditer(r"[^.!?\n]+[.!?][\"')\]]*", text))
+    if matches:
+        return matches[-1].group(0).strip()
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if lines:
+        return lines[-1][-220:].strip()
+    return text[-220:].strip()
+
+
+def sentence_aware_clip(text, max_chars):
+    text = (text or "").strip()
+    if not max_chars or len(text) <= max_chars:
+        return text, _sentence_stop(text), False
+
+    window = text[:max_chars]
+    min_usable = max(160, int(max_chars * 0.35))
+    cut = 0
+    for match in re.finditer(r"[.!?][\"')\]]*(?:\s+|$)", window):
+        if match.end() >= min_usable:
+            cut = match.end()
+    if not cut:
+        para_cut = max(window.rfind("\n\n"), window.rfind("\n"))
+        if para_cut >= min_usable:
+            cut = para_cut
+    if not cut:
+        space_cut = window.rfind(" ")
+        cut = space_cut if space_cut >= min_usable else max_chars
+
+    clipped = text[:cut].strip()
+    return clipped, _sentence_stop(clipped), True
+
+
+def sentence_aware_chunks(text, max_chars):
+    text = (text or "").strip()
+    if not text:
+        return []
+    chunks = []
+    remaining = text
+    while remaining:
+        if len(remaining) <= max_chars:
+            chunks.append(remaining.strip())
+            break
+        chunk, _, _ = sentence_aware_clip(remaining, max_chars)
+        if not chunk:
+            chunk = remaining[:max_chars].strip()
+        chunks.append(chunk)
+        remaining = remaining[len(chunk):].strip()
+    return [chunk for chunk in chunks if chunk]
+
+
+def _selection_limit(action, cost_mode=None):
+    base_limit, policy = _context_limit(action, cost_mode)
+    if policy == "deep":
+        configured = getattr(settings, "REEPLS_AI_DEEP_SELECTION_CHUNK_CHARS", DEEP_SELECTION_CHUNK_CHARS)
+        if action in {"rewrite", "improve", "custom"}:
+            return min(configured, 4500), policy
+        if action == "expand":
+            return min(configured, 3000), policy
+        return configured, policy
+    if policy == "balanced":
+        if action in {"rewrite", "improve", "custom"}:
+            return 2500, policy
+        if action == "expand":
+            return 1800, policy
+        if action == "summarize":
+            return min(6000, max(2500, math.floor(base_limit * 0.7))), policy
+    return max(1200, math.floor(base_limit * 0.5)), policy
+
+
+def _selection_uses_ai_coverage(action, selected_text="", user_prompt=""):
+    if not (selected_text or "").strip():
+        return False
+    if action in SELECTION_TRANSFORM_ACTIONS:
+        return True
+    if action == "custom":
+        return bool((user_prompt or "").strip())
+    return False
+
+
+def _selection_is_chunkable(action, user_prompt=""):
+    if action in SELECTION_TRANSFORM_ACTIONS:
+        return True
+    if action != "custom":
+        return False
+    prompt = (user_prompt or "").lower()
+    return any(term in prompt for term in CUSTOM_SELECTION_REPLACEMENT_TERMS)
+
+
+def selection_coverage_for(action, selected_text="", user_prompt="", cost_mode=None):
+    selected_text = (selected_text or "").strip()
+    policy = normalize_cost_mode(cost_mode or getattr(settings, "REEPLS_AI_CONTEXT_POLICY", "balanced"))
+    uses_selection = _selection_uses_ai_coverage(action, selected_text, user_prompt)
+    limit, policy = _selection_limit(action, policy)
+    selection_chars = len(selected_text)
+    selection_words = len(re.findall(r"\S+", selected_text))
+    clipped, stop_sentence, truncated = sentence_aware_clip(selected_text, limit)
+    deep_max = getattr(settings, "REEPLS_AI_DEEP_MAX_SELECTION_CHARS", DEEP_SELECTION_MAX_CHARS)
+    balanced_max = getattr(settings, "REEPLS_AI_BALANCED_MAX_SELECTION_CHARS", BALANCED_SELECTION_MAX_CHARS)
+
+    coverage = {
+        "allowed": True,
+        "action": action,
+        "cost_mode": policy,
+        "uses_selection": uses_selection,
+        "selection_chars": selection_chars,
+        "selection_words": selection_words,
+        "limit_chars": limit,
+        "chunk_chars": limit if policy in {"balanced", "deep"} else 0,
+        "usable_chars": len(clipped),
+        "stop_sentence": stop_sentence,
+        "recommended_mode": "",
+        "chunking_available": False,
+        "chunkable": _selection_is_chunkable(action, user_prompt),
+        "estimated_chunks": 1 if selected_text else 0,
+        "selection_truncated": False,
+        "coverage_message": "",
+    }
+    if not uses_selection:
+        coverage["coverage_message"] = "This action does not need to transform the selected text."
+        return coverage
+    if not truncated:
+        coverage["coverage_message"] = f"{policy.title()} can cover the full selection."
+        return coverage
+    if policy in {"balanced", "deep"}:
+        if not coverage["chunkable"]:
+            coverage["allowed"] = False
+            coverage["recommended_mode"] = "split_selection"
+            coverage["coverage_message"] = (
+                f"{policy.title()} can use a large custom selection when the instruction rewrites, summarizes, or expands it. "
+                "For idea/context prompts, select a smaller passage so Reepls does not guess which parts matter."
+            )
+            return coverage
+        max_chars = deep_max if policy == "deep" else balanced_max
+        coverage["chunking_available"] = selection_chars <= max_chars
+        coverage["estimated_chunks"] = math.ceil(selection_chars / max(limit, 1))
+        coverage["limit_chars"] = max_chars
+        coverage["chunk_chars"] = limit
+        if selection_chars > max_chars:
+            coverage["allowed"] = False
+            coverage["recommended_mode"] = "split_selection" if policy == "deep" else "deep"
+            coverage["coverage_message"] = (
+                f"{policy.title()} can process up to {max_chars:,} selected characters at once. "
+                + ("Switch to Deep or split this selection into smaller parts." if policy == "balanced" else "Split this selection into smaller parts and try again.")
+            )
+        else:
+            coverage["coverage_message"] = (
+                f"{policy.title()} will process the full selection in {coverage['estimated_chunks']} chunks. "
+                "This may use more tokens."
+            )
+        return coverage
+
+    coverage["allowed"] = False
+    coverage["selection_truncated"] = True
+    coverage["recommended_mode"] = "balanced" if policy == "fast" else "deep"
+    coverage["coverage_message"] = (
+        f"{policy.title()} can work with the first {len(clipped):,} characters of this selection. "
+        f"It would stop after: \"{stop_sentence}\""
+    )
+    return coverage
 
 
 def _inline_text(node):
@@ -1026,6 +1199,7 @@ def _chapter_memory_for_section(chapter_memory, current_section):
 
 def build_generation_context(manuscript, action, selected_text="", cursor_context="", user_prompt="", cost_mode=None):
     text = extract_text(manuscript.content)
+    original_selected_chars = len((selected_text or "").strip())
     voice = normalize_voice(manuscript.ai_voice) if manuscript.ai_voice else analyze_voice(text, profile=manuscript.ai_profile)
     lens = infer_book_lens(manuscript.ai_profile, text)
     if not voice.get("book_lens"):
@@ -1036,7 +1210,8 @@ def build_generation_context(manuscript, action, selected_text="", cursor_contex
     entities = normalize_entities(manuscript.ai_entities) if manuscript.ai_entities else analyze_entities(text)
     stale = normalize_stale(manuscript.ai_memory_stale)
     limit, policy = _context_limit(action, cost_mode or getattr(manuscript, "ai_cost_mode", "balanced"))
-    selected_text = _truncate(selected_text, min(6000, limit // 2))
+    selection_budget, _ = _selection_limit(action, policy)
+    selected_text = _truncate(selected_text, selection_budget)
     cursor_context = _truncate(cursor_context, min(4000, limit // 3))
     current_section = _current_section(chapter_map, cursor_context)
     retrieval_query = "\n\n".join(part for part in [user_prompt, selected_text, cursor_context, current_section.get("preview", "")] if part)
@@ -1139,6 +1314,9 @@ def build_generation_context(manuscript, action, selected_text="", cursor_contex
             "usage_hint": usage_hint,
             "input_chars": input_chars,
             "selected_chars": len(selected_text),
+            "original_selected_chars": original_selected_chars,
+            "selection_limit_chars": selection_budget,
+            "selection_truncated": original_selected_chars > len(selected_text),
             "cursor_chars": len(cursor_context),
             "prompt_chars": len(user_prompt),
             "excerpt_chars": len(manuscript_excerpt),

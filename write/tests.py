@@ -12,6 +12,7 @@ from PIL import Image
 
 from core.models import AITokenLedgerEntry, AITokenSettings, AITokenWallet, Book
 from .ai import (
+    AISelectionCoverageError,
     AIServiceError,
     action_output_contract,
     build_word_diff,
@@ -34,6 +35,8 @@ from .intelligence import (
     memory_freshness,
     next_memory_meta,
     retrieve_relevant_sections,
+    selection_coverage_for,
+    sentence_aware_clip,
     validate_output,
 )
 from .models import Manuscript
@@ -102,6 +105,19 @@ class BookIntelligenceTests(TestCase):
         self.assertIn("same scope", rewrite["instruction"])
         self.assertIn("summarize only that selection", summarize["instruction"])
         self.assertIn("Do not say 'the passage'", summarize["instruction"])
+
+    def test_balanced_and_deep_output_contracts_scale_for_large_selection_chunks(self):
+        selected = "Mara watched the river and waited for morning. " * 180
+
+        fast = action_output_contract("rewrite", selected, "fast")
+        balanced = action_output_contract("rewrite", selected, "balanced")
+        deep = action_output_contract("rewrite", selected, "deep")
+
+        self.assertLess(fast["max_words"], balanced["max_words"])
+        self.assertGreater(balanced["max_words"], 700)
+        self.assertGreater(deep["max_words"], 900)
+        self.assertGreater(balanced["max_tokens"], fast["max_tokens"])
+        self.assertGreater(deep["max_tokens"], balanced["max_tokens"])
 
     def test_enforce_action_length_prevents_runaway_selected_text_output(self):
         selected = "Short selected paragraph with a few details."
@@ -172,6 +188,80 @@ class BookIntelligenceTests(TestCase):
             rewrite_context["context_summary"]["excerpt_chars"],
             outline_context["context_summary"]["excerpt_chars"],
         )
+
+    @override_settings(
+        REEPLS_AI_CONTEXT_POLICY="balanced",
+        REEPLS_AI_MAX_INPUT_CHARS_REWRITE=1000,
+        REEPLS_AI_DEEP_SELECTION_CHUNK_CHARS=220,
+        REEPLS_AI_DEEP_MAX_SELECTION_CHARS=6000,
+        REEPLS_AI_BALANCED_MAX_SELECTION_CHARS=6000,
+    )
+    def test_selection_coverage_blocks_fast_and_chunks_balanced_or_deep(self):
+        selected = (
+            "Mara watched the river until the moon rose over the trees. "
+            "John waited beside the gate, holding the old letter in silence. "
+        ) * 25
+
+        clipped, stop_sentence, truncated = sentence_aware_clip(selected, 180)
+        fast = selection_coverage_for("rewrite", selected, cost_mode="fast")
+        balanced = selection_coverage_for("rewrite", selected, cost_mode="balanced")
+        deep = selection_coverage_for("rewrite", selected, cost_mode="deep")
+
+        self.assertTrue(truncated)
+        self.assertTrue(stop_sentence.endswith("."))
+        self.assertLess(len(clipped), len(selected))
+        self.assertFalse(fast["allowed"])
+        self.assertEqual(fast["recommended_mode"], "balanced")
+        self.assertTrue(balanced["allowed"])
+        self.assertTrue(balanced["chunking_available"])
+        self.assertGreater(balanced["estimated_chunks"], 1)
+        self.assertTrue(deep["allowed"])
+        self.assertTrue(deep["chunking_available"])
+        self.assertGreater(deep["estimated_chunks"], 1)
+
+    @override_settings(REEPLS_AI_MAX_INPUT_CHARS_REWRITE=1000)
+    def test_generate_draft_refuses_oversized_fast_selection_before_ai_call(self):
+        class FakeClient:
+            def chat(self, messages, **kwargs):
+                raise AssertionError("Provider should not be called for blocked coverage.")
+
+        user = get_user_model().objects.create_user(email="coverage@example.com", password="pass12345")
+        manuscript = Manuscript.objects.create(user=user, title="Coverage Book")
+        selected = "Mara watched the river. " * 200
+
+        with self.assertRaises(AISelectionCoverageError):
+            generate_draft(manuscript, "rewrite", selected_text=selected, cost_mode="fast", client=FakeClient())
+
+    @override_settings(
+        REEPLS_AI_MAX_INPUT_CHARS_REWRITE=1000,
+        REEPLS_AI_BALANCED_MAX_SELECTION_CHARS=6000,
+    )
+    def test_generate_draft_combines_balanced_chunks(self):
+        class FakeClient:
+            def __init__(self):
+                self.calls = 0
+                self.last_usage = {}
+
+            def chat(self, messages, **kwargs):
+                self.calls += 1
+                self.last_usage = {"total_tokens": 10}
+                return f"Rewritten chunk {self.calls}."
+
+        client = FakeClient()
+        user = get_user_model().objects.create_user(email="chunked@example.com", password="pass12345")
+        manuscript = Manuscript.objects.create(user=user, title="Chunked Book")
+        selected = (
+            "Mara watched the river until the moon rose over the trees. "
+            "John waited beside the gate, holding the old letter in silence. "
+        ) * 25
+
+        result = generate_draft(manuscript, "rewrite", selected_text=selected, cost_mode="balanced", client=client)
+
+        self.assertGreater(client.calls, 1)
+        self.assertIn("Rewritten chunk 1.", result["draft"])
+        self.assertEqual(result["context_summary"]["chunk_count"], client.calls)
+        self.assertEqual(result["context_summary"]["provider_usage"]["total_tokens"], client.calls * 10)
+        self.assertEqual(result["usage_hint"], "balanced chunked context")
 
     def test_safety_checker_flags_empty_and_name_heavy_output(self):
         self.assertIn("empty", validate_output("continue", "", "", {})[0])

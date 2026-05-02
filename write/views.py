@@ -16,6 +16,7 @@ from core.ai_tokens import (
 )
 from .ai import (
     AIConfigurationError,
+    AISelectionCoverageError,
     AIServiceError,
     analyze_manuscript,
     extract_tiptap_text,
@@ -41,6 +42,7 @@ from .intelligence import (
     normalize_usage,
     normalize_voice,
     reset_stale_for,
+    selection_coverage_for,
 )
 from .docx_export import manuscript_docx_filename, manuscript_to_docx_bytes, submission_prefill_for
 from .models import Manuscript
@@ -300,6 +302,28 @@ def ai_inspect(request, manuscript_id):
 
 @login_required
 @require_POST
+def ai_preflight(request, manuscript_id):
+    manuscript = get_object_or_404(Manuscript, pk=manuscript_id, user=request.user)
+    try:
+        data = json.loads(request.body)
+        coverage = selection_coverage_for(
+            data.get('action', ''),
+            selected_text=data.get('selected_text', ''),
+            user_prompt=data.get('user_prompt', ''),
+            cost_mode=data.get('cost_mode', manuscript.ai_cost_mode),
+        )
+        return JsonResponse({
+            'status': 'ok',
+            'coverage': coverage,
+            **coverage,
+            **_token_payload(request),
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+
+
+@login_required
+@require_POST
 def ai_generate(request, manuscript_id):
     manuscript = get_object_or_404(Manuscript, pk=manuscript_id, user=request.user)
     try:
@@ -356,5 +380,14 @@ def ai_generate(request, manuscript_id):
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
     except InsufficientAITokens as exc:
         return _insufficient_tokens_response(request, exc)
+    except AISelectionCoverageError as exc:
+        return JsonResponse({
+            'status': 'error',
+            'code': 'selection_coverage',
+            'message': str(exc),
+            'coverage': exc.coverage,
+            **exc.coverage,
+            **_token_payload(request),
+        }, status=400)
     except (AIConfigurationError, AIServiceError) as exc:
         return _ai_error_response(exc)

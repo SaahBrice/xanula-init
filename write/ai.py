@@ -12,6 +12,8 @@ from .intelligence import (
     normalize_chapter_memory,
     normalize_cost_mode,
     record_usage,
+    selection_coverage_for,
+    sentence_aware_chunks,
     validate_output,
 )
 
@@ -22,6 +24,14 @@ class AIConfigurationError(Exception):
 
 class AIServiceError(Exception):
     """Raised when the AI provider cannot produce a usable response."""
+
+
+class AISelectionCoverageError(AIServiceError):
+    """Raised when a selected passage exceeds the current coverage policy."""
+
+    def __init__(self, coverage):
+        self.coverage = coverage
+        super().__init__(coverage.get("coverage_message") or "The selected text is too large for this mode.")
 
 
 DEFAULT_PROFILE = {
@@ -331,41 +341,72 @@ def build_word_diff(original, draft):
     return rows[:900]
 
 
-def action_output_contract(action, selected_text=""):
+def _apply_cost_mode_to_contract(contract, action, cost_mode="balanced"):
+    policy = normalize_cost_mode(cost_mode)
+    if policy == "balanced":
+        return contract
+    if policy == "fast":
+        factor = 0.75
+    else:
+        return contract
+    return {
+        **contract,
+        "max_tokens": max(100, int(contract["max_tokens"] * factor)),
+        "max_words": max(30, int(contract["max_words"] * factor)),
+    }
+
+
+def action_output_contract(action, selected_text="", cost_mode="balanced"):
     selected_words = _word_count(selected_text)
+    policy = normalize_cost_mode(cost_mode)
     if action == "rewrite":
-        max_words = max(70, min(420, int(max(selected_words, 40) * 1.25)))
-        return {
-            "max_tokens": max(180, min(560, int(max_words * 1.7))),
+        if policy == "deep":
+            max_words = max(70, min(1200, int(max(selected_words, 40) * 1.15)))
+        elif policy == "balanced":
+            max_words = max(70, min(760, int(max(selected_words, 40) * 1.18)))
+        else:
+            max_words = max(70, min(420, int(max(selected_words, 40) * 1.25)))
+        return _apply_cost_mode_to_contract({
+            "max_tokens": max(180, min(2200 if policy == "deep" else 1300 if policy == "balanced" else 560, int(max_words * 1.7))),
             "max_words": max_words,
             "instruction": (
                 "Output only the rewritten selection. Keep the same scope, same moment, and close to the original length. "
                 "Do not add new scenes, new sections, explanations, headings, or continuation."
             ),
-        }
+        }, action, cost_mode)
     if action == "improve":
-        max_words = max(70, min(380, int(max(selected_words, 40) * 1.2)))
-        return {
-            "max_tokens": max(180, min(520, int(max_words * 1.7))),
+        if policy == "deep":
+            max_words = max(70, min(1200, int(max(selected_words, 40) * 1.08)))
+        elif policy == "balanced":
+            max_words = max(70, min(720, int(max(selected_words, 40) * 1.1)))
+        else:
+            max_words = max(70, min(380, int(max(selected_words, 40) * 1.2)))
+        return _apply_cost_mode_to_contract({
+            "max_tokens": max(180, min(2200 if policy == "deep" else 1250 if policy == "balanced" else 520, int(max_words * 1.7))),
             "max_words": max_words,
             "instruction": (
                 "Output only the improved selection. Keep the same meaning, same scope, and similar length. "
                 "Do not expand into additional plot, argument, or explanation."
             ),
-        }
+        }, action, cost_mode)
     if action == "expand":
-        max_words = max(110, min(650, int(max(selected_words, 50) * 2.1)))
-        return {
-            "max_tokens": max(260, min(900, int(max_words * 1.65))),
+        if policy == "deep":
+            max_words = max(110, min(1400, int(max(selected_words, 50) * 1.8)))
+        elif policy == "balanced":
+            max_words = max(110, min(900, int(max(selected_words, 50) * 1.85)))
+        else:
+            max_words = max(110, min(650, int(max(selected_words, 50) * 2.1)))
+        return _apply_cost_mode_to_contract({
+            "max_tokens": max(260, min(2400 if policy == "deep" else 1500 if policy == "balanced" else 900, int(max_words * 1.65))),
             "max_words": max_words,
             "instruction": (
                 "Output only the expanded version of the selected passage. Add depth, texture, or clarity, "
                 "but stay within the same moment or idea."
             ),
-        }
+        }, action, cost_mode)
     if action == "summarize":
         max_words = max(35, min(130, int(max(selected_words, 60) * 0.45))) if selected_words else 130
-        return {
+        return _apply_cost_mode_to_contract({
             "max_tokens": max(110, min(240, int(max_words * 1.8))),
             "max_words": max_words,
             "instruction": (
@@ -373,33 +414,38 @@ def action_output_contract(action, selected_text=""):
                 "in the same language, as one compact paragraph. Do not say 'the passage', 'the text', "
                 "'the selected text', or speak to the author. Do not rewrite, continue, explain, or use bullets."
             ),
-        }
+        }, action, cost_mode)
     if action == "outline":
-        return {
+        return _apply_cost_mode_to_contract({
             "max_tokens": 850,
             "max_words": 520,
             "instruction": "Output a compact outline with clear next sections. Keep it practical and skimmable.",
-        }
+        }, action, cost_mode)
     if action == "custom":
         selected_words = selected_words or 140
-        max_words = max(90, min(650, int(selected_words * 1.8)))
-        return {
-            "max_tokens": max(220, min(950, int(max_words * 1.7))),
+        if policy == "deep":
+            max_words = max(90, min(1400, int(selected_words * 1.4)))
+        elif policy == "balanced":
+            max_words = max(90, min(900, int(selected_words * 1.35)))
+        else:
+            max_words = max(90, min(650, int(selected_words * 1.8)))
+        return _apply_cost_mode_to_contract({
+            "max_tokens": max(220, min(2400 if policy == "deep" else 1500 if policy == "balanced" else 950, int(max_words * 1.7))),
             "max_words": max_words,
             "instruction": (
                 "Follow the user's instruction exactly. Return only the resulting manuscript text, summary, outline, "
                 "or replacement requested by the user. Do not include commentary, reasoning, labels, or prefaces."
             ),
-        }
-    return {
+        }, action, cost_mode)
+    return _apply_cost_mode_to_contract({
         "max_tokens": 650,
         "max_words": 420,
         "instruction": "Output a short continuation only. Continue naturally from the cursor and stop before a new major beat.",
-    }
+    }, action, cost_mode)
 
 
-def enforce_action_length(text, action, selected_text=""):
-    contract = action_output_contract(action, selected_text)
+def enforce_action_length(text, action, selected_text="", cost_mode="balanced"):
+    contract = action_output_contract(action, selected_text, cost_mode)
     max_words = contract["max_words"]
     words = re.findall(r"\S+", text or "")
     if len(words) <= max_words:
@@ -494,7 +540,18 @@ def analyze_manuscript(manuscript, client=None):
     return normalize_profile(data.get("ai_profile", {})), normalize_memory(data.get("ai_memory", {}))
 
 
-def generate_draft(manuscript, action, selected_text="", cursor_context="", user_prompt="", regeneration_instruction="", cost_mode="", client=None):
+def _generate_single_draft(
+    manuscript,
+    action,
+    selected_text="",
+    cursor_context="",
+    user_prompt="",
+    regeneration_instruction="",
+    cost_mode="",
+    client=None,
+    chunk_instruction="",
+    coverage=None,
+):
     if action not in ACTION_INSTRUCTIONS:
         raise AIServiceError("Unknown AI action.")
     user_prompt = (user_prompt or "").strip()
@@ -520,7 +577,11 @@ def generate_draft(manuscript, action, selected_text="", cursor_context="", user
     if regeneration_instruction:
         payload["regeneration_instruction"] = regeneration_instruction
         payload["instruction"] = f"{payload['instruction']} Regenerate with this extra direction: {regeneration_instruction}."
-    output_contract = action_output_contract(action, selected_text)
+    chunk_instruction = (chunk_instruction or "").strip()
+    if chunk_instruction:
+        payload["chunk_instruction"] = chunk_instruction
+        payload["instruction"] = f"{payload['instruction']} {chunk_instruction}"
+    output_contract = action_output_contract(action, selected_text, cost_mode)
     payload["output_contract"] = {
         "max_words": output_contract["max_words"],
         "instruction": output_contract["instruction"],
@@ -556,7 +617,7 @@ def generate_draft(manuscript, action, selected_text="", cursor_context="", user
         ),
         temperature=0.75,
     ))
-    draft = enforce_action_length(draft, action, selected_text)
+    draft = enforce_action_length(draft, action, selected_text, cost_mode)
     safety_warnings = validate_output(action, draft, selected_text, payload.get("entities", {}))
     consistency_report = check_consistency(
         draft,
@@ -612,6 +673,147 @@ def generate_draft(manuscript, action, selected_text="", cursor_context="", user
         "context_summary": {
             **context["context_summary"],
             "provider_usage": getattr(client, "last_usage", {}) or {},
+            "coverage": coverage or selection_coverage_for(action, selected_text, user_prompt, cost_mode),
         },
         "usage": context["usage"],
     }
+
+
+def _merge_provider_usage(usages):
+    merged = {}
+    for usage in usages:
+        if not isinstance(usage, dict):
+            continue
+        for key, value in usage.items():
+            if isinstance(value, (int, float)):
+                merged[key] = merged.get(key, 0) + value
+    return merged
+
+
+def _generate_chunked_draft(manuscript, action, selected_text="", cursor_context="", user_prompt="", regeneration_instruction="", cost_mode="", client=None, coverage=None):
+    chunks = sentence_aware_chunks(selected_text, coverage.get("chunk_chars") if coverage else 12000)
+    if not chunks:
+        raise AIServiceError("The selected text is empty.")
+    client = client or DeepSeekClient()
+    drafts = []
+    input_chars = 0
+    provider_usages = []
+    chunk_steps = []
+    for index, chunk in enumerate(chunks, start=1):
+        previous_tail = chunks[index - 2][-500:] if index > 1 else ""
+        next_head = chunks[index][:500] if index < len(chunks) else ""
+        chunk_instruction = (
+            f"Process chunk {index} of {len(chunks)} from a larger selected passage. "
+            "Return only the transformed text for this chunk, not the surrounding chunks. "
+            "Preserve continuity with adjacent chunk context. "
+            f"Previous chunk ending: {previous_tail!r}. Next chunk beginning: {next_head!r}."
+        )
+        result = _generate_single_draft(
+            manuscript,
+            action,
+            selected_text=chunk,
+            cursor_context=cursor_context,
+            user_prompt=user_prompt,
+            regeneration_instruction=regeneration_instruction,
+            cost_mode=cost_mode,
+            client=client,
+            chunk_instruction=chunk_instruction,
+            coverage={**(coverage or {}), "chunk_index": index, "chunk_count": len(chunks)},
+        )
+        draft = result.get("draft", "").strip()
+        if not draft:
+            raise AIServiceError(f"AI returned an empty result for chunk {index}. No tokens were deducted.")
+        drafts.append(draft)
+        summary = result.get("context_summary", {})
+        input_chars += int(summary.get("input_chars", 0) or 0)
+        provider_usages.append(summary.get("provider_usage", {}))
+        chunk_steps.append({"name": "Writing Agent", "status": "ready", "detail": f"Processed chunk {index} of {len(chunks)}."})
+
+    combined = "\n\n".join(drafts).strip()
+    safety_warnings = validate_output(action, combined, selected_text, {})
+    consistency_report = check_consistency(combined, manuscript, action=action, selected_text=selected_text)
+    consistency_warnings = [
+        f"{issue.get('message')} {issue.get('reason')}".strip()
+        for issue in consistency_report.get("issues", [])
+    ]
+    custom_intent = infer_custom_prompt_intent(user_prompt, selected_text) if action == "custom" else None
+    placement = custom_intent["placement"] if custom_intent else ""
+    intent_preview = intent_preview_for(action, user_prompt, selected_text, placement)
+    placement = intent_preview.get("placement", placement)
+    diff_available = bool(selected_text and intent_preview.get("placement") == "replace_selection")
+    context_summary = {
+        "policy": cost_mode,
+        "usage_hint": f"{cost_mode} chunked context",
+        "input_chars": input_chars,
+        "selected_chars": len(selected_text),
+        "original_selected_chars": len(selected_text),
+        "selection_limit_chars": coverage.get("limit_chars", 0) if coverage else 0,
+        "selection_truncated": False,
+        "cursor_chars": len(cursor_context or ""),
+        "prompt_chars": len(user_prompt or ""),
+        "excerpt_chars": 0,
+        "current_section": "",
+        "retrieved_sections": 0,
+        "chunk_count": len(chunks),
+        "coverage": coverage or {},
+        "provider_usage": _merge_provider_usage(provider_usages),
+    }
+    return {
+        "draft": combined,
+        "placement": placement,
+        "intent_preview": intent_preview,
+        "diff_available": diff_available,
+        "suggestion_diff": build_word_diff(selected_text, combined) if diff_available else [],
+        "agent_steps": [
+            {"name": "Context Agent", "status": "ready", "detail": f"Prepared {len(chunks)} chunks."},
+            {"name": "Voice Agent", "status": "ready", "detail": "Loaded local voice profile."},
+            *chunk_steps,
+            {
+                "name": "Consistency Agent",
+                "status": "warning" if consistency_report.get("issues") else "ready",
+                "detail": consistency_warnings[0] if consistency_warnings else "Checked combined suggestion.",
+            },
+            {"name": "Safety Agent", "status": "ready", "detail": safety_warnings[-1] if safety_warnings else "Checked combined suggestion."},
+        ],
+        "usage_hint": f"{cost_mode} chunked context",
+        "safety_warnings": [*consistency_warnings, *safety_warnings],
+        "consistency_report": consistency_report,
+        "engine_state": build_longform_engine_state(manuscript, consistency_report=consistency_report, context_summary=context_summary),
+        "memory_freshness": memory_freshness(manuscript.ai_memory_meta, manuscript.ai_memory_stale),
+        "chapter_memory": normalize_chapter_memory(manuscript.ai_chapter_memory),
+        "cost_mode": cost_mode,
+        "context_summary": context_summary,
+        "usage": record_usage(manuscript.ai_usage, action, input_chars, len(combined), f"{cost_mode} chunked context"),
+    }
+
+
+def generate_draft(manuscript, action, selected_text="", cursor_context="", user_prompt="", regeneration_instruction="", cost_mode="", client=None):
+    if action not in ACTION_INSTRUCTIONS:
+        raise AIServiceError("Unknown AI action.")
+    cost_mode = normalize_cost_mode(cost_mode or getattr(manuscript, "ai_cost_mode", "balanced"))
+    coverage = selection_coverage_for(action, selected_text, user_prompt, cost_mode)
+    if not coverage.get("allowed"):
+        raise AISelectionCoverageError(coverage)
+    if coverage.get("chunking_available") and coverage.get("estimated_chunks", 1) > 1:
+        return _generate_chunked_draft(
+            manuscript,
+            action,
+            selected_text=selected_text,
+            cursor_context=cursor_context,
+            user_prompt=user_prompt,
+            regeneration_instruction=regeneration_instruction,
+            cost_mode=cost_mode,
+            client=client,
+            coverage=coverage,
+        )
+    return _generate_single_draft(
+        manuscript,
+        action,
+        selected_text=selected_text,
+        cursor_context=cursor_context,
+        user_prompt=user_prompt,
+        regeneration_instruction=regeneration_instruction,
+        cost_mode=cost_mode,
+        client=client,
+        coverage=coverage,
+    )

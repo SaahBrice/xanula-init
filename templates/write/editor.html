@@ -1514,6 +1514,28 @@ body             { overflow: hidden; }
                             <button :class="costMode === 'deep' ? 'on' : ''" @click="costMode = 'deep'" :disabled="aiLoading || suggestion.active">{% trans "Deep" %}</button>
                         </div>
                     </div>
+                    <p class="ai-subtle mt-2" x-text="coverageHint()"></p>
+                    <template x-if="coverageWarning">
+                        <div class="ai-warning-card mt-2">
+                            <strong>{% trans "Selection coverage" %}</strong>
+                            <div x-text="coverageWarning.coverage_message"></div>
+                            <template x-if="coverageWarning.stop_sentence && !coverageWarning.allowed">
+                                <div class="mt-1" x-text="`Stop point: &quot;${coverageWarning.stop_sentence}&quot;`"></div>
+                            </template>
+                            <div class="ai-row mt-2">
+                                <template x-if="coverageWarning.recommended_mode === 'balanced'">
+                                    <button class="ai-btn primary" @click="switchCoverageMode('balanced')">{% trans "Use Balanced" %}</button>
+                                </template>
+                                <template x-if="coverageWarning.recommended_mode === 'deep' || coverageWarning.recommended_mode === 'balanced'">
+                                    <button class="ai-btn" @click="switchCoverageMode('deep')">{% trans "Use Deep" %}</button>
+                                </template>
+                                <template x-if="coverageWarning.requires_confirmation">
+                                    <button class="ai-btn primary" @click="confirmCoverageRun()" x-text="coverageRunLabel()"></button>
+                                </template>
+                                <button class="ai-btn" @click="coverageWarning = null; pendingCoverageRequest = null">{% trans "Cancel" %}</button>
+                            </div>
+                        </div>
+                    </template>
                 </section>
 
                 <section class="ai-card ai-section" x-show="activityVisible()" x-cloak>
@@ -1792,6 +1814,9 @@ function writeEditor() {
         agentWarnings: [],
         usageHint: '',
         contextSummary: {},
+        coverageWarning: null,
+        lastCoverage: null,
+        pendingCoverageRequest: null,
         tokenStatus: {},
         purchaseOptions: {},
         tokenDelta: 0,
@@ -2022,7 +2047,9 @@ function writeEditor() {
                 if (data.code === 'insufficient_tokens') {
                     this.tokenModalOpen = true
                 }
-                throw new Error(data.message || 'AI request failed.')
+                const error = new Error(data.message || 'AI request failed.')
+                error.data = data
+                throw error
             }
             return data
         },
@@ -2159,6 +2186,66 @@ function writeEditor() {
 
         promptExpanded() {
             return this.aiPromptFocused || !!this.aiPrompt.trim()
+        },
+
+        coverageHint() {
+            if (this.costMode === 'fast') return 'Fast uses a small selection window for quick, cheaper edits.'
+            if (this.costMode === 'deep') return 'Deep can process large selections in chunks and may use more tokens.'
+            return 'Balanced can process longer selections in moderate chunks.'
+        },
+
+        coverageRunLabel() {
+            const mode = (this.coverageWarning?.cost_mode || this.costMode || 'balanced')
+            return `Run ${mode.charAt(0).toUpperCase()}${mode.slice(1)}`
+        },
+
+        async preflightAiAction(action, userPrompt, selectedText, options = {}) {
+            const data = await this.postAi('preflight', {
+                action,
+                selected_text: selectedText,
+                user_prompt: userPrompt,
+                cost_mode: this.costMode,
+            })
+            const coverage = data.coverage || data
+            this.lastCoverage = coverage
+            const snapshot = options.snapshot || { action, userPrompt, selectedText }
+            if (!coverage.uses_selection) {
+                this.coverageWarning = null
+                this.pendingCoverageRequest = null
+                return true
+            }
+            if (!coverage.allowed) {
+                this.coverageWarning = coverage
+                this.pendingCoverageRequest = snapshot
+                return false
+            }
+            if (coverage.chunking_available && Number(coverage.estimated_chunks || 1) > 1 && !options.coverageConfirmed) {
+                this.coverageWarning = { ...coverage, requires_confirmation: true }
+                this.pendingCoverageRequest = snapshot
+                return false
+            }
+            this.coverageWarning = null
+            this.pendingCoverageRequest = null
+            return true
+        },
+
+        switchCoverageMode(mode) {
+            this.costMode = mode
+            this.coverageWarning = null
+            const pending = this.pendingCoverageRequest
+            this.pendingCoverageRequest = null
+            if (pending) {
+                this.runAiAction(pending.action, pending.userPrompt, { snapshot: pending })
+            }
+        },
+
+        confirmCoverageRun() {
+            const pending = this.pendingCoverageRequest
+            this.coverageWarning = null
+            this.pendingCoverageRequest = null
+            if (pending) {
+                this.runAiAction(pending.action, pending.userPrompt, { coverageConfirmed: true, snapshot: pending })
+            }
         },
 
         promptIntentPreview() {
@@ -2400,22 +2487,48 @@ function writeEditor() {
             await this.runAiAction('custom', prompt)
         },
 
-        async runAiAction(action, userPrompt = '') {
-            this.aiLoading = true
-            this.aiAction = action
+        async runAiAction(action, userPrompt = '', options = {}) {
+            const optionSnapshot = options.snapshot || null
+            const selectedText = optionSnapshot?.selectedText ?? (this.suggestion.active ? this.suggestion.selectedText : this.selectedText())
+            const cursorContext = optionSnapshot?.cursorContext ?? (this.suggestion.active ? this.suggestion.cursorContext : this.cursorContext())
+            const storedPrompt = this.suggestion.active ? this.suggestion.userPrompt : ''
+            const promptToSend = optionSnapshot?.userPrompt ?? (userPrompt || storedPrompt)
+            const defaultRange = optionSnapshot?.defaultRange ?? (this.suggestion.active ? this.suggestion.range : this.currentSuggestionRange(action))
+            const insertionRange = optionSnapshot?.insertionRange ?? (this.suggestion.active ? this.suggestion.range : this.currentInsertionRange())
+            const replacementRange = optionSnapshot?.replacementRange ?? (this.suggestion.active ? this.suggestion.range : this.currentReplacementRange())
+            const snapshot = {
+                action,
+                userPrompt: promptToSend,
+                selectedText,
+                cursorContext,
+                defaultRange,
+                insertionRange,
+                replacementRange,
+            }
             this.aiError = ''
             this.aiNotice = ''
+            try {
+                const canRun = await this.preflightAiAction(action, promptToSend, selectedText, { ...options, snapshot })
+                if (!canRun) return
+            } catch (error) {
+                if (error.data?.code === 'selection_coverage' || error.data?.coverage) {
+                    this.coverageWarning = error.data.coverage || error.data
+                } else {
+                    this.aiError = error.message
+                }
+                return
+            }
+            this.aiLoading = true
+            this.aiAction = action
             const token = this.startActivity(action)
             const startedAt = Date.now()
-            const selectedText = this.suggestion.active ? this.suggestion.selectedText : this.selectedText()
-            const cursorContext = this.suggestion.active ? this.suggestion.cursorContext : this.cursorContext()
-            const storedPrompt = this.suggestion.active ? this.suggestion.userPrompt : ''
-            const promptToSend = userPrompt || storedPrompt
-            const defaultRange = this.suggestion.active ? this.suggestion.range : this.currentSuggestionRange(action)
-            const insertionRange = this.suggestion.active ? this.suggestion.range : this.currentInsertionRange()
-            const replacementRange = this.suggestion.active ? this.suggestion.range : this.currentReplacementRange()
             try {
                 await this.ensureSavedForAi()
+                const coverage = this.lastCoverage
+                if (coverage?.chunking_available && Number(coverage.estimated_chunks || 1) > 1) {
+                    const mode = coverage.cost_mode || this.costMode
+                    this.aiNotice = `Processing ${coverage.estimated_chunks} chunks in ${mode} mode.`
+                }
                 const data = await this.postAi('generate', {
                     action,
                     selected_text: selectedText,
@@ -2442,6 +2555,9 @@ function writeEditor() {
                     this.aiNotice = ''
                 }
             } catch (error) {
+                if (error.data?.code === 'selection_coverage' || error.data?.coverage) {
+                    this.coverageWarning = error.data.coverage || error.data
+                }
                 await this.holdAgentCue(startedAt)
                 this.failActivity(token, error.message)
                 this.aiError = error.message
